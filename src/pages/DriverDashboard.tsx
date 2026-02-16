@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { LogOut, Power } from "lucide-react";
+import { LogOut, Power, MapPin } from "lucide-react";
 import logo from "@/assets/logo.png";
 import DriverOrderFeed from "@/components/driver/DriverOrderFeed";
 
@@ -11,6 +11,64 @@ const DriverDashboard = () => {
   const { user, signOut } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [gpsActive, setGpsActive] = useState(false);
+  const gpsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const watchIdRef = useRef<number | null>(null);
+
+  // GPS broadcasting: send location every 5 seconds when online
+  const startGpsBroadcast = useCallback(() => {
+    if (!user || gpsIntervalRef.current) return;
+
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setGpsActive(true);
+    toast.success("GPS broadcasting started", { icon: "📍" });
+
+    const sendLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          await supabase
+            .from("drivers")
+            .update({ current_lat: latitude, current_lng: longitude })
+            .eq("user_id", user.id);
+        },
+        (err) => {
+          console.error("GPS error:", err.message);
+        },
+        { enableHighAccuracy: true, timeout: 4000 }
+      );
+    };
+
+    // Send immediately, then every 5 seconds
+    sendLocation();
+    gpsIntervalRef.current = setInterval(sendLocation, 5000);
+  }, [user]);
+
+  const stopGpsBroadcast = useCallback(() => {
+    if (gpsIntervalRef.current) {
+      clearInterval(gpsIntervalRef.current);
+      gpsIntervalRef.current = null;
+    }
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setGpsActive(false);
+  }, []);
+
+  // Start/stop GPS based on online status
+  useEffect(() => {
+    if (isOnline) {
+      startGpsBroadcast();
+    } else {
+      stopGpsBroadcast();
+    }
+    return () => stopGpsBroadcast();
+  }, [isOnline, startGpsBroadcast, stopGpsBroadcast]);
 
   // Fetch current online status from drivers table
   useEffect(() => {
@@ -78,6 +136,13 @@ const DriverDashboard = () => {
             ? "You're online — waiting for orders..."
             : "Go online to start receiving orders"}
         </p>
+
+        {gpsActive && (
+          <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-primary/10 rounded-lg text-sm text-primary">
+            <MapPin className="h-4 w-4 animate-pulse" />
+            <span>GPS broadcasting active — updating every 5s</span>
+          </div>
+        )}
 
         <DriverOrderFeed isOnline={isOnline} />
       </main>

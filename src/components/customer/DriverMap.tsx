@@ -7,7 +7,20 @@ interface DriverMapProps {
   driverId: string;
   pickupAddress?: string;
   dropoffAddress?: string;
+  onEtaChange?: (etaMinutes: number | null) => void;
 }
+
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+const AVG_SPEED_KMH = 25;
 
 const DRIVER_ICON = L.divIcon({
   html: `<div style="background: hsl(215, 55%, 30%); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
@@ -52,7 +65,7 @@ async function geocode(address: string): Promise<[number, number] | null> {
   return null;
 }
 
-const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) => {
+const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange }: DriverMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -60,6 +73,18 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
   const dropoffMarkerRef = useRef<L.Marker | null>(null);
   const routeLineRef = useRef<L.Polyline | null>(null);
   const [noLocation, setNoLocation] = useState(false);
+
+  const calcEta = () => {
+    if (!markerRef.current || !dropoffMarkerRef.current) {
+      onEtaChange?.(null);
+      return;
+    }
+    const driverPos = markerRef.current.getLatLng();
+    const dropoffPos = dropoffMarkerRef.current.getLatLng();
+    const distKm = haversineDistance(driverPos.lat, driverPos.lng, dropoffPos.lat, dropoffPos.lng);
+    const minutes = Math.max(1, Math.round((distKm / AVG_SPEED_KMH) * 60));
+    onEtaChange?.(minutes);
+  };
 
   const updateMarker = (lat: number, lng: number) => {
     if (!mapInstance.current) return;
@@ -160,6 +185,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
       }
 
       updateRouteLine();
+      calcEta();
       fitAllMarkers();
     };
 
@@ -179,6 +205,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
         updateMarker(data.current_lat, data.current_lng);
         setNoLocation(false);
         updateRouteLine();
+        calcEta();
         fitAllMarkers();
       } else {
         setNoLocation(true);
@@ -205,6 +232,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
             updateMarker(current_lat, current_lng);
             setNoLocation(false);
             updateRouteLine();
+            calcEta();
           }
         }
       )

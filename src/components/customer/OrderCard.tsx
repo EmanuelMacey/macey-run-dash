@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2 } from "lucide-react";
+import DriverMap from "./DriverMap";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -37,6 +38,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
   const [cancelling, setCancelling] = useState(false);
   const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   const canCancel = order.status === "pending";
+  const showMap = order.driver_id && ["accepted", "picked_up", "on_the_way"].includes(order.status);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -87,6 +89,8 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
           <p className="text-muted-foreground text-xs mt-1">{order.description}</p>
         )}
       </div>
+
+      {showMap && <DriverMap driverId={order.driver_id!} />}
 
       <div className="flex items-center justify-between pt-2 border-t border-border">
         <div>

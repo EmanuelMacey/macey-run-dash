@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LogOut, Package, MapPin, Plus } from "lucide-react";
+import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NewOrderDialog from "@/components/customer/NewOrderDialog";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -12,7 +13,7 @@ const CustomerDashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" onClick={unlockAudio}>
       <header className="bg-secondary border-b border-border">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">

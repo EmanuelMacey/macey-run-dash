@@ -73,18 +73,19 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange }: Dri
   const dropoffMarkerRef = useRef<L.Marker | null>(null);
   const routeLineRef = useRef<L.Polyline | null>(null);
   const [noLocation, setNoLocation] = useState(false);
+  const [driverLatLng, setDriverLatLng] = useState<[number, number] | null>(null);
+  const [dropoffLatLng, setDropoffLatLng] = useState<[number, number] | null>(null);
 
-  const calcEta = () => {
-    if (!markerRef.current || !dropoffMarkerRef.current) {
+  // Calculate ETA whenever driver or dropoff positions change
+  useEffect(() => {
+    if (driverLatLng && dropoffLatLng) {
+      const distKm = haversineDistance(driverLatLng[0], driverLatLng[1], dropoffLatLng[0], dropoffLatLng[1]);
+      const minutes = Math.max(1, Math.round((distKm / AVG_SPEED_KMH) * 60));
+      onEtaChange?.(minutes);
+    } else {
       onEtaChange?.(null);
-      return;
     }
-    const driverPos = markerRef.current.getLatLng();
-    const dropoffPos = dropoffMarkerRef.current.getLatLng();
-    const distKm = haversineDistance(driverPos.lat, driverPos.lng, dropoffPos.lat, dropoffPos.lng);
-    const minutes = Math.max(1, Math.round((distKm / AVG_SPEED_KMH) * 60));
-    onEtaChange?.(minutes);
-  };
+  }, [driverLatLng, dropoffLatLng, onEtaChange]);
 
   const updateMarker = (lat: number, lng: number) => {
     if (!mapInstance.current) return;
@@ -94,6 +95,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange }: Dri
       markerRef.current = L.marker([lat, lng], { icon: DRIVER_ICON }).addTo(mapInstance.current);
       markerRef.current.bindTooltip("Driver", { direction: "top", offset: [0, -18] });
     }
+    setDriverLatLng([lat, lng]);
     mapInstance.current.setView([lat, lng], mapInstance.current.getZoom(), { animate: true });
   };
 
@@ -181,11 +183,11 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange }: Dri
             dropoffMarkerRef.current = L.marker(coords, { icon: DROPOFF_ICON }).addTo(mapInstance.current);
             dropoffMarkerRef.current.bindTooltip("Dropoff", { direction: "top", offset: [0, -16], permanent: true, className: "leaflet-tooltip-dropoff" });
           }
+          setDropoffLatLng(coords);
         }
       }
 
       updateRouteLine();
-      calcEta();
       fitAllMarkers();
     };
 
@@ -205,7 +207,6 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange }: Dri
         updateMarker(data.current_lat, data.current_lng);
         setNoLocation(false);
         updateRouteLine();
-        calcEta();
         fitAllMarkers();
       } else {
         setNoLocation(true);
@@ -232,7 +233,6 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange }: Dri
             updateMarker(current_lat, current_lng);
             setNoLocation(false);
             updateRouteLine();
-            calcEta();
           }
         }
       )

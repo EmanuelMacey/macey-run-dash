@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer } from "lucide-react";
 import DriverMap from "./DriverMap";
 import OrderChat from "@/components/chat/OrderChat";
+import RatingDialog from "./RatingDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -104,6 +105,10 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
           <DriverMap driverId={order.driver_id!} pickupAddress={order.pickup_address} dropoffAddress={order.dropoff_address} onEtaChange={handleEtaChange} />
           <OrderChat orderId={order.id} />
         </>
+      )}
+
+      {order.status === "delivered" && order.driver_id && (
+        <RatingDialog orderId={order.id} driverId={order.driver_id} />
       )}
 
       <div className="flex items-center justify-between pt-2 border-t border-border">

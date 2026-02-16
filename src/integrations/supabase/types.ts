@@ -49,6 +49,44 @@ export type Database = {
           },
         ]
       }
+      driver_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_id: string
+          driver_id: string
+          id: string
+          order_id: string
+          rating: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_id: string
+          driver_id: string
+          id?: string
+          order_id: string
+          rating: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_id?: string
+          driver_id?: string
+          id?: string
+          order_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_ratings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           created_at: string

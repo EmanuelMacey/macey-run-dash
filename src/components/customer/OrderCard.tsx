@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2 } from "lucide-react";
+import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer } from "lucide-react";
 import DriverMap from "./DriverMap";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,9 +36,11 @@ interface OrderCardProps {
 
 const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
   const [cancelling, setCancelling] = useState(false);
+  const [eta, setEta] = useState<number | null>(null);
   const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   const canCancel = order.status === "pending";
   const showMap = order.driver_id && ["accepted", "picked_up", "on_the_way"].includes(order.status);
+  const handleEtaChange = useCallback((minutes: number | null) => setEta(minutes), []);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -90,7 +92,17 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
         )}
       </div>
 
-      {showMap && <DriverMap driverId={order.driver_id!} pickupAddress={order.pickup_address} dropoffAddress={order.dropoff_address} />}
+      {showMap && (
+        <>
+          {eta !== null && (
+            <div className="flex items-center gap-1.5 text-sm font-medium text-primary">
+              <Timer className="h-4 w-4" />
+              <span>ETA: ~{eta} min</span>
+            </div>
+          )}
+          <DriverMap driverId={order.driver_id!} pickupAddress={order.pickup_address} dropoffAddress={order.dropoff_address} onEtaChange={handleEtaChange} />
+        </>
+      )}
 
       <div className="flex items-center justify-between pt-2 border-t border-border">
         <div>

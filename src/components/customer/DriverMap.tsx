@@ -58,6 +58,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
   const markerRef = useRef<L.Marker | null>(null);
   const pickupMarkerRef = useRef<L.Marker | null>(null);
   const dropoffMarkerRef = useRef<L.Marker | null>(null);
+  const routeLineRef = useRef<L.Polyline | null>(null);
   const [noLocation, setNoLocation] = useState(false);
 
   const updateMarker = (lat: number, lng: number) => {
@@ -69,6 +70,27 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
       markerRef.current.bindTooltip("Driver", { direction: "top", offset: [0, -18] });
     }
     mapInstance.current.setView([lat, lng], mapInstance.current.getZoom(), { animate: true });
+  };
+
+  const updateRouteLine = () => {
+    if (!mapInstance.current) return;
+    const points: L.LatLng[] = [];
+    if (pickupMarkerRef.current) points.push(pickupMarkerRef.current.getLatLng());
+    if (markerRef.current) points.push(markerRef.current.getLatLng());
+    if (dropoffMarkerRef.current) points.push(dropoffMarkerRef.current.getLatLng());
+
+    if (points.length >= 2) {
+      if (routeLineRef.current) {
+        routeLineRef.current.setLatLngs(points);
+      } else {
+        routeLineRef.current = L.polyline(points, {
+          color: "hsl(215, 55%, 30%)",
+          weight: 3,
+          opacity: 0.7,
+          dashArray: "8, 8",
+        }).addTo(mapInstance.current);
+      }
+    }
   };
 
   const fitAllMarkers = () => {
@@ -104,6 +126,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
       markerRef.current = null;
       pickupMarkerRef.current = null;
       dropoffMarkerRef.current = null;
+      routeLineRef.current = null;
     };
   }, []);
 
@@ -136,6 +159,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
         }
       }
 
+      updateRouteLine();
       fitAllMarkers();
     };
 
@@ -154,6 +178,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
       if (data?.current_lat && data?.current_lng) {
         updateMarker(data.current_lat, data.current_lng);
         setNoLocation(false);
+        updateRouteLine();
         fitAllMarkers();
       } else {
         setNoLocation(true);
@@ -179,6 +204,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress }: DriverMapProps) 
           if (current_lat && current_lng) {
             updateMarker(current_lat, current_lng);
             setNoLocation(false);
+            updateRouteLine();
           }
         }
       )

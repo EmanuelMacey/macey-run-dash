@@ -90,7 +90,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
         )}
       </div>
 
-      {showMap && <DriverMap driverId={order.driver_id!} />}
+      {showMap && <DriverMap driverId={order.driver_id!} pickupAddress={order.pickup_address} dropoffAddress={order.dropoff_address} />}
 
       <div className="flex items-center justify-between pt-2 border-t border-border">
         <div>

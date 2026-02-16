@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LogOut, Power, MapPin } from "lucide-react";
+import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import DriverOrderFeed from "@/components/driver/DriverOrderFeed";
 
@@ -105,7 +106,7 @@ const DriverDashboard = () => {
   }, [user, isOnline]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" onClick={unlockAudio}>
       <header className="bg-secondary border-b border-border">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">

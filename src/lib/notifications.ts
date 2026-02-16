@@ -1,88 +1,100 @@
 /**
- * Notification utilities: sound, vibration, and browser push notifications
+ * Notification utilities: Messenger-style sound, vibration, and browser notifications
  */
 
-// Use an HTML Audio element for better cross-browser compatibility
-let notificationAudio: HTMLAudioElement | null = null;
+let audioCtx: AudioContext | null = null;
 let audioUnlocked = false;
 
-// Create a beep sound as a data URI (short sine wave)
-const BEEP_DATA_URI = (() => {
-  // Generate a WAV file as base64
-  const sampleRate = 8000;
-  const duration = 0.3;
-  const numSamples = Math.floor(sampleRate * duration);
-  const buffer = new ArrayBuffer(44 + numSamples * 2);
-  const view = new DataView(buffer);
-
-  // WAV header
-  const writeString = (offset: number, str: string) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
-  writeString(0, "RIFF");
-  view.setUint32(4, 36 + numSamples * 2, true);
-  writeString(8, "WAVE");
-  writeString(12, "fmt ");
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeString(36, "data");
-  view.setUint32(40, numSamples * 2, true);
-
-  // Generate rising tone
-  for (let i = 0; i < numSamples; i++) {
-    const t = i / sampleRate;
-    const freq = 880 + (t / duration) * 400; // 880Hz to 1280Hz
-    const envelope = Math.max(0, 1 - (t / duration) * 1.5); // fade out
-    const sample = Math.sin(2 * Math.PI * freq * t) * envelope * 0.4;
-    view.setInt16(44 + i * 2, sample * 32767, true);
+// Get or create AudioContext
+const getAudioContext = (): AudioContext => {
+  if (!audioCtx || audioCtx.state === "closed") {
+    audioCtx = new AudioContext();
   }
-
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return "data:audio/wav;base64," + btoa(binary);
-})();
-
-// Initialize audio element
-const getAudio = (): HTMLAudioElement => {
-  if (!notificationAudio) {
-    notificationAudio = new Audio(BEEP_DATA_URI);
-    notificationAudio.volume = 0.5;
-  }
-  return notificationAudio;
+  return audioCtx;
 };
 
-// Call this on a user gesture (click/tap) to unlock audio for iOS/Safari
+// Call this on a user gesture (click/tap) to unlock AudioContext for iOS/Safari
 export const unlockAudio = () => {
   if (audioUnlocked) return;
-  const audio = getAudio();
-  audio.muted = true;
-  audio.play().then(() => {
-    audio.pause();
-    audio.muted = false;
-    audio.currentTime = 0;
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
+    // Create a silent buffer to unlock
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
     audioUnlocked = true;
     console.log("[Notifications] Audio unlocked via user gesture");
-  }).catch(() => {
+  } catch (e) {
     console.log("[Notifications] Audio unlock failed (will retry on next gesture)");
-  });
+  }
 };
 
-// Play the notification sound
+/**
+ * Play a loud Messenger-style notification sound using Web Audio API.
+ * Two-tone ascending chime, repeated twice — unmistakable and attention-grabbing.
+ */
 export const playNotificationSound = () => {
   try {
-    const audio = getAudio();
-    audio.currentTime = 0;
-    audio.play().then(() => {
-      console.log("[Notifications] Sound played successfully");
-    }).catch((e) => {
-      console.warn("[Notifications] Sound play failed:", e.message);
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") {
+      ctx.resume();
+    }
+
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(1.0, now); // Full volume
+    masterGain.connect(ctx.destination);
+
+    // Messenger-style: two quick ascending tones, repeated
+    const tones = [
+      // First chime
+      { freq: 784, start: 0, duration: 0.15 },    // G5
+      { freq: 1047, start: 0.15, duration: 0.2 },  // C6
+      // Second chime (repeat)
+      { freq: 784, start: 0.5, duration: 0.15 },   // G5
+      { freq: 1047, start: 0.65, duration: 0.2 },   // C6
+    ];
+
+    tones.forEach(({ freq, start, duration }) => {
+      // Primary oscillator
+      const osc = ctx.createOscillator();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + start);
+
+      // Harmonic for richness
+      const osc2 = ctx.createOscillator();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(freq * 2, now + start);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, now + start);
+      gain.gain.linearRampToValueAtTime(0.8, now + start + 0.02); // Fast attack
+      gain.gain.setValueAtTime(0.8, now + start + duration * 0.6);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + start + duration);
+
+      const gain2 = ctx.createGain();
+      gain2.gain.setValueAtTime(0, now + start);
+      gain2.gain.linearRampToValueAtTime(0.3, now + start + 0.02);
+      gain2.gain.setValueAtTime(0.3, now + start + duration * 0.6);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + start + duration);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc2.connect(gain2);
+      gain2.connect(masterGain);
+
+      osc.start(now + start);
+      osc.stop(now + start + duration + 0.05);
+      osc2.start(now + start);
+      osc2.stop(now + start + duration + 0.05);
     });
+
+    console.log("[Notifications] Messenger-style sound played");
   } catch (e) {
     console.warn("[Notifications] Could not play sound:", e);
   }
@@ -92,7 +104,7 @@ export const playNotificationSound = () => {
 export const vibrateDevice = () => {
   try {
     if ("vibrate" in navigator) {
-      navigator.vibrate([100, 50, 100]);
+      navigator.vibrate([200, 100, 200, 100, 200]);
     }
   } catch (e) {
     // silent
@@ -109,18 +121,27 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   return result === "granted";
 };
 
-// Show a browser notification
+// Show a browser notification (OS-level popup)
 export const showBrowserNotification = (title: string, body: string) => {
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  if (!("Notification" in window) || Notification.permission !== "granted") {
+    console.log("[Notifications] Permission not granted, skipping OS notification");
+    return;
+  }
 
   try {
-    new Notification(title, {
+    const notification = new Notification(title, {
       body,
-      icon: "/favicon.ico",
-      badge: "/favicon.ico",
-      tag: "maceyrunners-notification",
-      requireInteraction: false,
+      icon: "/pwa-icon-192.png",
+      badge: "/pwa-icon-192.png",
+      tag: `maceyrunners-${Date.now()}`, // Unique tag so each notification shows separately
+      requireInteraction: true, // Stay visible until user dismisses
+      silent: false, // Allow OS sound too
     });
+
+    // Auto-close after 10 seconds
+    setTimeout(() => notification.close(), 10000);
+
+    console.log("[Notifications] OS notification shown:", title);
   } catch (e) {
     console.warn("[Notifications] Browser notification failed:", e);
   }
@@ -131,7 +152,7 @@ export const isPageVisible = (): boolean => {
   return document.visibilityState === "visible";
 };
 
-// Combined handler: play sound + vibrate + optionally show browser notification
+// Combined handler: play sound + vibrate + show OS notification
 export const triggerNotificationAlert = (title: string, message: string) => {
   console.log("[Notifications] Alert triggered:", title, message);
   playNotificationSound();

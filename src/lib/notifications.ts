@@ -1,20 +1,18 @@
 /**
  * Notification utilities: Messenger-style sound, vibration, and browser notifications.
- * Uses HTMLAudioElement with a pre-generated WAV for reliable playback outside user gestures.
+ * Uses HTMLAudioElement with a pre-generated WAV for reliable playback.
  */
 
-let notificationAudio: HTMLAudioElement | null = null;
 let audioUnlocked = false;
 
 // Generate a Messenger-style two-tone chime as a WAV data URI
 const MESSENGER_CHIME_URI = (() => {
   const sampleRate = 44100;
-  const totalDuration = 1.0; // seconds
+  const totalDuration = 1.0;
   const numSamples = Math.floor(sampleRate * totalDuration);
   const buffer = new ArrayBuffer(44 + numSamples * 2);
   const view = new DataView(buffer);
 
-  // WAV header
   const writeStr = (offset: number, str: string) => {
     for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
   };
@@ -23,49 +21,38 @@ const MESSENGER_CHIME_URI = (() => {
   writeStr(8, "WAVE");
   writeStr(12, "fmt ");
   view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true); // PCM
-  view.setUint16(22, 1, true); // mono
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
   view.setUint32(24, sampleRate, true);
   view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true); // block align
-  view.setUint16(34, 16, true); // bits per sample
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
   writeStr(36, "data");
   view.setUint32(40, numSamples * 2, true);
 
-  // Messenger-style chime: two ascending tones, repeated twice
   const tones = [
-    { freq: 784, start: 0, dur: 0.12 },     // G5
-    { freq: 1047, start: 0.12, dur: 0.18 },  // C6
-    { freq: 784, start: 0.45, dur: 0.12 },   // G5
-    { freq: 1047, start: 0.57, dur: 0.18 },  // C6
+    { freq: 784, start: 0, dur: 0.12 },
+    { freq: 1047, start: 0.12, dur: 0.18 },
+    { freq: 784, start: 0.45, dur: 0.12 },
+    { freq: 1047, start: 0.57, dur: 0.18 },
   ];
 
   for (let i = 0; i < numSamples; i++) {
     const t = i / sampleRate;
     let sample = 0;
-
     for (const tone of tones) {
       const tLocal = t - tone.start;
       if (tLocal >= 0 && tLocal < tone.dur) {
-        // Envelope: fast attack, sustain, quick release
         const attackEnd = 0.01;
         const releaseStart = tone.dur * 0.7;
         let env = 1.0;
-        if (tLocal < attackEnd) {
-          env = tLocal / attackEnd;
-        } else if (tLocal > releaseStart) {
-          env = Math.max(0, 1.0 - (tLocal - releaseStart) / (tone.dur - releaseStart));
-        }
-
-        // Primary tone + octave harmonic for brightness
-        const primary = Math.sin(2 * Math.PI * tone.freq * tLocal) * 0.7;
-        const harmonic = Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.25;
-        const third = Math.sin(2 * Math.PI * tone.freq * 3 * tLocal) * 0.1;
-        sample += (primary + harmonic + third) * env;
+        if (tLocal < attackEnd) env = tLocal / attackEnd;
+        else if (tLocal > releaseStart) env = Math.max(0, 1.0 - (tLocal - releaseStart) / (tone.dur - releaseStart));
+        sample += (Math.sin(2 * Math.PI * tone.freq * tLocal) * 0.7
+          + Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.25
+          + Math.sin(2 * Math.PI * tone.freq * 3 * tLocal) * 0.1) * env;
       }
     }
-
-    // Clamp and write
     sample = Math.max(-1, Math.min(1, sample));
     view.setInt16(44 + i * 2, sample * 32767, true);
   }
@@ -76,42 +63,46 @@ const MESSENGER_CHIME_URI = (() => {
   return "data:audio/wav;base64," + btoa(binary);
 })();
 
-// Get or create the Audio element
-const getAudio = (): HTMLAudioElement => {
-  if (!notificationAudio) {
-    notificationAudio = new Audio(MESSENGER_CHIME_URI);
-    notificationAudio.volume = 1.0; // Max volume
-    notificationAudio.preload = "auto";
-  }
-  return notificationAudio;
-};
-
-// Call on user gesture to unlock audio for iOS/Safari
+/**
+ * Unlock audio on user gesture. Creates a fresh Audio element each time
+ * and plays it at near-zero volume to satisfy the browser's autoplay policy.
+ * After this, subsequent new Audio() + play() calls will work.
+ */
 export const unlockAudio = () => {
   if (audioUnlocked) return;
-  const audio = getAudio();
-  // Play and immediately pause to unlock
-  audio.muted = true;
-  audio.play().then(() => {
-    audio.pause();
-    audio.muted = false;
-    audio.currentTime = 0;
-    audioUnlocked = true;
-    console.log("[Notifications] Audio unlocked via user gesture");
-  }).catch(() => {
-    console.log("[Notifications] Audio unlock failed (will retry on next gesture)");
-  });
+  try {
+    const a = new Audio(MESSENGER_CHIME_URI);
+    a.volume = 0.01; // Near-silent but not muted (muted doesn't count as "play")
+    const p = a.play();
+    if (p) {
+      p.then(() => {
+        // Stop after a tiny moment
+        setTimeout(() => {
+          a.pause();
+          a.currentTime = 0;
+        }, 50);
+        audioUnlocked = true;
+        console.log("[Notifications] Audio unlocked via user gesture");
+      }).catch(() => {
+        console.log("[Notifications] Audio unlock attempt failed");
+      });
+    }
+  } catch (e) {
+    console.log("[Notifications] Audio unlock error:", e);
+  }
 };
 
-// Play the Messenger-style notification chime
+/**
+ * Play the Messenger-style notification chime at full volume.
+ * Creates a new Audio element each time for reliability.
+ */
 export const playNotificationSound = () => {
   try {
-    const audio = getAudio();
-    audio.currentTime = 0;
+    const audio = new Audio(MESSENGER_CHIME_URI);
     audio.volume = 1.0;
-    const playPromise = audio.play();
-    if (playPromise) {
-      playPromise.then(() => {
+    const p = audio.play();
+    if (p) {
+      p.then(() => {
         console.log("[Notifications] Messenger chime played successfully");
       }).catch((e) => {
         console.warn("[Notifications] Sound play failed:", e.message);
@@ -164,10 +155,7 @@ export const showBrowserNotification = (title: string, body: string) => {
   }
 };
 
-// Check if the page is currently visible
-export const isPageVisible = (): boolean => {
-  return document.visibilityState === "visible";
-};
+export const isPageVisible = (): boolean => document.visibilityState === "visible";
 
 // Combined handler: play sound + vibrate + show OS notification
 export const triggerNotificationAlert = (title: string, message: string) => {

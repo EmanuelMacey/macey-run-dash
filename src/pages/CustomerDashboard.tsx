@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, Package, MapPin, Plus } from "lucide-react";
 import logo from "@/assets/logo.png";
 import NewOrderDialog from "@/components/customer/NewOrderDialog";
+import NotificationBell from "@/components/customer/NotificationBell";
 import OrdersList from "@/components/customer/OrdersList";
 
 const CustomerDashboard = () => {
@@ -18,9 +19,12 @@ const CustomerDashboard = () => {
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
             <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>
           </div>
-          <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
-            <LogOut className="h-4 w-4 mr-2" /> Sign Out
-          </Button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
+              <LogOut className="h-4 w-4 mr-2" /> Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 

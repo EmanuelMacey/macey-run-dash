@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { triggerNotificationAlert, requestNotificationPermission } from "@/lib/notifications";
+import { subscribeToPush, isPushSupported } from "@/lib/push";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Notification = Tables<"notifications">;
@@ -46,8 +47,11 @@ const NotificationBell = () => {
 
   useEffect(() => {
     fetchNotifications();
-    // Request browser notification permission on mount
     requestNotificationPermission();
+    // Subscribe to push notifications if supported
+    if (user && isPushSupported()) {
+      subscribeToPush(user.id);
+    }
   }, [user]);
 
   // Realtime subscription

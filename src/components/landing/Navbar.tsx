@@ -19,6 +19,7 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
+            <Link to="/marketplace" className="text-sm text-secondary-foreground/70 hover:text-accent transition-colors font-medium">Order Food</Link>
             <a href="#how-it-works" className="text-sm text-secondary-foreground/70 hover:text-accent transition-colors">How It Works</a>
             <a href="#services" className="text-sm text-secondary-foreground/70 hover:text-accent transition-colors">Services</a>
             <a href="#pricing" className="text-sm text-secondary-foreground/70 hover:text-accent transition-colors">Pricing</a>
@@ -40,6 +41,7 @@ const Navbar = () => {
 
         {isOpen && (
           <div className="md:hidden pb-4 space-y-3">
+            <Link to="/marketplace" className="block text-sm text-secondary-foreground/70 hover:text-accent py-2 font-medium">Order Food</Link>
             <a href="#how-it-works" className="block text-sm text-secondary-foreground/70 hover:text-accent py-2">How It Works</a>
             <a href="#services" className="block text-sm text-secondary-foreground/70 hover:text-accent py-2">Services</a>
             <a href="#pricing" className="block text-sm text-secondary-foreground/70 hover:text-accent py-2">Pricing</a>

@@ -2,60 +2,89 @@
  * Notification utilities: sound, vibration, and browser push notifications
  */
 
-// Singleton AudioContext - created once, unlocked on first user gesture
-let audioCtx: AudioContext | null = null;
+// Use an HTML Audio element for better cross-browser compatibility
+let notificationAudio: HTMLAudioElement | null = null;
+let audioUnlocked = false;
 
-const getAudioContext = (): AudioContext | null => {
-  try {
-    if (!audioCtx) {
-      audioCtx = new AudioContext();
-    }
-    return audioCtx;
-  } catch (e) {
-    console.warn("Could not create AudioContext:", e);
-    return null;
+// Create a beep sound as a data URI (short sine wave)
+const BEEP_DATA_URI = (() => {
+  // Generate a WAV file as base64
+  const sampleRate = 8000;
+  const duration = 0.3;
+  const numSamples = Math.floor(sampleRate * duration);
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+
+  // WAV header
+  const writeString = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  };
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, numSamples * 2, true);
+
+  // Generate rising tone
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / sampleRate;
+    const freq = 880 + (t / duration) * 400; // 880Hz to 1280Hz
+    const envelope = Math.max(0, 1 - (t / duration) * 1.5); // fade out
+    const sample = Math.sin(2 * Math.PI * freq * t) * envelope * 0.4;
+    view.setInt16(44 + i * 2, sample * 32767, true);
   }
+
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return "data:audio/wav;base64," + btoa(binary);
+})();
+
+// Initialize audio element
+const getAudio = (): HTMLAudioElement => {
+  if (!notificationAudio) {
+    notificationAudio = new Audio(BEEP_DATA_URI);
+    notificationAudio.volume = 0.5;
+  }
+  return notificationAudio;
 };
 
-// Call this on a user gesture (click/tap) to unlock audio
+// Call this on a user gesture (click/tap) to unlock audio for iOS/Safari
 export const unlockAudio = () => {
-  const ctx = getAudioContext();
-  if (ctx && ctx.state === "suspended") {
-    ctx.resume().then(() => {
-      console.log("[Notifications] AudioContext unlocked");
-    });
-  }
+  if (audioUnlocked) return;
+  const audio = getAudio();
+  audio.muted = true;
+  audio.play().then(() => {
+    audio.pause();
+    audio.muted = false;
+    audio.currentTime = 0;
+    audioUnlocked = true;
+    console.log("[Notifications] Audio unlocked via user gesture");
+  }).catch(() => {
+    console.log("[Notifications] Audio unlock failed (will retry on next gesture)");
+  });
 };
 
-// Play a short notification sound using Web Audio API
+// Play the notification sound
 export const playNotificationSound = () => {
-  const ctx = getAudioContext();
-  if (!ctx) return;
-
-  // Resume if suspended (belt-and-suspenders)
-  if (ctx.state === "suspended") {
-    ctx.resume();
-  }
-
   try {
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-    oscillator.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
-
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-
-    oscillator.start(ctx.currentTime);
-    oscillator.stop(ctx.currentTime + 0.4);
-    console.log("[Notifications] Sound played");
+    const audio = getAudio();
+    audio.currentTime = 0;
+    audio.play().then(() => {
+      console.log("[Notifications] Sound played successfully");
+    }).catch((e) => {
+      console.warn("[Notifications] Sound play failed:", e.message);
+    });
   } catch (e) {
-    console.warn("Could not play notification sound:", e);
+    console.warn("[Notifications] Could not play sound:", e);
   }
 };
 
@@ -66,37 +95,23 @@ export const vibrateDevice = () => {
       navigator.vibrate([100, 50, 100]);
     }
   } catch (e) {
-    console.warn("Vibration not supported:", e);
+    // silent
   }
 };
 
 // Request browser notification permission
 export const requestNotificationPermission = async (): Promise<boolean> => {
-  if (!("Notification" in window)) {
-    console.log("[Notifications] Browser does not support notifications");
-    return false;
-  }
-  if (Notification.permission === "granted") {
-    console.log("[Notifications] Permission already granted");
-    return true;
-  }
-  if (Notification.permission === "denied") {
-    console.log("[Notifications] Permission denied");
-    return false;
-  }
+  if (!("Notification" in window)) return false;
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
 
   const result = await Notification.requestPermission();
-  console.log("[Notifications] Permission result:", result);
   return result === "granted";
 };
 
-// Show a browser notification (works when tab is in background)
+// Show a browser notification
 export const showBrowserNotification = (title: string, body: string) => {
-  if (!("Notification" in window) || Notification.permission !== "granted") {
-    console.log("[Notifications] Cannot show browser notification, permission:", 
-      "Notification" in window ? Notification.permission : "not supported");
-    return;
-  }
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
 
   try {
     new Notification(title, {
@@ -106,9 +121,8 @@ export const showBrowserNotification = (title: string, body: string) => {
       tag: "maceyrunners-notification",
       requireInteraction: false,
     });
-    console.log("[Notifications] Browser notification shown");
   } catch (e) {
-    console.warn("Could not show browser notification:", e);
+    console.warn("[Notifications] Browser notification failed:", e);
   }
 };
 
@@ -119,10 +133,8 @@ export const isPageVisible = (): boolean => {
 
 // Combined handler: play sound + vibrate + optionally show browser notification
 export const triggerNotificationAlert = (title: string, message: string) => {
-  console.log("[Notifications] triggerNotificationAlert called:", title, message);
+  console.log("[Notifications] Alert triggered:", title, message);
   playNotificationSound();
   vibrateDevice();
-
-  // Show browser notification even when page is visible for now (for testing)
   showBrowserNotification(title, message);
 };

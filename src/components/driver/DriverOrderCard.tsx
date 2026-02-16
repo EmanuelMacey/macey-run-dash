@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Package, MapPin, CheckCircle2, Loader2, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import OrderChat from "@/components/chat/OrderChat";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Order = Tables<"orders">;
@@ -94,6 +95,10 @@ const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderC
           <p className="text-muted-foreground text-xs italic mt-1">"{order.description}"</p>
         )}
       </div>
+
+      {!isAvailable && ["accepted", "picked_up", "on_the_way"].includes(order.status) && (
+        <OrderChat orderId={order.id} />
+      )}
 
       <div className="flex items-center justify-between pt-2 border-t border-border">
         <div className="flex items-center gap-2">

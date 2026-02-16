@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer } from "lucide-react";
 import DriverMap from "./DriverMap";
+import OrderChat from "@/components/chat/OrderChat";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -101,6 +102,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
             </div>
           )}
           <DriverMap driverId={order.driver_id!} pickupAddress={order.pickup_address} dropoffAddress={order.dropoff_address} onEtaChange={handleEtaChange} />
+          <OrderChat orderId={order.id} />
         </>
       )}
 

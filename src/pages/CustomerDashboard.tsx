@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, MapPin, Plus, ShoppingBag } from "lucide-react";
+import { LogOut, Package, MapPin, Plus } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
-import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import NewOrderDialog from "@/components/customer/NewOrderDialog";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -35,20 +34,6 @@ const CustomerDashboard = () => {
         <p className="text-muted-foreground mb-8">What do you need delivered today?</p>
 
         {/* Service cards that open the order dialog */}
-        {/* Shop from stores */}
-        <Link
-          to="/stores"
-          className="bg-accent/10 border border-accent/30 rounded-2xl p-5 hover:border-accent/60 transition-colors flex items-center gap-4 mb-6"
-        >
-          <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center">
-            <ShoppingBag className="h-6 w-6 text-accent" />
-          </div>
-          <div>
-            <h3 className="font-display text-lg font-bold text-foreground">Shop Stores</h3>
-            <p className="text-muted-foreground text-xs">Browse products & order from local stores</p>
-          </div>
-        </Link>
-
         <div className="grid grid-cols-2 gap-4 mb-8">
           <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>
             <button className="bg-card border border-border rounded-2xl p-5 hover:border-primary/50 transition-colors text-left group">

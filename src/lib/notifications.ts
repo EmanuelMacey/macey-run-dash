@@ -6,9 +6,9 @@
 let audioUnlocked = false;
 
 // Generate a Messenger-style two-tone chime as a WAV data URI
-const MESSENGER_CHIME_URI = (() => {
+const NOTIFICATION_CHIME_URI = (() => {
   const sampleRate = 44100;
-  const totalDuration = 1.0;
+  const totalDuration = 0.6;
   const numSamples = Math.floor(sampleRate * totalDuration);
   const buffer = new ArrayBuffer(44 + numSamples * 2);
   const view = new DataView(buffer);
@@ -30,11 +30,10 @@ const MESSENGER_CHIME_URI = (() => {
   writeStr(36, "data");
   view.setUint32(40, numSamples * 2, true);
 
+  // Gentle two-note "ding-dong": E5 → G5, soft sine with smooth decay
   const tones = [
-    { freq: 784, start: 0, dur: 0.12 },
-    { freq: 1047, start: 0.12, dur: 0.18 },
-    { freq: 784, start: 0.45, dur: 0.12 },
-    { freq: 1047, start: 0.57, dur: 0.18 },
+    { freq: 659.25, start: 0, dur: 0.25 },   // E5 - bright but soft
+    { freq: 783.99, start: 0.18, dur: 0.35 }, // G5 - resolves upward
   ];
 
   for (let i = 0; i < numSamples; i++) {
@@ -43,17 +42,16 @@ const MESSENGER_CHIME_URI = (() => {
     for (const tone of tones) {
       const tLocal = t - tone.start;
       if (tLocal >= 0 && tLocal < tone.dur) {
-        const attackEnd = 0.01;
-        const releaseStart = tone.dur * 0.7;
-        let env = 1.0;
-        if (tLocal < attackEnd) env = tLocal / attackEnd;
-        else if (tLocal > releaseStart) env = Math.max(0, 1.0 - (tLocal - releaseStart) / (tone.dur - releaseStart));
-        sample += (Math.sin(2 * Math.PI * tone.freq * tLocal) * 0.7
-          + Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.25
-          + Math.sin(2 * Math.PI * tone.freq * 3 * tLocal) * 0.1) * env;
+        // Smooth exponential decay envelope — no harsh attack
+        const attack = Math.min(1, tLocal / 0.008);
+        const decay = Math.exp(-tLocal * 6);
+        const env = attack * decay;
+        // Pure sine + soft octave harmonic for warmth
+        sample += (Math.sin(2 * Math.PI * tone.freq * tLocal) * 0.8
+          + Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.15) * env;
       }
     }
-    sample = Math.max(-1, Math.min(1, sample));
+    sample = Math.max(-1, Math.min(1, sample * 0.6));
     view.setInt16(44 + i * 2, sample * 32767, true);
   }
 
@@ -71,7 +69,7 @@ const MESSENGER_CHIME_URI = (() => {
 export const unlockAudio = () => {
   if (audioUnlocked) return;
   try {
-    const a = new Audio(MESSENGER_CHIME_URI);
+    const a = new Audio(NOTIFICATION_CHIME_URI);
     a.volume = 0.01; // Near-silent but not muted (muted doesn't count as "play")
     const p = a.play();
     if (p) {
@@ -98,7 +96,7 @@ export const unlockAudio = () => {
  */
 export const playNotificationSound = () => {
   try {
-    const audio = new Audio(MESSENGER_CHIME_URI);
+    const audio = new Audio(NOTIFICATION_CHIME_URI);
     audio.volume = 1.0;
     const p = audio.play();
     if (p) {

@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, BarChart3, ShoppingBag, Users, Tag } from "lucide-react";
+import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
@@ -14,7 +15,7 @@ const AdminDashboard = () => {
   const { signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" onClick={unlockAudio}>
       <header className="bg-secondary border-b border-border">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">

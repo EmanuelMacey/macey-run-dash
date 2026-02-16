@@ -1,57 +1,64 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, Clock, MapPin } from "lucide-react";
+import { LogOut, Package, MapPin, Plus } from "lucide-react";
+import logo from "@/assets/logo.png";
+import NewOrderDialog from "@/components/customer/NewOrderDialog";
+import OrdersList from "@/components/customer/OrdersList";
 
 const CustomerDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-secondary border-b border-border">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">M</span>
-            </div>
+            <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
             <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>
           </div>
-          <Button variant="ghost" onClick={signOut} className="text-muted-foreground">
+          <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
             <LogOut className="h-4 w-4 mr-2" /> Sign Out
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-2xl">
         <h1 className="font-display text-3xl font-bold text-foreground mb-2">Welcome back!</h1>
         <p className="text-muted-foreground mb-8">What do you need delivered today?</p>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-colors cursor-pointer">
-            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-              <Package className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-display text-xl font-bold text-card-foreground mb-2">Delivery</h3>
-            <p className="text-muted-foreground text-sm mb-3">Send a package from point A to point B</p>
-            <p className="font-display text-2xl font-bold text-primary">$1,000 <span className="text-sm font-normal text-muted-foreground">GYD</span></p>
-          </div>
+        {/* Service cards that open the order dialog */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>
+            <button className="bg-card border border-border rounded-2xl p-5 hover:border-primary/50 transition-colors text-left group">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center mb-3">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-card-foreground mb-1">Delivery</h3>
+              <p className="text-muted-foreground text-xs mb-2">Send a package A → B</p>
+              <p className="font-display text-xl font-bold text-primary">
+                $1,000 <span className="text-xs font-normal text-muted-foreground">GYD</span>
+              </p>
+            </button>
+          </NewOrderDialog>
 
-          <div className="bg-card border border-border rounded-2xl p-6 hover:border-primary/50 transition-colors cursor-pointer">
-            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
-              <MapPin className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-display text-xl font-bold text-card-foreground mb-2">Errand</h3>
-            <p className="text-muted-foreground text-sm mb-3">We'll run an errand for you</p>
-            <p className="font-display text-2xl font-bold text-primary">$1,500 <span className="text-sm font-normal text-muted-foreground">GYD</span></p>
-          </div>
+          <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>
+            <button className="bg-card border border-border rounded-2xl p-5 hover:border-accent/50 transition-colors text-left group">
+              <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center mb-3">
+                <MapPin className="h-5 w-5 text-accent" />
+              </div>
+              <h3 className="font-display text-lg font-bold text-card-foreground mb-1">Errand</h3>
+              <p className="text-muted-foreground text-xs mb-2">We'll run it for you</p>
+              <p className="font-display text-xl font-bold text-accent">
+                $1,500 <span className="text-xs font-normal text-muted-foreground">GYD</span>
+              </p>
+            </button>
+          </NewOrderDialog>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-5 w-5 text-muted-foreground" />
-            <h2 className="font-display text-lg font-bold text-card-foreground">Recent Orders</h2>
-          </div>
-          <p className="text-muted-foreground text-sm">No orders yet. Place your first order above!</p>
-        </div>
+        {/* Orders List */}
+        <OrdersList refreshKey={refreshKey} />
       </main>
     </div>
   );

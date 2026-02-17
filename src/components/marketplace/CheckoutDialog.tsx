@@ -15,6 +15,7 @@ import OrderReceipt from "@/components/customer/OrderReceipt";
 interface CheckoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onOrderPlaced?: () => void;
 }
 
 // Haversine distance in km
@@ -51,7 +52,7 @@ const calculateDeliveryFee = (distanceKm: number) => {
   return Math.max(MIN_FEE, Math.min(MAX_FEE, fee));
 };
 
-const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
+const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogProps) => {
   const { items, total, storeName, storeId, clearCart } = useCart();
   const { user } = useAuth();
   const [deliveryAddress, setDeliveryAddress] = useState("");
@@ -157,6 +158,7 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
 
       toast({ title: "Order placed! 🎉", description: "A driver will pick up your food soon." });
       clearCart();
+      onOrderPlaced?.();
       setDeliveryAddress("");
       setNotes("");
       setDeliveryFee(null);

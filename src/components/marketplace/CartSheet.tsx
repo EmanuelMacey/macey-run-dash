@@ -8,12 +8,17 @@ import CheckoutDialog from "./CheckoutDialog";
 const CartSheet = ({ children }: { children: ReactNode }) => {
   const { items, total, clearCart, updateQuantity, removeItem, storeName } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
 
+  const handleCheckoutComplete = () => {
+    setSheetOpen(false);
+  };
+
   return (
     <>
-      <Sheet>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetTrigger asChild>{children}</SheetTrigger>
         <SheetContent className="w-full sm:max-w-md flex flex-col">
           <SheetHeader>
@@ -73,7 +78,7 @@ const CartSheet = ({ children }: { children: ReactNode }) => {
         </SheetContent>
       </Sheet>
 
-      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} onOrderPlaced={handleCheckoutComplete} />
     </>
   );
 };

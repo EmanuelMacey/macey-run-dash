@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Save, Loader2, User, Phone } from "lucide-react";
+import ReferralSection from "./ReferralSection";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -172,6 +173,10 @@ const CustomerProfile = () => {
         {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
         Save Profile
       </Button>
+
+      <div className="border-t border-border/50 pt-6">
+        <ReferralSection />
+      </div>
     </div>
   );
 };

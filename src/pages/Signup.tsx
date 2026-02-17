@@ -1,22 +1,25 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Gift } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const Signup = () => {
   const { signUp, user, role, loading } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [referralCode, setReferralCode] = useState(searchParams.get("ref") || "");
 
   if (!loading && user && role) {
     if (role === "admin") return <Navigate to="/admin" replace />;
@@ -35,6 +38,28 @@ const Signup = () => {
     if (error) {
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
     } else {
+      // If referral code provided, create referral record after signup
+      if (referralCode.trim()) {
+        try {
+          const { data: referrer } = await supabase
+            .from("profiles")
+            .select("user_id")
+            .eq("referral_code", referralCode.trim().toUpperCase())
+            .single();
+          if (referrer) {
+            const { data: { user: newUser } } = await supabase.auth.getUser();
+            if (newUser) {
+              await supabase.from("referrals").insert({
+                referrer_id: referrer.user_id,
+                referred_id: newUser.id,
+                referral_code: referralCode.trim().toUpperCase(),
+              });
+            }
+          }
+        } catch {
+          // Silently fail - referral is bonus
+        }
+      }
       setSuccess(true);
     }
     setSubmitting(false);
@@ -98,6 +123,14 @@ const Signup = () => {
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="referral">Referral Code (optional)</Label>
+            <div className="relative">
+              <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="referral" placeholder="Enter referral code" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} className="pl-10 rounded-xl h-11" />
             </div>
           </div>
 

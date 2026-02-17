@@ -5,10 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { User } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
 type Order = Tables<"orders">;
+
+interface CustomerInfo {
+  full_name: string;
+  phone: string | null;
+  default_address: string | null;
+}
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: "outline",
@@ -24,6 +31,7 @@ const ALL_STATUSES: Enums<"order_status">[] = ["pending", "accepted", "picked_up
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItemsMap, setOrderItemsMap] = useState<Record<string, any[]>>({});
+  const [customerMap, setCustomerMap] = useState<Record<string, CustomerInfo>>({});
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
@@ -36,8 +44,8 @@ const AdminOrders = () => {
     setOrders(data || []);
     setLoading(false);
 
-    // Fetch all order items for these orders
     if (data && data.length > 0) {
+      // Fetch order items
       const { data: items } = await supabase
         .from("order_items")
         .select("*")
@@ -49,6 +57,20 @@ const AdminOrders = () => {
           map[item.order_id].push(item);
         });
         setOrderItemsMap(map);
+      }
+
+      // Fetch customer profiles
+      const customerIds = [...new Set(data.map(o => o.customer_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, phone, default_address")
+        .in("user_id", customerIds);
+      if (profiles) {
+        const cMap: Record<string, CustomerInfo> = {};
+        profiles.forEach(p => {
+          cMap[p.user_id] = { full_name: p.full_name, phone: p.phone, default_address: p.default_address };
+        });
+        setCustomerMap(cMap);
       }
     }
   };
@@ -91,48 +113,62 @@ const AdminOrders = () => {
         <Card className="p-8 text-center text-muted-foreground">No orders found.</Card>
       ) : (
         <div className="space-y-3">
-          {orders.map((order) => (
-            <Card key={order.id} className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant={STATUS_VARIANT[order.status] || "outline"} className="capitalize">
-                      {order.status.replace("_", " ")}
-                    </Badge>
-                    <Badge variant="secondary" className="capitalize">{order.order_type}</Badge>
-                    {(order as any).order_number && (
-                      <Badge variant="outline" className="text-xs">#{(order as any).order_number}</Badge>
+          {orders.map((order) => {
+            const customer = customerMap[order.customer_id];
+            return (
+              <Card key={order.id} className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant={STATUS_VARIANT[order.status] || "outline"} className="capitalize">
+                        {order.status.replace("_", " ")}
+                      </Badge>
+                      <Badge variant="secondary" className="capitalize">{order.order_type}</Badge>
+                      {(order as any).order_number && (
+                        <Badge variant="outline" className="text-xs">#{(order as any).order_number}</Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+
+                    {/* Customer info */}
+                    {customer && (
+                      <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-muted/50 rounded-xl text-sm">
+                        <User className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="font-medium text-foreground">{customer.full_name}</span>
+                        {customer.phone && <span className="text-muted-foreground">• {customer.phone}</span>}
+                        {customer.default_address && <span className="text-muted-foreground truncate">• {customer.default_address}</span>}
+                      </div>
                     )}
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
-                    </span>
+
+                    <p className="text-sm text-foreground truncate"><span className="font-medium">From:</span> {order.pickup_address}</p>
+                    <p className="text-sm text-foreground truncate"><span className="font-medium">To:</span> {order.dropoff_address}</p>
+                    {order.description && <p className="text-xs text-muted-foreground mt-1">{order.description}</p>}
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-sm font-display font-bold text-primary">${order.price.toLocaleString()} GYD</p>
+                      <OrderReceipt order={order} orderItems={orderItemsMap[order.id] || []} customerName={customer?.full_name} />
+                    </div>
                   </div>
-                  <p className="text-sm text-foreground truncate"><span className="font-medium">From:</span> {order.pickup_address}</p>
-                  <p className="text-sm text-foreground truncate"><span className="font-medium">To:</span> {order.dropoff_address}</p>
-                  {order.description && <p className="text-xs text-muted-foreground mt-1">{order.description}</p>}
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-sm font-display font-bold text-primary">${order.price.toLocaleString()} GYD</p>
-                    <OrderReceipt order={order} orderItems={orderItemsMap[order.id] || []} />
+                  <div className="flex flex-col items-end gap-2">
+                    <Select
+                      value={order.status}
+                      onValueChange={(val) => updateStatus(order.id, val as Enums<"order_status">)}
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ALL_STATUSES.map((s) => (
+                          <SelectItem key={s} value={s} className="capitalize text-xs">{s.replace("_", " ")}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Select
-                    value={order.status}
-                    onValueChange={(val) => updateStatus(order.id, val as Enums<"order_status">)}
-                  >
-                    <SelectTrigger className="w-36 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ALL_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s} className="capitalize text-xs">{s.replace("_", " ")}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

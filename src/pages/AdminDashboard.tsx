@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -10,6 +10,7 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminOrders from "@/components/admin/AdminOrders";
 import AdminDrivers from "@/components/admin/AdminDrivers";
 import AdminPromoCodes from "@/components/admin/AdminPromoCodes";
+import AdminStores from "@/components/admin/AdminStores";
 
 const AdminDashboard = () => {
   const { signOut } = useAuth();
@@ -35,12 +36,15 @@ const AdminDashboard = () => {
         <h1 className="font-display text-3xl font-bold text-foreground mb-6">Admin Dashboard</h1>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="analytics" className="gap-1.5">
               <BarChart3 className="h-4 w-4" /> Analytics
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-1.5">
               <ShoppingBag className="h-4 w-4" /> Orders
+            </TabsTrigger>
+            <TabsTrigger value="stores" className="gap-1.5">
+              <Store className="h-4 w-4" /> Stores
             </TabsTrigger>
             <TabsTrigger value="drivers" className="gap-1.5">
               <Users className="h-4 w-4" /> Drivers
@@ -52,6 +56,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
           <TabsContent value="orders"><AdminOrders /></TabsContent>
+          <TabsContent value="stores"><AdminStores /></TabsContent>
           <TabsContent value="drivers"><AdminDrivers /></TabsContent>
           <TabsContent value="promos"><AdminPromoCodes /></TabsContent>
         </Tabs>

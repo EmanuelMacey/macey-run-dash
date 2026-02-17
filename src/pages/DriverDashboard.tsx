@@ -9,6 +9,7 @@ import logo from "@/assets/logo.png";
 import DriverOrderFeed from "@/components/driver/DriverOrderFeed";
 import DriverEarnings from "@/components/driver/DriverEarnings";
 import NotificationBell from "@/components/customer/NotificationBell";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const DriverDashboard = () => {
   const { user, signOut } = useAuth();
@@ -98,6 +99,7 @@ const DriverDashboard = () => {
               <Power className="h-4 w-4 mr-2" />
               {isOnline ? "Online" : "Offline"}
             </Button>
+            <ThemeToggle />
             <NotificationBell />
             <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
               <LogOut className="h-4 w-4" />

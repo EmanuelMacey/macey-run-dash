@@ -10,6 +10,7 @@ import NotificationBell from "@/components/customer/NotificationBell";
 import OrdersList from "@/components/customer/OrdersList";
 import MarketplaceBrowser from "@/components/customer/MarketplaceBrowser";
 import CustomerProfile from "@/components/customer/CustomerProfile";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const CustomerDashboard = () => {
   const { signOut } = useAuth();
@@ -29,6 +30,7 @@ const CustomerDashboard = () => {
             <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>
           </div>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <NotificationBell />
             <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
               <LogOut className="h-4 w-4 mr-2" /> Sign Out

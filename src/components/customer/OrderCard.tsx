@@ -5,6 +5,7 @@ import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer, S
 import DriverMap from "./DriverMap";
 import OrderChat from "@/components/chat/OrderChat";
 import RatingDialog from "./RatingDialog";
+import OrderReceipt from "./OrderReceipt";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -140,12 +141,13 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
       )}
 
       <div className="flex items-center justify-between pt-2 border-t border-border">
-        <div>
+        <div className="flex items-center gap-2">
           <span className="font-display font-bold text-primary">${order.price.toLocaleString()}</span>
           <span className="text-xs text-muted-foreground ml-1">GYD</span>
           <span className="text-xs text-muted-foreground ml-2 capitalize">• {order.payment_method}</span>
         </div>
         <div className="flex items-center gap-2">
+          <OrderReceipt order={order} orderItems={orderItems} />
           <span className="text-xs text-muted-foreground">
             {new Date(order.created_at).toLocaleDateString()}
           </span>

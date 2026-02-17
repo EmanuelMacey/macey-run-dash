@@ -291,6 +291,7 @@ export type Database = {
           dropoff_address: string
           id: string
           image_url: string | null
+          order_number: number | null
           order_type: Database["public"]["Enums"]["order_type"]
           payment_method: Database["public"]["Enums"]["payment_method"]
           payment_status: Database["public"]["Enums"]["payment_status"]
@@ -307,6 +308,7 @@ export type Database = {
           dropoff_address: string
           id?: string
           image_url?: string | null
+          order_number?: number | null
           order_type: Database["public"]["Enums"]["order_type"]
           payment_method?: Database["public"]["Enums"]["payment_method"]
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -323,6 +325,7 @@ export type Database = {
           dropoff_address?: string
           id?: string
           image_url?: string | null
+          order_number?: number | null
           order_type?: Database["public"]["Enums"]["order_type"]
           payment_method?: Database["public"]["Enums"]["payment_method"]
           payment_status?: Database["public"]["Enums"]["payment_status"]

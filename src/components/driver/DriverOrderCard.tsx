@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import OrderChat from "@/components/chat/OrderChat";
 import DriverMap from "@/components/customer/DriverMap";
+import OrderReceipt from "@/components/customer/OrderReceipt";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Order = Tables<"orders">;
@@ -179,6 +180,7 @@ const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderC
           <Badge variant="outline" className="capitalize text-xs rounded-lg">
             {order.payment_method}
           </Badge>
+          <OrderReceipt order={order} orderItems={orderItems} />
           <span className="text-xs text-muted-foreground">
             {new Date(order.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>

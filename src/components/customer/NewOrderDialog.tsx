@@ -5,32 +5,19 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2 } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 
 const orderSchema = z.object({
@@ -57,6 +44,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
@@ -110,12 +98,27 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
     toast.success(`Promo applied! $${discountAmt} GYD off`);
   };
 
+  const uploadAttachment = async (orderId: string): Promise<string | null> => {
+    if (!attachedFile || !user) return null;
+    try {
+      const ext = attachedFile.name.split(".").pop();
+      const path = `${user.id}/${orderId}.${ext}`;
+      const { error } = await supabase.storage.from("errand-attachments").upload(path, attachedFile);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("errand-attachments").getPublicUrl(path);
+      return urlData.publicUrl;
+    } catch (err: any) {
+      console.error("Attachment upload failed:", err.message);
+      return null;
+    }
+  };
+
   const onSubmit = async (values: OrderFormValues) => {
     if (!user) return;
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from("orders").insert({
+      const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: values.order_type,
         pickup_address: values.pickup_address,
@@ -125,20 +128,23 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         price: finalPrice,
         status: "pending",
         payment_status: "pending",
-      });
+      }).select("id").single();
 
       if (error) throw error;
 
-      // Increment promo usage if applied
-      if (promoApplied && values.promo_code) {
-        await supabase.rpc("has_role", { _user_id: user.id, _role: "customer" }); // no-op just to verify auth
-        // We can't directly update promo_codes due to RLS, admin handles that
+      // Upload attachment if errand type
+      if (attachedFile && orderData) {
+        const imageUrl = await uploadAttachment(orderData.id);
+        if (imageUrl) {
+          await supabase.from("orders").update({ image_url: imageUrl }).eq("id", orderData.id);
+        }
       }
 
       toast.success("Order placed successfully!");
       form.reset();
       setDiscount(0);
       setPromoApplied(false);
+      setAttachedFile(null);
       setOpen(false);
       onOrderCreated();
     } catch (err: any) {
@@ -168,7 +174,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => field.onChange("delivery")}
+                      onClick={() => { field.onChange("delivery"); setAttachedFile(null); }}
                       className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                         field.value === "delivery"
                           ? "border-primary bg-primary/5"
@@ -244,6 +250,35 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                 </FormItem>
               )}
             />
+
+            {/* File Attachment for Errands */}
+            {orderType === "errand" && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Paperclip className="h-3.5 w-3.5" /> Attach File (optional)
+                </Label>
+                {attachedFile ? (
+                  <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-3">
+                    <Paperclip className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-sm text-foreground truncate flex-1">{attachedFile.name}</span>
+                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setAttachedFile(null)}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="flex items-center gap-2 border border-dashed border-border rounded-xl p-3 cursor-pointer hover:border-primary/50 transition-colors">
+                    <Paperclip className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Click to attach an image or document</span>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf,.doc,.docx"
+                      className="hidden"
+                      onChange={(e) => setAttachedFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                )}
+              </div>
+            )}
 
             {/* Payment */}
             <FormField

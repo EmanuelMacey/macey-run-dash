@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import OrderReceipt from "@/components/customer/OrderReceipt";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
 type Order = Tables<"orders">;
@@ -23,6 +23,7 @@ const ALL_STATUSES: Enums<"order_status">[] = ["pending", "accepted", "picked_up
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [orderItemsMap, setOrderItemsMap] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
@@ -34,6 +35,22 @@ const AdminOrders = () => {
     const { data } = await query;
     setOrders(data || []);
     setLoading(false);
+
+    // Fetch all order items for these orders
+    if (data && data.length > 0) {
+      const { data: items } = await supabase
+        .from("order_items")
+        .select("*")
+        .in("order_id", data.map(o => o.id));
+      if (items) {
+        const map: Record<string, any[]> = {};
+        items.forEach(item => {
+          if (!map[item.order_id]) map[item.order_id] = [];
+          map[item.order_id].push(item);
+        });
+        setOrderItemsMap(map);
+      }
+    }
   };
 
   useEffect(() => {
@@ -83,6 +100,9 @@ const AdminOrders = () => {
                       {order.status.replace("_", " ")}
                     </Badge>
                     <Badge variant="secondary" className="capitalize">{order.order_type}</Badge>
+                    {(order as any).order_number && (
+                      <Badge variant="outline" className="text-xs">#{(order as any).order_number}</Badge>
+                    )}
                     <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
                     </span>
@@ -90,7 +110,10 @@ const AdminOrders = () => {
                   <p className="text-sm text-foreground truncate"><span className="font-medium">From:</span> {order.pickup_address}</p>
                   <p className="text-sm text-foreground truncate"><span className="font-medium">To:</span> {order.dropoff_address}</p>
                   {order.description && <p className="text-xs text-muted-foreground mt-1">{order.description}</p>}
-                  <p className="text-sm font-display font-bold text-primary mt-1">${order.price.toLocaleString()} GYD</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-sm font-display font-bold text-primary">${order.price.toLocaleString()} GYD</p>
+                    <OrderReceipt order={order} orderItems={orderItemsMap[order.id] || []} />
+                  </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <Select

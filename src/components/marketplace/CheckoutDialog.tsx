@@ -9,7 +9,8 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, MapPin, CreditCard, Banknote, Navigation } from "lucide-react";
+import { Loader2, MapPin, CreditCard, Banknote, Navigation, CheckCircle2 } from "lucide-react";
+import OrderReceipt from "@/components/customer/OrderReceipt";
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -42,7 +43,7 @@ const geocode = async (address: string): Promise<{ lat: number; lon: number } | 
 // Pricing: base + per-km rate (GYD)
 const BASE_FEE = 300;
 const PER_KM_RATE = 150;
-const MIN_FEE = 500;
+const MIN_FEE = 700;
 const MAX_FEE = 5000;
 
 const calculateDeliveryFee = (distanceKm: number) => {
@@ -60,6 +61,8 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<any>(null);
+  const [completedItems, setCompletedItems] = useState<any[]>([]);
 
   const grandTotal = total + (deliveryFee ?? 0);
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
@@ -142,9 +145,18 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
       if (itemsError) console.error("Failed to save order items:", itemsError);
 
+      // Save completed order for receipt display
+      const savedItems = items.map((item) => ({
+        id: item.id,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+      }));
+      setCompletedOrder({ ...orderData, order_type: "delivery", pickup_address: storeName, dropoff_address: deliveryAddress.trim(), price: grandTotal, payment_method: paymentMethod, status: "pending", created_at: new Date().toISOString() });
+      setCompletedItems(savedItems);
+
       toast({ title: "Order placed! 🎉", description: "A driver will pick up your food soon." });
       clearCart();
-      onOpenChange(false);
       setDeliveryAddress("");
       setNotes("");
       setDeliveryFee(null);
@@ -156,6 +168,29 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
     }
   };
 
+  // If order completed, show receipt
+  if (completedOrder) {
+    return (
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { setCompletedOrder(null); setCompletedItems([]); } onOpenChange(v); }}>
+        <DialogContent className="sm:max-w-md">
+          <div className="text-center space-y-4 py-4">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="font-display font-bold text-xl text-foreground">Order Placed!</h2>
+            <p className="text-sm text-muted-foreground">A driver will pick up your food soon.</p>
+            <OrderReceipt order={completedOrder} orderItems={completedItems}>
+              <Button className="w-full rounded-xl">View Receipt</Button>
+            </OrderReceipt>
+            <Button variant="outline" className="w-full rounded-xl" onClick={() => { setCompletedOrder(null); setCompletedItems([]); onOpenChange(false); }}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
@@ -165,7 +200,7 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
-          {/* Delivery address — moved up so fee calculates before summary */}
+          {/* Delivery address */}
           <div className="space-y-2">
             <Label htmlFor="address" className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary" /> Delivery Address

@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Store, Package, ArrowLeft, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Store, Package, ArrowLeft, Loader2, ImageIcon } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -30,6 +30,8 @@ const AdminStores = () => {
   const [storeName, setStoreName] = useState("");
   const [storeCategory, setStoreCategory] = useState("Fast Food");
   const [storeDescription, setStoreDescription] = useState("");
+  const [storeImageFile, setStoreImageFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Product form state
   const [productName, setProductName] = useState("");
@@ -74,6 +76,26 @@ const AdminStores = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-products", selectedStoreId] }),
   });
 
+  const uploadStoreImage = async (storeId: string): Promise<string | null> => {
+    if (!storeImageFile) return null;
+    setUploadingImage(true);
+    try {
+      const ext = storeImageFile.name.split(".").pop();
+      const path = `${storeId}.${ext}`;
+      // Remove old image first
+      await supabase.storage.from("store-images").remove([path]);
+      const { error } = await supabase.storage.from("store-images").upload(path, storeImageFile, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("store-images").getPublicUrl(path);
+      return urlData.publicUrl + `?t=${Date.now()}`;
+    } catch (err: any) {
+      toast.error("Image upload failed: " + err.message);
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const openStoreDialog = (store?: any) => {
     if (store) {
       setEditingStore(store);
@@ -86,22 +108,37 @@ const AdminStores = () => {
       setStoreCategory("Fast Food");
       setStoreDescription("");
     }
+    setStoreImageFile(null);
     setStoreDialogOpen(true);
   };
 
   const saveStore = async () => {
     if (!storeName.trim()) return toast.error("Store name is required");
-    const payload = { name: storeName.trim(), category: storeCategory, description: storeDescription.trim() || null };
+    const payload: any = { name: storeName.trim(), category: storeCategory, description: storeDescription.trim() || null };
+    
     if (editingStore) {
+      // Upload image if selected
+      if (storeImageFile) {
+        const imageUrl = await uploadStoreImage(editingStore.id);
+        if (imageUrl) payload.image_url = imageUrl;
+      }
       const { error } = await supabase.from("marketplace_stores").update(payload).eq("id", editingStore.id);
       if (error) return toast.error(error.message);
       toast.success("Store updated");
     } else {
-      const { error } = await supabase.from("marketplace_stores").insert(payload);
+      const { data, error } = await supabase.from("marketplace_stores").insert(payload).select("id").single();
       if (error) return toast.error(error.message);
+      // Upload image for new store
+      if (storeImageFile && data) {
+        const imageUrl = await uploadStoreImage(data.id);
+        if (imageUrl) {
+          await supabase.from("marketplace_stores").update({ image_url: imageUrl }).eq("id", data.id);
+        }
+      }
       toast.success("Store created");
     }
     setStoreDialogOpen(false);
+    setStoreImageFile(null);
     queryClient.invalidateQueries({ queryKey: ["admin-stores"] });
   };
 
@@ -173,9 +210,21 @@ const AdminStores = () => {
           </Button>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-4">
-          <h2 className="font-display font-bold text-lg">{selectedStore.name}</h2>
-          <p className="text-sm text-muted-foreground">{selectedStore.category} • {products.length} products</p>
+        <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+          {selectedStore.image_url ? (
+            <img src={selectedStore.image_url} alt={selectedStore.name} className="w-14 h-14 rounded-xl object-cover" />
+          ) : (
+            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center">
+              <Store className="h-6 w-6 text-muted-foreground" />
+            </div>
+          )}
+          <div>
+            <h2 className="font-display font-bold text-lg">{selectedStore.name}</h2>
+            <p className="text-sm text-muted-foreground">{selectedStore.category} • {products.length} products</p>
+          </div>
+          <Button variant="ghost" size="icon" className="ml-auto h-8 w-8" onClick={() => openStoreDialog(selectedStore)}>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
         </div>
 
         {products.length === 0 ? (
@@ -274,7 +323,11 @@ const AdminStores = () => {
             <div key={store.id} className="flex items-center justify-between bg-card border border-border rounded-xl p-4">
               <button onClick={() => setSelectedStoreId(store.id)} className="flex-1 text-left min-w-0">
                 <div className="flex items-center gap-3">
-                  <Store className="h-5 w-5 text-primary shrink-0" />
+                  {store.image_url ? (
+                    <img src={store.image_url} alt={store.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
+                  ) : (
+                    <Store className="h-5 w-5 text-primary shrink-0" />
+                  )}
                   <div className="min-w-0">
                     <p className="font-display font-bold text-sm truncate">{store.name}</p>
                     <p className="text-xs text-muted-foreground">{store.category}</p>
@@ -333,10 +386,35 @@ const AdminStores = () => {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>Store Image</Label>
+              <div className="flex items-center gap-3">
+                {(editingStore?.image_url || storeImageFile) && (
+                  <img 
+                    src={storeImageFile ? URL.createObjectURL(storeImageFile) : editingStore?.image_url} 
+                    alt="Preview" 
+                    className="w-14 h-14 rounded-xl object-cover border border-border" 
+                  />
+                )}
+                <label className="flex-1 flex items-center gap-2 border border-dashed border-border rounded-xl p-3 cursor-pointer hover:border-primary/50 transition-colors">
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{storeImageFile ? storeImageFile.name : "Choose image..."}</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={(e) => setStoreImageFile(e.target.files?.[0] || null)} 
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="space-y-2">
               <Label>Description (optional)</Label>
               <Textarea value={storeDescription} onChange={(e) => setStoreDescription(e.target.value)} placeholder="Brief description..." />
             </div>
-            <Button className="w-full" onClick={saveStore}>{editingStore ? "Save Changes" : "Create Store"}</Button>
+            <Button className="w-full" onClick={saveStore} disabled={uploadingImage}>
+              {uploadingImage && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {editingStore ? "Save Changes" : "Create Store"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

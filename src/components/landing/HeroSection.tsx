@@ -106,7 +106,7 @@ const HeroSection = () => {
               </Button>
             </Link>
             <Link to="/signup?role=driver">
-              <Button size="lg" variant="outline" className="border-primary/30 text-primary-foreground hover:bg-primary/10 rounded-full px-8 text-base h-13 w-full sm:w-auto backdrop-blur-sm">
+              <Button size="lg" variant="outline" className="border-primary/30 text-foreground hover:bg-primary/10 rounded-full px-8 text-base h-13 w-full sm:w-auto backdrop-blur-sm">
                 Become a Runner
               </Button>
             </Link>

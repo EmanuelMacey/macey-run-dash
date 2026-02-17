@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Search, MapPin, ArrowLeft, Plus, Minus, ShoppingBag } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import CartSheet from "@/components/marketplace/CartSheet";
+import FoodOrderTracker from "@/components/customer/FoodOrderTracker";
 
 import churchsImg from "@/assets/stores/churches-chicken.png";
 import eggballImg from "@/assets/stores/exclusive-eggball.jpeg";
@@ -207,6 +208,9 @@ const MarketplaceBrowser = () => {
   // Store list view
   return (
     <div>
+      {/* Active food orders */}
+      <FoodOrderTracker />
+
       {/* Search */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

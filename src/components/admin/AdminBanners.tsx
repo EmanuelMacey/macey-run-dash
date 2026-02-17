@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Megaphone } from "lucide-react";
+import { Plus, Trash2, Megaphone, Bell } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -35,6 +35,30 @@ const AdminBanners = () => {
 
   useEffect(() => { fetchBanners(); }, []);
 
+  const sendPromoNotifications = async (bannerTitle: string, bannerMessage: string) => {
+    try {
+      // Get all customer user IDs
+      const { data: customers } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "customer");
+      
+      if (!customers || customers.length === 0) return;
+
+      // Insert notifications for all customers
+      const notifications = customers.map(c => ({
+        user_id: c.user_id,
+        title: `🎉 ${bannerTitle}`,
+        message: bannerMessage,
+        type: "promo",
+      }));
+
+      await supabase.from("notifications").insert(notifications);
+    } catch (err) {
+      console.error("Failed to send promo notifications:", err);
+    }
+  };
+
   const createBanner = async () => {
     if (!title.trim() || !message.trim() || !user) return;
     setLoading(true);
@@ -46,7 +70,8 @@ const AdminBanners = () => {
     if (error) {
       toast.error("Failed to create banner");
     } else {
-      toast.success("Banner created!");
+      toast.success("Banner created & notifications sent!");
+      await sendPromoNotifications(title.trim(), message.trim());
       setTitle("");
       setMessage("");
       fetchBanners();
@@ -70,10 +95,13 @@ const AdminBanners = () => {
         <h3 className="font-display font-semibold flex items-center gap-2">
           <Megaphone className="h-5 w-5 text-primary" /> Create Promotional Banner
         </h3>
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+          <Bell className="h-3 w-3" /> All customers will receive a push notification when you create a banner.
+        </p>
         <Input placeholder="Banner title" value={title} onChange={(e) => setTitle(e.target.value)} />
         <Textarea placeholder="Banner message..." value={message} onChange={(e) => setMessage(e.target.value)} className="resize-none" rows={2} />
         <Button onClick={createBanner} disabled={loading || !title.trim() || !message.trim()} className="gap-2">
-          <Plus className="h-4 w-4" /> Create Banner
+          <Plus className="h-4 w-4" /> Create & Notify All
         </Button>
       </Card>
 

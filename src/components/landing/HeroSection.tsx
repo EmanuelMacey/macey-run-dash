@@ -12,18 +12,25 @@ const HeroSection = () => {
   const [riderExited, setRiderExited] = useState(false);
 
   useEffect(() => {
-    // Flash in the rider
-    const t1 = setTimeout(() => setShowRider(true), 400);
-    // Start smoke as rider exits
-    const t2 = setTimeout(() => {
-      setShowSmoke(true);
-      setRiderExited(true);
-    }, 2200);
-    // Show name after smoke builds
-    const t3 = setTimeout(() => setShowName(true), 2600);
-    // Fade smoke
-    const t4 = setTimeout(() => setShowSmoke(false), 4000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    const runCycle = () => {
+      setShowRider(false);
+      setShowSmoke(false);
+      setShowName(false);
+      setRiderExited(false);
+
+      const t1 = setTimeout(() => setShowRider(true), 400);
+      const t2 = setTimeout(() => {
+        setShowSmoke(true);
+        setRiderExited(true);
+      }, 2200);
+      const t3 = setTimeout(() => setShowName(true), 2600);
+      const t4 = setTimeout(() => setShowSmoke(false), 4000);
+      // Restart cycle after full animation completes
+      const t5 = setTimeout(() => runCycle(), 7000);
+      return [t1, t2, t3, t4, t5];
+    };
+    const timers = runCycle();
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
@@ -149,17 +156,17 @@ const HeroSection = () => {
                   transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   className="relative z-20"
                 >
-                  <h2 className="font-display font-bold text-5xl sm:text-6xl md:text-8xl"
+                  <motion.h2 
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    className="font-display font-bold text-5xl sm:text-6xl md:text-8xl"
                     style={{
-                      background: 'linear-gradient(135deg, hsl(217, 91%, 60%), hsl(25, 95%, 55%), hsl(217, 91%, 50%))',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      filter: 'drop-shadow(0 4px 20px hsl(217, 91%, 50%, 0.3))',
+                      color: 'hsl(0, 0%, 100%)',
+                      textShadow: '0 0 30px hsl(217, 91%, 50%, 0.5), 0 4px 20px hsl(25, 95%, 53%, 0.3)',
                     }}
                   >
                     MaceyRunners
-                  </h2>
+                  </motion.h2>
                 </motion.div>
               )}
             </AnimatePresence>

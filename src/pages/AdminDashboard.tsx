@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -11,6 +11,7 @@ import AdminOrders from "@/components/admin/AdminOrders";
 import AdminDrivers from "@/components/admin/AdminDrivers";
 import AdminPromoCodes from "@/components/admin/AdminPromoCodes";
 import AdminStores from "@/components/admin/AdminStores";
+import AdminUsers from "@/components/admin/AdminUsers";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
@@ -41,7 +42,7 @@ const AdminDashboard = () => {
         <h1 className="font-display text-3xl font-bold text-foreground mb-6">Admin Dashboard</h1>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-1">
+          <TabsList className="grid w-full grid-cols-6 bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-1">
             <TabsTrigger value="analytics" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="h-4 w-4" /> Analytics
             </TabsTrigger>
@@ -54,6 +55,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="drivers" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Users className="h-4 w-4" /> Drivers
             </TabsTrigger>
+            <TabsTrigger value="users" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Shield className="h-4 w-4" /> Users
+            </TabsTrigger>
             <TabsTrigger value="promos" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Tag className="h-4 w-4" /> Promos
             </TabsTrigger>
@@ -63,6 +67,7 @@ const AdminDashboard = () => {
           <TabsContent value="orders"><AdminOrders /></TabsContent>
           <TabsContent value="stores"><AdminStores /></TabsContent>
           <TabsContent value="drivers"><AdminDrivers /></TabsContent>
+          <TabsContent value="users"><AdminUsers /></TabsContent>
           <TabsContent value="promos"><AdminPromoCodes /></TabsContent>
         </Tabs>
       </main>

@@ -5,7 +5,18 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Save, Loader2, User, Phone } from "lucide-react";
+import { MapPin, Save, Loader2, User, Phone, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import ReferralSection from "./ReferralSection";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -20,13 +31,14 @@ const CUSTOMER_ICON = L.divIcon({
 });
 
 const CustomerProfile = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -176,6 +188,61 @@ const CustomerProfile = () => {
 
       <div className="border-t border-border/50 pt-6">
         <ReferralSection />
+      </div>
+
+      <div className="border-t border-destructive/20 pt-6">
+        <h3 className="font-display font-semibold text-destructive mb-2">Danger Zone</h3>
+        <p className="text-muted-foreground text-sm mb-4">
+          Permanently delete your account and all associated data. This action cannot be undone.
+        </p>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="rounded-full gap-2">
+              <Trash2 className="h-4 w-4" /> Delete My Account
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete your account, profile, and all order history. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const res = await fetch(
+                      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+                      {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${session?.access_token}`,
+                          "Content-Type": "application/json",
+                        },
+                      }
+                    );
+                    const result = await res.json();
+                    if (!res.ok) throw new Error(result.error);
+                    toast.success("Account deleted. Goodbye!");
+                    await signOut();
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to delete account");
+                    setDeleting(false);
+                  }
+                }}
+              >
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Yes, Delete My Account
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

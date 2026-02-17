@@ -8,11 +8,11 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-secondary/80 backdrop-blur-xl border-b border-border/10">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-secondary/70 backdrop-blur-2xl border-b border-border/10">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="MaceyRunners" className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+            <img src={logo} alt="MaceyRunners" className="w-9 h-9 rounded-xl object-cover shadow-sm ring-1 ring-primary/20" />
             <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>
           </Link>
 
@@ -28,7 +28,7 @@ const Navbar = () => {
               <Button variant="ghost" className="text-secondary-foreground/70 hover:text-secondary-foreground rounded-full">Log In</Button>
             </Link>
             <Link to="/signup">
-              <Button className="gradient-primary text-primary-foreground rounded-full px-6 shadow-md hover:shadow-lg hover:scale-105 transition-all">Get Started</Button>
+              <Button className="gradient-primary text-primary-foreground rounded-full px-6 shadow-md shadow-primary/20 hover:shadow-lg hover:scale-105 transition-all">Get Started</Button>
             </Link>
           </div>
 

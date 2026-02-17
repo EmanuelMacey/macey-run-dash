@@ -47,8 +47,8 @@ const DriverOrderFeed = ({ isOnline }: DriverOrderFeedProps) => {
 
   if (!isOnline) {
     return (
-      <div className="bg-card border border-border rounded-2xl p-8 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+      <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-8 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-muted/80 flex items-center justify-center mx-auto mb-3">
           <Inbox className="h-6 w-6 text-muted-foreground" />
         </div>
         <p className="text-muted-foreground font-medium">Go online to start receiving orders.</p>
@@ -83,7 +83,7 @@ const DriverOrderFeed = ({ isOnline }: DriverOrderFeedProps) => {
             Available Orders ({availableOrders.length})
           </h2>
           {availableOrders.length === 0 ? (
-            <div className="bg-card border border-border rounded-2xl p-8 text-center">
+            <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-8 text-center">
               <Inbox className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-muted-foreground text-sm">No orders available right now. Stay online!</p>
             </div>

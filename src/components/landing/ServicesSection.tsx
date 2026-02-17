@@ -22,8 +22,9 @@ const services = [
 
 const ServicesSection = () => {
   return (
-    <section id="services" className="py-24 bg-muted/30">
-      <div className="container mx-auto px-4">
+    <section id="services" className="py-24 mesh-bg relative">
+      <div className="particle w-3 h-3 bg-primary/15 top-12 right-[15%]" style={{ animationDelay: '1s' }} />
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
           <h2 className="font-display font-bold text-3xl md:text-5xl text-foreground mb-4">Our Services</h2>
           <p className="text-muted-foreground text-lg max-w-md mx-auto">Two ways we can help you get things done.</p>
@@ -32,8 +33,8 @@ const ServicesSection = () => {
         <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {services.map((service, i) => (
             <motion.div key={service.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
-              className="bg-card rounded-3xl p-8 border border-border hover:border-primary/30 transition-all hover:shadow-2xl group">
-              <div className={`w-14 h-14 bg-gradient-to-br ${service.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+              className="bg-card/90 backdrop-blur-sm rounded-3xl p-8 border border-border/50 hover:border-primary/30 transition-all hover:shadow-2xl hover:shadow-primary/5 group gradient-border">
+              <div className={`w-14 h-14 bg-gradient-to-br ${service.gradient} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg`}>
                 <service.icon size={26} className="text-primary-foreground" />
               </div>
               <h3 className="font-display font-semibold text-2xl text-card-foreground mb-3">{service.title}</h3>

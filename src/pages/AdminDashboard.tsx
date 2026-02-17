@@ -16,8 +16,11 @@ const AdminDashboard = () => {
   const { signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-background" onClick={unlockAudio}>
-      <header className="bg-secondary border-b border-border">
+    <div className="min-h-screen mesh-bg" onClick={unlockAudio}>
+      <div className="particle w-4 h-4 bg-primary/10 top-28 left-[5%]" style={{ animationDelay: '1s' }} />
+      <div className="particle w-2 h-2 bg-accent/15 top-56 right-[10%]" style={{ animationDelay: '3s' }} />
+
+      <header className="bg-secondary/95 backdrop-blur-xl border-b border-border/30">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
@@ -32,24 +35,24 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-5xl">
+      <main className="container mx-auto px-4 py-6 max-w-5xl relative">
         <h1 className="font-display text-3xl font-bold text-foreground mb-6">Admin Dashboard</h1>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="analytics" className="gap-1.5">
+          <TabsList className="grid w-full grid-cols-5 bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-1">
+            <TabsTrigger value="analytics" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="h-4 w-4" /> Analytics
             </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-1.5">
+            <TabsTrigger value="orders" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <ShoppingBag className="h-4 w-4" /> Orders
             </TabsTrigger>
-            <TabsTrigger value="stores" className="gap-1.5">
+            <TabsTrigger value="stores" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Store className="h-4 w-4" /> Stores
             </TabsTrigger>
-            <TabsTrigger value="drivers" className="gap-1.5">
+            <TabsTrigger value="drivers" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Users className="h-4 w-4" /> Drivers
             </TabsTrigger>
-            <TabsTrigger value="promos" className="gap-1.5">
+            <TabsTrigger value="promos" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Tag className="h-4 w-4" /> Promos
             </TabsTrigger>
           </TabsList>

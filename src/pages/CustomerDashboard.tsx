@@ -16,8 +16,13 @@ const CustomerDashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   return (
-    <div className="min-h-screen bg-background" onClick={unlockAudio}>
-      <header className="bg-secondary border-b border-border sticky top-0 z-50">
+    <div className="min-h-screen mesh-bg" onClick={unlockAudio}>
+      {/* Decorative particles */}
+      <div className="particle w-3 h-3 bg-primary/20 top-20 left-[10%]" style={{ animationDelay: '0s' }} />
+      <div className="particle w-2 h-2 bg-accent/20 top-40 right-[15%]" style={{ animationDelay: '2s' }} />
+      <div className="particle w-4 h-4 bg-primary/10 bottom-32 left-[20%]" style={{ animationDelay: '4s' }} />
+
+      <header className="bg-secondary/95 backdrop-blur-xl border-b border-border/30 sticky top-0 z-50">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
@@ -32,16 +37,16 @@ const CustomerDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl">
+      <main className="container mx-auto px-4 py-6 max-w-2xl relative">
         <Tabs defaultValue="order" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-6 h-12 rounded-2xl bg-muted/70 p-1">
-            <TabsTrigger value="order" className="gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm font-semibold">
+          <TabsList className="w-full grid grid-cols-3 mb-6 h-12 rounded-2xl bg-card/80 backdrop-blur-sm p-1 border border-border/50">
+            <TabsTrigger value="order" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
               <Package className="h-4 w-4" /> Services
             </TabsTrigger>
-            <TabsTrigger value="marketplace" className="gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm font-semibold">
+            <TabsTrigger value="marketplace" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
               <ShoppingBag className="h-4 w-4" /> Order Food
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-2 rounded-xl data-[state=active]:bg-card data-[state=active]:shadow-sm font-semibold">
+            <TabsTrigger value="profile" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
               <User className="h-4 w-4" /> Profile
             </TabsTrigger>
           </TabsList>
@@ -52,8 +57,8 @@ const CustomerDashboard = () => {
 
             <div className="grid grid-cols-2 gap-4 mb-8">
               <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>
-                <button className="bg-card border border-border rounded-2xl p-5 hover:border-primary/50 hover:shadow-lg transition-all duration-300 text-left group">
-                  <div className="w-12 h-12 gradient-primary rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <button className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 text-left group glow-card">
+                  <div className="w-12 h-12 gradient-primary rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
                     <Package className="h-5 w-5 text-primary-foreground" />
                   </div>
                   <h3 className="font-display text-lg font-bold text-card-foreground mb-1">Delivery</h3>
@@ -65,8 +70,8 @@ const CustomerDashboard = () => {
               </NewOrderDialog>
 
               <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>
-                <button className="bg-card border border-border rounded-2xl p-5 hover:border-accent/50 hover:shadow-lg transition-all duration-300 text-left group">
-                  <div className="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <button className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:border-accent/50 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300 text-left group glow-card">
+                  <div className="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-accent/20">
                     <MapPin className="h-5 w-5 text-accent-foreground" />
                   </div>
                   <h3 className="font-display text-lg font-bold text-card-foreground mb-1">Errand</h3>

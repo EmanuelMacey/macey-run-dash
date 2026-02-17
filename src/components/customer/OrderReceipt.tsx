@@ -1,6 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Receipt, Download } from "lucide-react";
+import { Receipt, Download, User, Phone, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface OrderItem {
@@ -17,10 +19,27 @@ interface OrderReceiptProps {
   children?: React.ReactNode;
 }
 
-const OrderReceipt = ({ order, orderItems = [], customerName, children }: OrderReceiptProps) => {
+const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, children }: OrderReceiptProps) => {
+  const [customerInfo, setCustomerInfo] = useState<{ full_name: string; phone: string | null; default_address: string | null } | null>(null);
   const itemsTotal = orderItems.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
   const deliveryFee = orderItems.length > 0 ? order.price - itemsTotal : 0;
   const orderNum = (order as any).order_number ?? "—";
+
+  useEffect(() => {
+    const fetchCustomer = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, phone, default_address")
+        .eq("user_id", order.customer_id)
+        .single();
+      if (data) setCustomerInfo(data);
+    };
+    fetchCustomer();
+  }, [order.customer_id]);
+
+  const displayName = propCustomerName || customerInfo?.full_name || "—";
+  const displayPhone = customerInfo?.phone || "—";
+  const displayAddress = order.dropoff_address || customerInfo?.default_address || "—";
 
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
@@ -44,10 +63,11 @@ const OrderReceipt = ({ order, orderItems = [], customerName, children }: OrderR
           <p class="small">${new Date(order.created_at).toLocaleString()}</p>
         </div>
         <div class="line"></div>
-        ${customerName ? `<div class="row"><span>Customer:</span><span>${customerName}</span></div>` : ""}
+        <div class="row"><span>Customer:</span><span>${displayName}</span></div>
+        <div class="row"><span>Phone:</span><span>${displayPhone}</span></div>
         <div class="row"><span>Type:</span><span style="text-transform:capitalize">${order.order_type}</span></div>
         <div class="row"><span>From:</span><span>${order.pickup_address}</span></div>
-        <div class="row"><span>To:</span><span>${order.dropoff_address}</span></div>
+        <div class="row"><span>To:</span><span>${displayAddress}</span></div>
         <div class="row"><span>Payment:</span><span style="text-transform:capitalize">${order.payment_method}</span></div>
         <div class="line"></div>
         ${orderItems.length > 0 ? orderItems.map(i => 
@@ -84,6 +104,7 @@ const OrderReceipt = ({ order, orderItems = [], customerName, children }: OrderR
           <DialogTitle className="font-display flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" /> Receipt #{orderNum}
           </DialogTitle>
+          <DialogDescription className="text-xs">Order details and payment summary</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 text-sm">
@@ -92,13 +113,27 @@ const OrderReceipt = ({ order, orderItems = [], customerName, children }: OrderR
             <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
           </div>
 
+          {/* Customer info section */}
+          <div className="bg-muted/40 rounded-xl p-3 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <User className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold text-foreground">Customer Details</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Name</span>
+              <span className="font-medium text-foreground">{displayName}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Phone</span>
+              <span className="font-medium text-foreground">{displayPhone}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Delivery Address</span>
+              <span className="text-right max-w-[55%] font-medium text-foreground">{displayAddress}</span>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
-            {customerName && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Customer</span>
-                <span className="font-medium text-foreground">{customerName}</span>
-              </div>
-            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Type</span>
               <span className="capitalize font-medium text-foreground">{order.order_type}</span>
@@ -109,7 +144,7 @@ const OrderReceipt = ({ order, orderItems = [], customerName, children }: OrderR
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">To</span>
-              <span className="text-right max-w-[60%] font-medium text-foreground">{order.dropoff_address}</span>
+              <span className="text-right max-w-[60%] font-medium text-foreground">{displayAddress}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Payment</span>

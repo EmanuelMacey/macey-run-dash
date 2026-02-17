@@ -1,13 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer, ShoppingBag, ChevronDown, ChevronUp, Navigation } from "lucide-react";
+import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer, ShoppingBag, ChevronDown, ChevronUp, Navigation, Phone, User } from "lucide-react";
 import DriverMap from "./DriverMap";
 import OrderChat from "@/components/chat/OrderChat";
 import RatingDialog from "./RatingDialog";
 import OrderReceipt from "./OrderReceipt";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
 };
 
 const STATUS_STEPS = ["pending", "accepted", "picked_up", "on_the_way", "delivered"];
+const STATUS_LABELS = ["Placed", "Accepted", "Picked Up", "On The Way", "Delivered"];
 
 interface OrderCardProps {
   order: Order;
@@ -83,16 +85,36 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
   const timeLabel = minutesAgo < 1 ? "Just now" : minutesAgo < 60 ? `${minutesAgo}m ago` : new Date(order.created_at).toLocaleDateString();
 
   return (
-    <div className={`bg-card border rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${isActive ? "border-primary/30 shadow-md shadow-primary/5" : "border-border/50"}`}>
-      {/* Status progress bar for active orders */}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={`bg-card border rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${isActive ? "border-primary/30 shadow-md shadow-primary/10 ring-1 ring-primary/10" : "border-border/50"}`}
+    >
+      {/* Enhanced status progress for active orders */}
       {isActive && (
-        <div className="flex gap-0.5 px-4 pt-3">
-          {STATUS_STEPS.slice(0, 4).map((step, i) => (
-            <div
-              key={step}
-              className={`h-1 flex-1 rounded-full transition-colors ${i <= currentStepIdx ? "bg-primary" : "bg-muted"}`}
-            />
-          ))}
+        <div className="px-4 pt-4 pb-1">
+          <div className="flex items-center justify-between mb-1.5">
+            {STATUS_STEPS.map((step, i) => (
+              <div key={step} className="flex flex-col items-center flex-1">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                  i < currentStepIdx ? "bg-primary text-primary-foreground" :
+                  i === currentStepIdx ? "bg-primary text-primary-foreground ring-4 ring-primary/20 animate-pulse" :
+                  "bg-muted text-muted-foreground"
+                }`}>
+                  {i < currentStepIdx ? "✓" : i + 1}
+                </div>
+                <span className={`text-[9px] mt-1 font-medium ${i <= currentStepIdx ? "text-primary" : "text-muted-foreground"}`}>
+                  {STATUS_LABELS[i]}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-0.5 mt-1">
+            {STATUS_STEPS.slice(0, 4).map((step, i) => (
+              <div key={step} className={`h-1 flex-1 rounded-full transition-colors ${i <= currentStepIdx ? "bg-primary" : "bg-muted"}`} />
+            ))}
+          </div>
         </div>
       )}
 
@@ -100,42 +122,48 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2.5">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isActive ? "gradient-primary" : "bg-muted"}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? "gradient-primary shadow-lg shadow-primary/20" : "bg-muted"}`}>
               {order.order_type === "delivery" ? (
-                <Package className={`h-4 w-4 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                <Package className={`h-5 w-5 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
               ) : (
-                <MapPin className={`h-4 w-4 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                <MapPin className={`h-5 w-5 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
               )}
             </div>
             <div>
-              <p className="font-display font-semibold text-sm text-foreground">{order.pickup_address}</p>
-              <p className="text-xs text-muted-foreground">{timeLabel} • {order.order_type}</p>
+              <p className="font-display font-bold text-sm text-foreground capitalize">{order.order_type} Order</p>
+              <p className="text-xs text-muted-foreground">{timeLabel}</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Badge variant={status.variant} className="flex items-center gap-1 text-xs">
+            <Badge variant={status.variant} className="flex items-center gap-1 text-xs font-semibold">
               {status.icon}
               {status.label}
             </Badge>
             {eta !== null && isActive && (
-              <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+              <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                 <Timer className="h-3 w-3" /> ~{eta} min
               </span>
             )}
           </div>
         </div>
 
-        {/* Delivery info */}
+        {/* Route visualization */}
         <div className="bg-muted/40 rounded-xl p-3 space-y-1.5">
           <div className="flex items-start gap-2 text-sm">
             <div className="flex flex-col items-center gap-0.5 mt-1">
-              <div className="w-2 h-2 rounded-full bg-success" />
-              <div className="w-px h-4 bg-border" />
-              <div className="w-2 h-2 rounded-full bg-primary" />
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+              <div className="w-px h-5 bg-border" />
+              <div className="w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-primary/20" />
             </div>
-            <div className="flex-1 space-y-2">
-              <p className="text-foreground text-xs">{order.pickup_address}</p>
-              <p className="text-foreground text-xs font-medium">{order.dropoff_address}</p>
+            <div className="flex-1 space-y-2.5">
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">Pickup</p>
+                <p className="text-foreground text-xs font-medium">{order.pickup_address}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">Dropoff</p>
+                <p className="text-foreground text-xs font-medium">{order.dropoff_address}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -145,7 +173,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
           <div className="bg-muted/30 rounded-xl p-3 space-y-1.5">
             <div className="flex items-center gap-1.5 mb-1">
               <ShoppingBag className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold text-foreground">Order Items</span>
+              <span className="text-xs font-semibold text-foreground">Order Items ({orderItems.length})</span>
             </div>
             {orderItems.map((item) => (
               <div key={item.id} className="flex justify-between text-xs">
@@ -157,28 +185,33 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
         )}
 
         {order.description && !orderItems.length && (
-          <p className="text-muted-foreground text-xs italic">"{order.description}"</p>
+          <p className="text-muted-foreground text-xs italic bg-muted/30 rounded-xl px-3 py-2">"{order.description}"</p>
         )}
 
         {/* Track driver toggle */}
         {showMap && (
           <Button
-            variant="outline"
+            variant={showTracking ? "default" : "outline"}
             size="sm"
             onClick={() => setShowTracking(!showTracking)}
-            className="w-full rounded-xl text-xs gap-2"
+            className={`w-full rounded-xl text-xs gap-2 ${showTracking ? "gradient-primary text-primary-foreground" : ""}`}
           >
             <Navigation className="h-3.5 w-3.5" />
-            {showTracking ? "Hide Driver Tracking" : "Track Your Driver"}
+            {showTracking ? "Hide Driver Tracking" : "📍 Track Your Driver"}
             {showTracking ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
           </Button>
         )}
 
         {showMap && showTracking && (
-          <div className="space-y-3">
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-3"
+          >
             <DriverMap driverId={order.driver_id!} pickupAddress={order.pickup_address} dropoffAddress={order.dropoff_address} onEtaChange={handleEtaChange} />
             <OrderChat orderId={order.id} />
-          </div>
+          </motion.div>
         )}
 
         {order.status === "delivered" && order.driver_id && (
@@ -188,7 +221,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 border-t border-border/50">
           <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-base text-primary">${order.price.toLocaleString()}</span>
+            <span className="font-display font-bold text-lg text-primary">${order.price.toLocaleString()}</span>
             <span className="text-xs text-muted-foreground">GYD</span>
             <Badge variant="outline" className="text-[10px] capitalize ml-1">{order.payment_method}</Badge>
           </div>
@@ -221,7 +254,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

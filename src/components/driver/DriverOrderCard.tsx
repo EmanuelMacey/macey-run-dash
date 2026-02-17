@@ -180,7 +180,7 @@ const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderC
           <Badge variant="outline" className="capitalize text-xs rounded-lg">
             {order.payment_method}
           </Badge>
-          <OrderReceipt order={order} orderItems={orderItems} />
+          <OrderReceipt order={order} orderItems={orderItems} customerName={customer?.full_name} />
           <span className="text-xs text-muted-foreground">
             {new Date(order.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>

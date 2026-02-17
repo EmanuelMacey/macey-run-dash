@@ -34,9 +34,7 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden pt-16" style={{
-      background: 'linear-gradient(135deg, hsl(220, 40%, 8%) 0%, hsl(220, 35%, 14%) 40%, hsl(215, 30%, 10%) 100%)'
-    }}>
+    <section className="relative min-h-screen flex items-center overflow-hidden pt-16 hero-section">
       {/* Speed lines */}
       {[...Array(8)].map((_, i) => (
         <motion.div
@@ -182,14 +180,13 @@ const HeroSection = () => {
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 3.1 }}
-            className="font-display font-bold text-3xl sm:text-4xl md:text-6xl leading-tight mb-6"
-            style={{ color: 'hsl(0, 0%, 96%)' }}>
+            className="font-display font-bold text-3xl sm:text-4xl md:text-6xl leading-tight mb-6 text-foreground">
             Anything delivered.{" "}
             <span className="gradient-text">Anytime.</span>
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 3.2 }}
-            className="text-lg md:text-xl mb-10 max-w-xl mx-auto" style={{ color: 'hsl(0, 0%, 96%, 0.6)' }}>
+            className="text-lg md:text-xl mb-10 max-w-xl mx-auto text-muted-foreground">
             From food deliveries to errands — MaceyRunners gets it done fast across Georgetown and beyond.
           </motion.p>
 
@@ -218,7 +215,7 @@ const HeroSection = () => {
                 <div className="font-display font-bold text-2xl md:text-3xl gradient-text">
                   {stat.value}{stat.icon}
                 </div>
-                <div className="text-xs mt-1" style={{ color: 'hsl(0, 0%, 96%, 0.5)' }}>{stat.label}</div>
+                <div className="text-xs mt-1 text-muted-foreground">{stat.label}</div>
               </div>
             ))}
           </motion.div>

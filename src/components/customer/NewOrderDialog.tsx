@@ -5,7 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2, Paperclip, X } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X, MessageCircle } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -25,7 +25,7 @@ const orderSchema = z.object({
   pickup_address: z.string().trim().min(3, "Pickup address is required").max(500),
   dropoff_address: z.string().trim().min(3, "Dropoff address is required").max(500),
   description: z.string().trim().max(1000).optional(),
-  payment_method: z.enum(["cash", "card"]),
+  payment_method: z.enum(["cash", "mmg"]),
   promo_code: z.string().trim().max(50).optional(),
 });
 
@@ -124,7 +124,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         pickup_address: values.pickup_address,
         dropoff_address: values.dropoff_address,
         description: values.description || null,
-        payment_method: values.payment_method,
+        payment_method: values.payment_method === "mmg" ? "cash" : values.payment_method,
         price: finalPrice,
         status: "pending",
         payment_status: "pending",
@@ -287,7 +287,12 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Payment Method</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={(v) => {
+                    field.onChange(v);
+                    if (v === "mmg") {
+                      window.open("https://wa.me/5927219769?text=Hi%2C%20I%20would%20like%20to%20pay%20via%20MMG%20for%20my%20MaceyRunners%20order.", "_blank");
+                    }
+                  }} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -295,9 +300,14 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="cash">Cash on Delivery</SelectItem>
-                      <SelectItem value="card">Card Payment</SelectItem>
+                      <SelectItem value="mmg">MMG Payment</SelectItem>
                     </SelectContent>
                   </Select>
+                  {field.value === "mmg" && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Contact <a href="https://wa.me/5927219769" target="_blank" rel="noopener noreferrer" className="text-primary underline">+592 721 9769</a> on WhatsApp to complete MMG payment.
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

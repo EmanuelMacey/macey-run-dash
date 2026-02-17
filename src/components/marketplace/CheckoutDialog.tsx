@@ -9,7 +9,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, MapPin, CreditCard, Banknote, Navigation, CheckCircle2 } from "lucide-react";
+import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 
 interface CheckoutDialogProps {
@@ -57,13 +57,21 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const { user } = useAuth();
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "mmg">("cash");
   const [loading, setLoading] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<any>(null);
   const [completedItems, setCompletedItems] = useState<any[]>([]);
+  const [customerName, setCustomerName] = useState("");
+
+  // Fetch customer name
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("full_name").eq("user_id", user.id).single()
+      .then(({ data }) => { if (data) setCustomerName(data.full_name); });
+  }, [user]);
 
   const grandTotal = total + (deliveryFee ?? 0);
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
@@ -130,7 +138,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
         dropoff_address: deliveryAddress.trim(),
         description: buildDescription(),
         price: grandTotal,
-        payment_method: paymentMethod,
+        payment_method: paymentMethod === "mmg" ? "cash" as const : paymentMethod,
         status: "pending" as const,
       }).select("id").single();
 
@@ -181,7 +189,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
             </div>
             <h2 className="font-display font-bold text-xl text-foreground">Order Placed!</h2>
             <p className="text-sm text-muted-foreground">A driver will pick up your food soon.</p>
-            <OrderReceipt order={completedOrder} orderItems={completedItems}>
+            <OrderReceipt order={completedOrder} orderItems={completedItems} customerName={customerName}>
               <Button className="w-full rounded-xl">View Receipt</Button>
             </OrderReceipt>
             <Button variant="outline" className="w-full rounded-xl" onClick={() => { setCompletedOrder(null); setCompletedItems([]); onOpenChange(false); }}>
@@ -274,7 +282,12 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           {/* Payment method */}
           <div className="space-y-2">
             <Label>Payment Method</Label>
-            <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as "cash" | "card")} className="grid grid-cols-2 gap-3">
+            <RadioGroup value={paymentMethod} onValueChange={(v) => {
+              setPaymentMethod(v as "cash" | "mmg");
+              if (v === "mmg") {
+                window.open("https://wa.me/5927219769?text=Hi%2C%20I%20would%20like%20to%20pay%20via%20MMG%20for%20my%20MaceyRunners%20order.", "_blank");
+              }
+            }} className="grid grid-cols-2 gap-3">
               <Label
                 htmlFor="pay-cash"
                 className={`flex items-center gap-2 border rounded-xl p-3 cursor-pointer transition-colors ${
@@ -286,16 +299,21 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
                 <span className="text-sm font-medium">Cash</span>
               </Label>
               <Label
-                htmlFor="pay-card"
+                htmlFor="pay-mmg"
                 className={`flex items-center gap-2 border rounded-xl p-3 cursor-pointer transition-colors ${
-                  paymentMethod === "card" ? "border-primary bg-primary/5" : "border-border"
+                  paymentMethod === "mmg" ? "border-primary bg-primary/5" : "border-border"
                 }`}
               >
-                <RadioGroupItem value="card" id="pay-card" />
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Card</span>
+                <RadioGroupItem value="mmg" id="pay-mmg" />
+                <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">MMG</span>
               </Label>
             </RadioGroup>
+            {paymentMethod === "mmg" && (
+              <p className="text-xs text-muted-foreground">
+                Contact <a href="https://wa.me/5927219769" target="_blank" rel="noopener noreferrer" className="text-primary underline">+592 721 9769</a> on WhatsApp to complete your MMG payment.
+              </p>
+            )}
           </div>
 
           {/* Place order button */}

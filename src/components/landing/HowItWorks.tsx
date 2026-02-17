@@ -15,8 +15,8 @@ const HowItWorks = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-          <h2 className="font-display font-bold text-3xl md:text-5xl text-secondary-foreground mb-4">How It Works</h2>
-          <p className="text-secondary-foreground/60 text-lg max-w-md mx-auto">Three simple steps to get anything delivered.</p>
+          <h2 className="font-display font-bold text-3xl md:text-5xl text-foreground mb-4">How It Works</h2>
+          <p className="text-muted-foreground text-lg max-w-md mx-auto">Three simple steps to get anything delivered.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -26,8 +26,8 @@ const HowItWorks = () => {
                 <step.icon size={28} className="text-primary-foreground" />
               </div>
               <div className="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-semibold mb-3 border border-primary/20">Step {i + 1}</div>
-              <h3 className="font-display font-semibold text-xl text-secondary-foreground mb-3">{step.title}</h3>
-              <p className="text-secondary-foreground/60 text-sm leading-relaxed">{step.description}</p>
+              <h3 className="font-display font-semibold text-xl text-foreground mb-3">{step.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{step.description}</p>
             </motion.div>
           ))}
         </div>

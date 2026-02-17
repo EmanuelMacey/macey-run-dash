@@ -20,8 +20,8 @@ const CTASection = () => {
             <Sparkles size={14} className="text-primary animate-pulse" />
             <span className="text-sm text-primary font-semibold">Join the Movement</span>
           </div>
-          <h2 className="font-display font-bold text-3xl md:text-5xl text-secondary-foreground mb-6">Ready to get started?</h2>
-          <p className="text-secondary-foreground/60 text-lg mb-10">Join hundreds of customers across Guyana who trust MaceyRunners for fast, reliable delivery.</p>
+          <h2 className="font-display font-bold text-3xl md:text-5xl text-foreground mb-6">Ready to get started?</h2>
+          <p className="text-muted-foreground text-lg mb-10">Join hundreds of customers across Guyana who trust MaceyRunners for fast, reliable delivery.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup">
               <Button size="lg" className="gradient-primary text-primary-foreground rounded-full px-8 text-base h-12 w-full sm:w-auto shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-105 transition-all">
@@ -29,7 +29,7 @@ const CTASection = () => {
               </Button>
             </Link>
             <Link to="/signup?role=driver">
-              <Button size="lg" variant="outline" className="border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/5 rounded-full px-8 text-base h-12 w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="border-foreground/20 text-foreground hover:bg-foreground/5 rounded-full px-8 text-base h-12 w-full sm:w-auto">
                 Join as a Runner
               </Button>
             </Link>

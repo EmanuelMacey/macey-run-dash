@@ -3,7 +3,7 @@ import { ArrowRight, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import deliveryRider from "@/assets/delivery-rider.png";
+import maceyLogo from "@/assets/maceyrunners-logo.png";
 
 const HeroSection = () => {
   const [showRider, setShowRider] = useState(false);
@@ -18,15 +18,15 @@ const HeroSection = () => {
       setShowName(false);
       setRiderExited(false);
 
-      const t1 = setTimeout(() => setShowRider(true), 400);
+      const t1 = setTimeout(() => setShowRider(true), 600);
       const t2 = setTimeout(() => {
         setShowSmoke(true);
         setRiderExited(true);
-      }, 2200);
-      const t3 = setTimeout(() => setShowName(true), 2600);
-      const t4 = setTimeout(() => setShowSmoke(false), 4000);
-      // Restart cycle after full animation completes
-      const t5 = setTimeout(() => runCycle(), 7000);
+      }, 3500);
+      const t3 = setTimeout(() => setShowName(true), 4200);
+      const t4 = setTimeout(() => setShowSmoke(false), 6000);
+      // Restart cycle every ~10s for a relaxed pace
+      const t5 = setTimeout(() => runCycle(), 10000);
       return [t1, t2, t3, t4, t5];
     };
     const timers = runCycle();
@@ -124,8 +124,8 @@ const HeroSection = () => {
             <AnimatePresence>
               {showRider && !riderExited && (
                 <motion.img
-                  src={deliveryRider}
-                  alt="Delivery Runner"
+                  src={maceyLogo}
+                  alt="MaceyRunners Logo"
                   initial={{ opacity: 0, scale: 0.1, x: 200 }}
                   animate={{ 
                     opacity: [0, 1, 1, 1],

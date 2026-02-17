@@ -66,6 +66,15 @@ const AdminUsers = () => {
         .update({ role: newRole as any })
         .eq("id", roleId);
       if (error) throw error;
+
+      // Send in-app notification to the user
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        title: "Role Updated 🔑",
+        message: `Your account role has been changed to ${newRole} by an administrator.`,
+        type: "role_change",
+      });
+
       toast.success(`Role updated to ${newRole}`);
       setUsers((prev) =>
         prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u))

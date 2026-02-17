@@ -8,6 +8,30 @@ import { Search, MapPin, ArrowLeft, Plus, Minus, ShoppingBag } from "lucide-reac
 import { useCart } from "@/hooks/useCart";
 import CartSheet from "@/components/marketplace/CartSheet";
 
+import churchsImg from "@/assets/stores/churches-chicken.png";
+import eggballImg from "@/assets/stores/exclusive-eggball.jpeg";
+import firesideImg from "@/assets/stores/fireside-grill.jpg";
+import gangbaoImg from "@/assets/stores/gangbao.jpg";
+import goldenPagodaImg from "@/assets/stores/golden-pagoda.png";
+import kfcImg from "@/assets/stores/kfc.jpg";
+import pizzahutImg from "@/assets/stores/pizzahut.png";
+import popeyesImg from "@/assets/stores/popeyes.jpg";
+import starbucksImg from "@/assets/stores/starbucks.jpg";
+import whiteCastleImg from "@/assets/stores/white-castle.jpg";
+
+const storeImageMap: Record<string, string> = {
+  "Church's Chicken": churchsImg,
+  "Exclusive Eggball": eggballImg,
+  "Fireside Grill & Chill": firesideImg,
+  "Gangbao": gangbaoImg,
+  "Golden Pagoda": goldenPagodaImg,
+  "KFC": kfcImg,
+  "Pizza Hut": pizzahutImg,
+  "Popeyes": popeyesImg,
+  "Starbucks": starbucksImg,
+  "White Castle Fish Shop": whiteCastleImg,
+};
+
 const MarketplaceBrowser = () => {
   const [search, setSearch] = useState("");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -58,14 +82,7 @@ const MarketplaceBrowser = () => {
 
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
 
-  const getEmoji = (category: string) => {
-    if (category === "Fast Food") return "🍗";
-    if (category === "Pizza") return "🍕";
-    if (category === "Coffee & Cafe") return "☕";
-    if (category === "Chinese Restaurant") return "🥡";
-    if (category === "Grill & Seafood") return "🔥";
-    return "🍽️";
-  };
+  const getStoreImage = (name: string) => storeImageMap[name] || null;
 
   // Store detail view
   if (selectedStore) {
@@ -94,8 +111,12 @@ const MarketplaceBrowser = () => {
         {/* Store banner */}
         <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-card border border-border flex items-center justify-center text-2xl shadow-sm">
-              {getEmoji(selectedStore.category)}
+            <div className="w-14 h-14 rounded-xl bg-card border border-border flex items-center justify-center overflow-hidden shadow-sm">
+              {getStoreImage(selectedStore.name) ? (
+                <img src={getStoreImage(selectedStore.name)!} alt={selectedStore.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-2xl">🍽️</span>
+              )}
             </div>
             <div>
               <h2 className="font-display text-xl font-bold text-foreground">{selectedStore.name}</h2>
@@ -245,8 +266,12 @@ const MarketplaceBrowser = () => {
               onClick={() => setSelectedStoreId(store.id)}
               className="group bg-card rounded-xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-md transition-all duration-200 text-left"
             >
-              <div className="h-24 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                <span className="text-3xl">{getEmoji(store.category)}</span>
+              <div className="h-24 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center overflow-hidden">
+                {getStoreImage(store.name) ? (
+                  <img src={getStoreImage(store.name)!} alt={store.name} className="w-full h-full object-contain p-2" />
+                ) : (
+                  <span className="text-3xl">🍽️</span>
+                )}
               </div>
               <div className="p-3">
                 <h3 className="font-display font-bold text-sm text-card-foreground group-hover:text-primary transition-colors truncate">

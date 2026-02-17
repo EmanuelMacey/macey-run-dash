@@ -4,10 +4,34 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, ShoppingBag } from "lucide-react";
+import { Search, ShoppingBag, Star, Clock } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import logo from "@/assets/logo.png";
 import CartSheet from "@/components/marketplace/CartSheet";
+
+import churchsImg from "@/assets/stores/churches-chicken.png";
+import eggballImg from "@/assets/stores/exclusive-eggball.jpeg";
+import firesideImg from "@/assets/stores/fireside-grill.jpg";
+import gangbaoImg from "@/assets/stores/gangbao.jpg";
+import goldenPagodaImg from "@/assets/stores/golden-pagoda.png";
+import kfcImg from "@/assets/stores/kfc.jpg";
+import pizzahutImg from "@/assets/stores/pizzahut.png";
+import popeyesImg from "@/assets/stores/popeyes.jpg";
+import starbucksImg from "@/assets/stores/starbucks.jpg";
+import whiteCastleImg from "@/assets/stores/white-castle.jpg";
+
+const storeImageMap: Record<string, string> = {
+  "Church's Chicken": churchsImg,
+  "Exclusive Eggball": eggballImg,
+  "Fireside Grill & Chill": firesideImg,
+  "Gangbao": gangbaoImg,
+  "Golden Pagoda": goldenPagodaImg,
+  "KFC": kfcImg,
+  "Pizza Hut": pizzahutImg,
+  "Popeyes": popeyesImg,
+  "Starbucks": starbucksImg,
+  "White Castle Fish Shop": whiteCastleImg,
+};
 
 const Marketplace = () => {
   const [search, setSearch] = useState("");
@@ -16,40 +40,34 @@ const Marketplace = () => {
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ["marketplace-stores"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("marketplace_stores")
-        .select("*")
-        .order("name");
+      const { data, error } = await supabase.from("marketplace_stores").select("*").order("name");
       if (error) throw error;
       return data;
     },
   });
 
   const filtered = stores.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.category.toLowerCase().includes(search.toLowerCase())
+    s.name.toLowerCase().includes(search.toLowerCase()) || s.category.toLowerCase().includes(search.toLowerCase())
   );
 
   const categories = [...new Set(stores.map((s) => s.category))];
+  const getStoreImage = (name: string) => storeImageMap[name] || null;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-secondary border-b border-border">
+      <header className="sticky top-0 z-50 bg-secondary/80 backdrop-blur-xl border-b border-border/10">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="MaceyRunners" className="w-9 h-9 rounded-lg object-cover" />
+            <img src={logo} alt="MaceyRunners" className="w-9 h-9 rounded-xl object-cover shadow-sm" />
             <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="text-sm text-secondary-foreground/70 hover:text-secondary-foreground transition-colors hidden sm:block">
-              Sign In
-            </Link>
+            <Link to="/login" className="text-sm text-secondary-foreground/70 hover:text-secondary-foreground transition-colors hidden sm:block font-medium">Sign In</Link>
             <CartSheet>
               <button className="relative p-2 text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
                 <ShoppingBag className="h-5 w-5" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1 gradient-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                     {itemCount}
                   </span>
                 )}
@@ -59,59 +77,44 @@ const Marketplace = () => {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="bg-secondary py-12 md:py-20">
-        <div className="container mx-auto px-4 text-center">
+      <section className="bg-secondary py-12 md:py-20 relative overflow-hidden">
+        <div className="absolute top-0 -right-32 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px]" />
+        <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="font-display text-3xl md:text-5xl font-bold text-secondary-foreground mb-3">
-            Order from your favourite restaurants
+            Order from your <span className="gradient-text">favourite</span> restaurants
           </h1>
           <p className="text-secondary-foreground/60 mb-8 max-w-lg mx-auto">
             Fast delivery from the best local spots, straight to your door.
           </p>
           <div className="relative max-w-xl mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search restaurants or cuisines..."
-              className="pl-12 h-12 rounded-full bg-background border-border text-foreground text-base"
-            />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search restaurants or cuisines..."
+              className="pl-12 h-12 rounded-full bg-background border-border text-foreground text-base shadow-lg" />
           </div>
         </div>
       </section>
 
-      {/* Categories */}
       <div className="container mx-auto px-4 py-6">
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <button
-            onClick={() => setSearch("")}
-            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              search === "" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
-            }`}
-          >
+          <button onClick={() => setSearch("")}
+            className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all ${search === "" ? "gradient-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
             All
           </button>
           {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSearch(cat)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                search === cat ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
+            <button key={cat} onClick={() => setSearch(cat)}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-all ${search === cat ? "gradient-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
               {cat}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Store Grid */}
       <main className="container mx-auto px-4 pb-16">
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl overflow-hidden animate-pulse">
-                <div className="h-40 bg-muted" />
+              <div key={i} className="bg-card rounded-3xl overflow-hidden animate-pulse">
+                <div className="h-44 bg-muted" />
                 <div className="p-4 space-y-2">
                   <div className="h-5 bg-muted rounded w-2/3" />
                   <div className="h-4 bg-muted rounded w-1/3" />
@@ -126,33 +129,38 @@ const Marketplace = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map((store) => (
-              <Link
-                key={store.id}
-                to={`/store/${store.id}`}
-                className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
-              >
-                <div className="h-40 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                  <span className="text-5xl">
-                    {store.category === "Fast Food" ? "🍗" :
-                     store.category === "Pizza" ? "🍕" :
-                     store.category === "Coffee & Cafe" ? "☕" :
-                     store.category === "Chinese Restaurant" ? "🥡" :
-                     store.category === "Grill & Seafood" ? "🔥" : "🍽️"}
-                  </span>
+              <Link key={store.id} to={`/store/${store.id}`}
+                className="group bg-card rounded-3xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-2xl transition-all duration-300">
+                <div className="relative h-44 bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center overflow-hidden">
+                  {getStoreImage(store.name) ? (
+                    <img src={getStoreImage(store.name)!} alt={store.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  ) : (
+                    <span className="text-5xl group-hover:scale-110 transition-transform">🍽️</span>
+                  )}
+                  {!store.is_open && (
+                    <div className="absolute inset-0 bg-secondary/60 backdrop-blur-sm flex items-center justify-center">
+                      <span className="text-secondary-foreground font-semibold text-sm">Currently Closed</span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-1">
                     <h3 className="font-display font-bold text-lg text-card-foreground group-hover:text-primary transition-colors">
                       {store.name}
                     </h3>
-                    <Badge variant={store.is_open ? "default" : "secondary"} className="text-xs shrink-0 ml-2">
-                      {store.is_open ? "Open" : "Closed"}
-                    </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{store.category}</p>
-                  <div className="flex items-center gap-1 text-muted-foreground text-xs">
-                    <MapPin className="h-3 w-3" />
-                    <span>Georgetown, Guyana</span>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 text-warning font-medium">
+                      <Star className="h-3 w-3 fill-current" /> 4.8
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> 15-25 min
+                    </span>
+                    <Badge variant={store.is_open ? "default" : "secondary"} className="text-[10px] rounded-full">
+                      {store.is_open ? "Open" : "Closed"}
+                    </Badge>
                   </div>
                 </div>
               </Link>

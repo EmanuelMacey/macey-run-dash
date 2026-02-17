@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Login = () => {
   const { signIn, user, role, loading } = useAuth();
@@ -32,25 +33,26 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-secondary flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-0 -left-32 w-[400px] h-[400px] bg-primary/15 rounded-full blur-[100px]" />
+      <div className="absolute bottom-0 -right-32 w-[400px] h-[400px] bg-accent/15 rounded-full blur-[100px]" />
+
+      <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-lg">M</span>
-            </div>
+            <img src={logo} alt="MaceyRunners" className="w-12 h-12 rounded-xl shadow-lg" />
             <span className="font-display font-bold text-2xl text-secondary-foreground">MaceyRunners</span>
           </Link>
           <h1 className="font-display text-3xl font-bold text-secondary-foreground">Welcome back</h1>
           <p className="text-muted-foreground mt-2">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-card rounded-2xl p-8 shadow-xl border border-border space-y-5">
+        <form onSubmit={handleSubmit} className="bg-card/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-border/50 space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 rounded-xl h-11" required />
             </div>
           </div>
 
@@ -61,14 +63,14 @@ const Login = () => {
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required />
+              <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10 rounded-xl h-11" required />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full h-12 text-base font-semibold" disabled={submitting}>
+          <Button type="submit" className="w-full gradient-primary text-primary-foreground rounded-full h-12 text-base font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all" disabled={submitting}>
             {submitting ? "Signing in..." : "Sign In"}
           </Button>
 

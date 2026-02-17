@@ -11,6 +11,7 @@ import AdminOrders from "@/components/admin/AdminOrders";
 import AdminDrivers from "@/components/admin/AdminDrivers";
 import AdminPromoCodes from "@/components/admin/AdminPromoCodes";
 import AdminStores from "@/components/admin/AdminStores";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
   const { signOut } = useAuth();
@@ -27,6 +28,7 @@ const AdminDashboard = () => {
             <span className="font-display font-bold text-lg text-secondary-foreground">Admin</span>
           </div>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <NotificationBell />
             <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
               <LogOut className="h-4 w-4 mr-2" /> Sign Out

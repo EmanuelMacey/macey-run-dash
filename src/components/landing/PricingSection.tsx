@@ -37,17 +37,17 @@ const PricingSection = () => {
             <motion.div key={plan.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
               className={`rounded-3xl p-8 border backdrop-blur-sm transition-all hover:shadow-xl ${
                 plan.featured 
-                  ? "bg-secondary/95 border-primary/30 text-secondary-foreground shadow-2xl shadow-primary/10 scale-[1.02] gradient-border" 
-                  : "bg-card/90 border-border/50 text-card-foreground"
+                  ? "bg-primary/5 dark:bg-secondary/95 border-primary/30 shadow-2xl shadow-primary/10 scale-[1.02] gradient-border" 
+                  : "bg-card/90 border-border/50"
               }`}>
               {plan.featured && (
                 <div className="inline-block gradient-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full mb-4 shadow-md">Popular</div>
               )}
-              <h3 className="font-display font-semibold text-xl mb-2">{plan.name}</h3>
-              <p className={`text-sm mb-6 ${plan.featured ? "text-secondary-foreground/60" : "text-muted-foreground"}`}>{plan.description}</p>
+              <h3 className="font-display font-semibold text-xl text-foreground mb-2">{plan.name}</h3>
+              <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
               <div className="flex items-baseline gap-1 mb-8">
-                <span className="font-display font-bold text-4xl">{plan.price}</span>
-                <span className={`text-sm ${plan.featured ? "text-secondary-foreground/50" : "text-muted-foreground"}`}>{plan.currency}</span>
+                <span className="font-display font-bold text-4xl text-foreground">{plan.price}</span>
+                <span className="text-sm text-muted-foreground">{plan.currency}</span>
               </div>
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature) => (
@@ -55,7 +55,7 @@ const PricingSection = () => {
                     <div className="w-5 h-5 rounded-full gradient-primary flex items-center justify-center shrink-0 shadow-sm">
                       <Check size={12} className="text-primary-foreground" />
                     </div>
-                    <span className={plan.featured ? "text-secondary-foreground/80" : "text-muted-foreground"}>{feature}</span>
+                    <span className="text-muted-foreground">{feature}</span>
                   </li>
                 ))}
               </ul>

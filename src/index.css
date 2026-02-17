@@ -225,10 +225,6 @@
   .gradient-border {
     position: relative;
   }
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
   .gradient-border::after {
     content: '';
     position: absolute;

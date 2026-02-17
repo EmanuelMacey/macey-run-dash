@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, Home, ClipboardList, User, ShoppingCart } from "lucide-react";
+import { LogOut, Package, MapPin, ShoppingBag, User } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NewOrderDialog from "@/components/customer/NewOrderDialog";
@@ -10,140 +11,92 @@ import OrdersList from "@/components/customer/OrdersList";
 import MarketplaceBrowser from "@/components/customer/MarketplaceBrowser";
 import CustomerProfile from "@/components/customer/CustomerProfile";
 import ThemeToggle from "@/components/ThemeToggle";
-import CartSheet from "@/components/marketplace/CartSheet";
-import { useCart } from "@/hooks/useCart";
-
-type Tab = "home" | "services" | "orders" | "account";
 
 const CustomerDashboard = () => {
   const { signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>("home");
   const [refreshKey, setRefreshKey] = useState(0);
-  const { itemCount } = useCart();
-
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "home", label: "Home", icon: <Home className="h-5 w-5" /> },
-    { id: "services", label: "Services", icon: <Package className="h-5 w-5" /> },
-    { id: "orders", label: "Orders", icon: <ClipboardList className="h-5 w-5" /> },
-    { id: "account", label: "Account", icon: <User className="h-5 w-5" /> },
-  ];
 
   return (
-    <div className="min-h-screen bg-background" onClick={unlockAudio}>
-      {/* Top header — compact, Instacart-style */}
-      <header className="bg-card/95 backdrop-blur-xl border-b border-border/40 sticky top-0 z-50">
-        <div className="px-4 flex items-center justify-between h-14">
+    <div className="min-h-screen mesh-bg" onClick={unlockAudio}>
+      {/* Decorative particles */}
+      <div className="particle w-3 h-3 bg-primary/20 top-20 left-[10%]" style={{ animationDelay: '0s' }} />
+      <div className="particle w-2 h-2 bg-accent/20 top-40 right-[15%]" style={{ animationDelay: '2s' }} />
+      <div className="particle w-4 h-4 bg-primary/10 bottom-32 left-[20%]" style={{ animationDelay: '4s' }} />
+
+      <header className="bg-secondary/95 backdrop-blur-xl border-b border-border/30 sticky top-0 z-50">
+        <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="MaceyRunners" className="h-7 w-auto" />
-            <span className="font-display font-bold text-base text-foreground">MaceyRunners</span>
+            <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
+            <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>
           </div>
-          <div className="flex items-center gap-0.5">
-            <CartSheet>
-              <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
-                <ShoppingCart className="h-5 w-5" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-accent text-accent-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
-                    {itemCount}
-                  </span>
-                )}
-              </button>
-            </CartSheet>
+          <div className="flex items-center gap-1">
             <ThemeToggle />
             <NotificationBell />
-            <Button variant="ghost" size="icon" onClick={signOut} className="text-muted-foreground hover:text-foreground h-9 w-9">
-              <LogOut className="h-4 w-4" />
+            <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
+              <LogOut className="h-4 w-4 mr-2" /> Sign Out
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Main content area — full height minus header and bottom nav */}
-      <main className="pb-20">
-        {activeTab === "home" && (
-          <div className="animate-fade-in">
-            <MarketplaceBrowser />
-          </div>
-        )}
+      <main className="container mx-auto px-4 py-6 max-w-2xl relative">
+        <Tabs defaultValue="order" className="w-full">
+          <TabsList className="w-full grid grid-cols-3 mb-6 h-12 rounded-2xl bg-card/80 backdrop-blur-sm p-1 border border-border/50">
+            <TabsTrigger value="order" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
+              <Package className="h-4 w-4" /> Services
+            </TabsTrigger>
+            <TabsTrigger value="marketplace" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
+              <ShoppingBag className="h-4 w-4" /> Order Food
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
+              <User className="h-4 w-4" /> Profile
+            </TabsTrigger>
+          </TabsList>
 
-        {activeTab === "services" && (
-          <div className="animate-fade-in px-4 py-6 max-w-2xl mx-auto">
-            <h1 className="font-display text-2xl font-bold text-foreground mb-1">Services 🚀</h1>
-            <p className="text-muted-foreground text-sm mb-6">Need something delivered or an errand run?</p>
+          <TabsContent value="order" className="animate-fade-in">
+            <h1 className="font-display text-3xl font-bold text-foreground mb-2">Welcome back! 👋</h1>
+            <p className="text-muted-foreground mb-8">What do you need delivered today?</p>
 
-            <div className="grid grid-cols-2 gap-3 mb-8">
+            <div className="grid grid-cols-2 gap-4 mb-8">
               <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>
-                <button className="bg-card border border-border rounded-2xl p-5 hover:border-primary/50 hover:shadow-lg transition-all duration-300 text-left group">
-                  <div className="w-11 h-11 gradient-primary rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md">
+                <button className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 text-left group glow-card">
+                  <div className="w-12 h-12 gradient-primary rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
                     <Package className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <h3 className="font-display text-base font-bold text-card-foreground mb-0.5">Delivery</h3>
+                  <h3 className="font-display text-lg font-bold text-card-foreground mb-1">Delivery</h3>
                   <p className="text-muted-foreground text-xs mb-2">Send a package A → B</p>
-                  <p className="font-display text-lg font-bold text-primary">
+                  <p className="font-display text-xl font-bold text-primary">
                     $1,000 <span className="text-xs font-normal text-muted-foreground">GYD</span>
                   </p>
                 </button>
               </NewOrderDialog>
 
               <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>
-                <button className="bg-card border border-border rounded-2xl p-5 hover:border-accent/50 hover:shadow-lg transition-all duration-300 text-left group">
-                  <div className="w-11 h-11 bg-accent rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md">
-                    <Package className="h-5 w-5 text-accent-foreground" />
+                <button className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:border-accent/50 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300 text-left group glow-card">
+                  <div className="w-12 h-12 bg-accent rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-accent/20">
+                    <MapPin className="h-5 w-5 text-accent-foreground" />
                   </div>
-                  <h3 className="font-display text-base font-bold text-card-foreground mb-0.5">Errand</h3>
+                  <h3 className="font-display text-lg font-bold text-card-foreground mb-1">Errand</h3>
                   <p className="text-muted-foreground text-xs mb-2">We'll run it for you</p>
-                  <p className="font-display text-lg font-bold text-accent">
+                  <p className="font-display text-xl font-bold text-accent">
                     $1,500 <span className="text-xs font-normal text-muted-foreground">GYD</span>
                   </p>
                 </button>
               </NewOrderDialog>
             </div>
-          </div>
-        )}
 
-        {activeTab === "orders" && (
-          <div className="animate-fade-in px-4 py-6 max-w-2xl mx-auto">
-            <h1 className="font-display text-2xl font-bold text-foreground mb-1">Your Orders 📦</h1>
-            <p className="text-muted-foreground text-sm mb-6">Track active and past orders</p>
             <OrdersList refreshKey={refreshKey} />
-          </div>
-        )}
+          </TabsContent>
 
-        {activeTab === "account" && (
-          <div className="animate-fade-in px-4 py-6 max-w-2xl mx-auto">
+          <TabsContent value="marketplace" className="animate-fade-in">
+            <MarketplaceBrowser />
+          </TabsContent>
+
+          <TabsContent value="profile" className="animate-fade-in">
             <CustomerProfile />
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </main>
-
-      {/* Bottom navigation bar — Instacart style */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/40 safe-area-bottom">
-        <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[60px] ${
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <div className={`transition-transform duration-200 ${isActive ? "scale-110" : ""}`}>
-                  {tab.icon}
-                </div>
-                <span className={`text-[10px] font-semibold ${isActive ? "text-primary" : ""}`}>
-                  {tab.label}
-                </span>
-                {isActive && (
-                  <div className="w-1 h-1 rounded-full bg-primary mt-0.5" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
     </div>
   );
 };

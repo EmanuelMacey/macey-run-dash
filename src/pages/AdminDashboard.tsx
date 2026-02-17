@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -12,6 +12,7 @@ import AdminDrivers from "@/components/admin/AdminDrivers";
 import AdminPromoCodes from "@/components/admin/AdminPromoCodes";
 import AdminStores from "@/components/admin/AdminStores";
 import AdminUsers from "@/components/admin/AdminUsers";
+import AdminBanners from "@/components/admin/AdminBanners";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
@@ -42,24 +43,27 @@ const AdminDashboard = () => {
         <h1 className="font-display text-3xl font-bold text-navy dark:text-white mb-6">Admin Dashboard</h1>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-card/80 dark:bg-white/5 backdrop-blur-sm border border-navy/10 dark:border-white/10 rounded-2xl p-1">
+          <TabsList className="grid w-full grid-cols-7 bg-card/80 dark:bg-white/5 backdrop-blur-sm border border-navy/10 dark:border-white/10 rounded-2xl p-1">
             <TabsTrigger value="analytics" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <BarChart3 className="h-4 w-4" /> Analytics
+              <BarChart3 className="h-4 w-4" /> <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <ShoppingBag className="h-4 w-4" /> Orders
+              <ShoppingBag className="h-4 w-4" /> <span className="hidden sm:inline">Orders</span>
             </TabsTrigger>
             <TabsTrigger value="stores" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Store className="h-4 w-4" /> Stores
+              <Store className="h-4 w-4" /> <span className="hidden sm:inline">Stores</span>
             </TabsTrigger>
             <TabsTrigger value="drivers" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Users className="h-4 w-4" /> Drivers
+              <Users className="h-4 w-4" /> <span className="hidden sm:inline">Drivers</span>
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Shield className="h-4 w-4" /> Users
+              <Shield className="h-4 w-4" /> <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
             <TabsTrigger value="promos" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Tag className="h-4 w-4" /> Promos
+              <Tag className="h-4 w-4" /> <span className="hidden sm:inline">Promos</span>
+            </TabsTrigger>
+            <TabsTrigger value="banners" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Megaphone className="h-4 w-4" /> <span className="hidden sm:inline">Banners</span>
             </TabsTrigger>
           </TabsList>
 
@@ -69,6 +73,7 @@ const AdminDashboard = () => {
           <TabsContent value="drivers"><AdminDrivers /></TabsContent>
           <TabsContent value="users"><AdminUsers /></TabsContent>
           <TabsContent value="promos"><AdminPromoCodes /></TabsContent>
+          <TabsContent value="banners"><AdminBanners /></TabsContent>
         </Tabs>
       </main>
     </div>

@@ -10,6 +10,7 @@ import NotificationBell from "@/components/customer/NotificationBell";
 import OrdersList from "@/components/customer/OrdersList";
 import MarketplaceBrowser from "@/components/customer/MarketplaceBrowser";
 import CustomerProfile from "@/components/customer/CustomerProfile";
+import PromoBanner from "@/components/customer/PromoBanner";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const CustomerDashboard = () => {
@@ -54,6 +55,7 @@ const CustomerDashboard = () => {
           </TabsList>
 
           <TabsContent value="order" className="animate-fade-in">
+            <PromoBanner />
             <h1 className="font-display text-3xl font-bold text-navy dark:text-white mb-2">Welcome back! 👋</h1>
             <p className="text-muted-foreground mb-8">What do you need delivered today?</p>
 

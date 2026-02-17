@@ -13,10 +13,11 @@ interface OrderItem {
 interface OrderReceiptProps {
   order: Tables<"orders"> & { order_number?: number };
   orderItems?: OrderItem[];
+  customerName?: string;
   children?: React.ReactNode;
 }
 
-const OrderReceipt = ({ order, orderItems = [], children }: OrderReceiptProps) => {
+const OrderReceipt = ({ order, orderItems = [], customerName, children }: OrderReceiptProps) => {
   const itemsTotal = orderItems.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
   const deliveryFee = orderItems.length > 0 ? order.price - itemsTotal : 0;
   const orderNum = (order as any).order_number ?? "—";
@@ -43,6 +44,7 @@ const OrderReceipt = ({ order, orderItems = [], children }: OrderReceiptProps) =
           <p class="small">${new Date(order.created_at).toLocaleString()}</p>
         </div>
         <div class="line"></div>
+        ${customerName ? `<div class="row"><span>Customer:</span><span>${customerName}</span></div>` : ""}
         <div class="row"><span>Type:</span><span style="text-transform:capitalize">${order.order_type}</span></div>
         <div class="row"><span>From:</span><span>${order.pickup_address}</span></div>
         <div class="row"><span>To:</span><span>${order.dropoff_address}</span></div>
@@ -91,6 +93,12 @@ const OrderReceipt = ({ order, orderItems = [], children }: OrderReceiptProps) =
           </div>
 
           <div className="space-y-1.5">
+            {customerName && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Customer</span>
+                <span className="font-medium text-foreground">{customerName}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Type</span>
               <span className="capitalize font-medium text-foreground">{order.order_type}</span>

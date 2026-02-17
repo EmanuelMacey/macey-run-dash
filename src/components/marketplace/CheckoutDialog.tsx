@@ -65,12 +65,18 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const [completedOrder, setCompletedOrder] = useState<any>(null);
   const [completedItems, setCompletedItems] = useState<any[]>([]);
   const [customerName, setCustomerName] = useState("");
+  const [defaultAddress, setDefaultAddress] = useState<string | null>(null);
 
-  // Fetch customer name
+  // Fetch customer name and default address
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("full_name").eq("user_id", user.id).single()
-      .then(({ data }) => { if (data) setCustomerName(data.full_name); });
+    supabase.from("profiles").select("full_name, default_address").eq("user_id", user.id).single()
+      .then(({ data }) => {
+        if (data) {
+          setCustomerName(data.full_name);
+          setDefaultAddress(data.default_address);
+        }
+      });
   }, [user]);
 
   const grandTotal = total + (deliveryFee ?? 0);
@@ -215,6 +221,18 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
             <Label htmlFor="address" className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary" /> Delivery Address
             </Label>
+            {defaultAddress && !deliveryAddress && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full rounded-xl text-xs justify-start gap-2"
+                onClick={() => setDeliveryAddress(defaultAddress)}
+              >
+                <Navigation className="h-3 w-3" />
+                Use saved address: {defaultAddress}
+              </Button>
+            )}
             <Input
               id="address"
               placeholder="Enter your delivery address..."

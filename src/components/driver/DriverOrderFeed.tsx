@@ -22,33 +22,12 @@ const DriverOrderFeed = ({ isOnline }: DriverOrderFeedProps) => {
   const fetchOrders = async () => {
     if (!user) return;
 
-    // Fetch available (pending, unassigned) orders
-    const { data: available } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("status", "pending")
-      .is("driver_id", null)
-      .order("created_at", { ascending: true });
+    const { data: available } = await supabase.from("orders").select("*").eq("status", "pending").is("driver_id", null).order("created_at", { ascending: true });
+    const { data: active } = await supabase.from("orders").select("*").eq("driver_id", user.id).in("status", ["accepted", "picked_up", "on_the_way"]).order("created_at", { ascending: false }).limit(1);
 
-    // Fetch my active order (accepted/picked_up/on_the_way)
-    const { data: active } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("driver_id", user.id)
-      .in("status", ["accepted", "picked_up", "on_the_way"])
-      .order("created_at", { ascending: false })
-      .limit(1);
-
-    // Fetch today's completed orders
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const { data: completed } = await supabase
-      .from("orders")
-      .select("*")
-      .eq("driver_id", user.id)
-      .eq("status", "delivered")
-      .gte("updated_at", todayStart.toISOString())
-      .order("updated_at", { ascending: false });
+    const { data: completed } = await supabase.from("orders").select("*").eq("driver_id", user.id).eq("status", "delivered").gte("updated_at", todayStart.toISOString()).order("updated_at", { ascending: false });
 
     setAvailableOrders(available || []);
     setActiveOrder(active?.[0] || null);
@@ -56,32 +35,23 @@ const DriverOrderFeed = ({ isOnline }: DriverOrderFeedProps) => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, [user]);
+  useEffect(() => { fetchOrders(); }, [user]);
 
-  // Realtime subscription for order changes
   useEffect(() => {
     if (!user) return;
-
-    const channel = supabase
-      .channel("driver-orders")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "orders" },
-        () => fetchOrders()
-      )
+    const channel = supabase.channel("driver-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => fetchOrders())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   if (!isOnline) {
     return (
       <div className="bg-card border border-border rounded-2xl p-8 text-center">
-        <p className="text-muted-foreground">Go online to start receiving orders.</p>
+        <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+          <Inbox className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <p className="text-muted-foreground font-medium">Go online to start receiving orders.</p>
       </div>
     );
   }
@@ -89,26 +59,24 @@ const DriverOrderFeed = ({ isOnline }: DriverOrderFeedProps) => {
   if (loading) {
     return (
       <div className="space-y-3">
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-2xl" />
+        <Skeleton className="h-32 w-full rounded-2xl" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Active Order */}
       {activeOrder && (
         <div>
           <h2 className="font-display text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="w-2.5 h-2.5 rounded-full bg-success animate-pulse" />
             Active Order
           </h2>
           <DriverOrderCard order={activeOrder} onUpdated={fetchOrders} />
         </div>
       )}
 
-      {/* Available Orders */}
       {!activeOrder && (
         <div>
           <h2 className="font-display text-lg font-bold text-foreground mb-3">
@@ -129,7 +97,6 @@ const DriverOrderFeed = ({ isOnline }: DriverOrderFeedProps) => {
         </div>
       )}
 
-      {/* Today's Completed */}
       {completedToday.length > 0 && (
         <div>
           <h2 className="font-display text-lg font-bold text-foreground mb-3">

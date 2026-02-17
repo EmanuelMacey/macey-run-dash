@@ -34,9 +34,9 @@ const PricingSection = () => {
         <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {plans.map((plan, i) => (
             <motion.div key={plan.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
-              className={`rounded-2xl p-8 border ${plan.featured ? "bg-secondary border-accent/30 text-secondary-foreground" : "bg-card border-border text-card-foreground"}`}>
+              className={`rounded-3xl p-8 border ${plan.featured ? "bg-secondary border-primary/30 text-secondary-foreground shadow-2xl scale-[1.02]" : "bg-card border-border text-card-foreground"} transition-all hover:shadow-xl`}>
               {plan.featured && (
-                <div className="inline-block bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded-full mb-4">Popular</div>
+                <div className="inline-block gradient-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full mb-4">Popular</div>
               )}
               <h3 className="font-display font-semibold text-xl mb-2">{plan.name}</h3>
               <p className={`text-sm mb-6 ${plan.featured ? "text-secondary-foreground/60" : "text-muted-foreground"}`}>{plan.description}</p>
@@ -47,13 +47,15 @@ const PricingSection = () => {
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3 text-sm">
-                    <Check size={16} className="text-accent flex-shrink-0" />
+                    <div className="w-5 h-5 rounded-full gradient-primary flex items-center justify-center shrink-0">
+                      <Check size={12} className="text-primary-foreground" />
+                    </div>
                     <span className={plan.featured ? "text-secondary-foreground/80" : "text-muted-foreground"}>{feature}</span>
                   </li>
                 ))}
               </ul>
               <Link to="/signup">
-                <Button className={`w-full rounded-full h-11 ${plan.featured ? "bg-accent hover:bg-accent/90 text-accent-foreground" : "bg-primary hover:bg-primary/90 text-primary-foreground"}`}>
+                <Button className={`w-full rounded-full h-11 font-semibold ${plan.featured ? "gradient-primary text-primary-foreground shadow-lg" : "bg-primary hover:bg-primary/90 text-primary-foreground"}`}>
                   Get Started
                 </Button>
               </Link>

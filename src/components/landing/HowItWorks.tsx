@@ -19,10 +19,10 @@ const HowItWorks = () => {
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           {steps.map((step, i) => (
             <motion.div key={step.title} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="text-center group">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent/15 transition-colors">
-                <step.icon size={28} className="text-primary group-hover:text-accent transition-colors" />
+              <div className="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform shadow-lg">
+                <step.icon size={28} className="text-primary-foreground" />
               </div>
-              <div className="text-sm font-medium text-accent mb-2">Step {i + 1}</div>
+              <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">Step {i + 1}</div>
               <h3 className="font-display font-semibold text-xl text-foreground mb-3">{step.title}</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">{step.description}</p>
             </motion.div>

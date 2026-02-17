@@ -83,11 +83,11 @@ const DriverDashboard = () => {
       <div className="particle w-3 h-3 bg-success/20 top-24 left-[8%]" style={{ animationDelay: '0s' }} />
       <div className="particle w-2 h-2 bg-accent/15 top-48 right-[12%]" style={{ animationDelay: '3s' }} />
 
-      <header className="bg-secondary/95 backdrop-blur-xl border-b border-border/30 sticky top-0 z-50">
+      <header className="bg-navy dark:bg-secondary/95 backdrop-blur-xl border-b border-navy/20 dark:border-white/10 sticky top-0 z-50">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
-            <span className="font-display font-bold text-lg text-secondary-foreground">Driver</span>
+            <span className="font-display font-bold text-lg text-navy-foreground dark:text-white">Driver</span>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -101,7 +101,7 @@ const DriverDashboard = () => {
             </Button>
             <ThemeToggle />
             <NotificationBell />
-            <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
+            <Button variant="ghost" onClick={signOut} className="text-navy-foreground/70 hover:text-navy-foreground dark:text-white/70 dark:hover:text-white">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -109,7 +109,7 @@ const DriverDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl relative">
-        <h1 className="font-display text-3xl font-bold text-foreground mb-1">Driver Dashboard</h1>
+        <h1 className="font-display text-3xl font-bold text-navy dark:text-white mb-1">Driver Dashboard</h1>
         <p className="text-muted-foreground mb-6">
           {isOnline ? "You're online — waiting for orders..." : "Go online to start receiving orders"}
         </p>

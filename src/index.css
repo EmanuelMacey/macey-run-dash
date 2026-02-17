@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 240 6% 97%;
     --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
@@ -15,13 +15,13 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 10%;
 
-    --primary: 348 83% 52%;
+    --primary: 348 83% 47%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 6% 10%;
+    --secondary: 240 8% 12%;
     --secondary-foreground: 0 0% 96%;
 
-    --muted: 240 5% 94%;
+    --muted: 240 5% 92%;
     --muted-foreground: 240 4% 46%;
 
     --accent: 25 95% 53%;
@@ -32,23 +32,27 @@
 
     --border: 240 6% 90%;
     --input: 240 6% 90%;
-    --ring: 348 83% 52%;
+    --ring: 348 83% 47%;
 
     --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 10% 10%;
-    --sidebar-primary: 348 83% 52%;
+    --sidebar-primary: 348 83% 47%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 5% 94%;
     --sidebar-accent-foreground: 240 10% 10%;
     --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 348 83% 52%;
+    --sidebar-ring: 348 83% 47%;
 
     --success: 152 69% 40%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+
+    --mesh-1: 348 83% 47%;
+    --mesh-2: 25 95% 53%;
+    --mesh-3: 280 60% 50%;
   }
 
   .dark {
@@ -61,7 +65,7 @@
     --popover: 240 10% 8%;
     --popover-foreground: 0 0% 96%;
 
-    --primary: 348 83% 58%;
+    --primary: 348 83% 55%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 240 6% 14%;
@@ -78,21 +82,25 @@
 
     --border: 240 6% 18%;
     --input: 240 6% 18%;
-    --ring: 348 83% 58%;
+    --ring: 348 83% 55%;
 
     --sidebar-background: 240 10% 8%;
     --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 348 83% 58%;
+    --sidebar-primary: 348 83% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 6% 16%;
     --sidebar-accent-foreground: 0 0% 96%;
     --sidebar-border: 240 6% 18%;
-    --sidebar-ring: 348 83% 58%;
+    --sidebar-ring: 348 83% 55%;
 
     --success: 152 69% 40%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+
+    --mesh-1: 348 83% 55%;
+    --mesh-2: 25 95% 58%;
+    --mesh-3: 280 60% 55%;
   }
 }
 
@@ -116,14 +124,51 @@
   }
 
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(348, 83%, 52%), hsl(25, 95%, 53%));
+    background: linear-gradient(135deg, hsl(348, 83%, 47%), hsl(25, 95%, 53%));
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(348, 83%, 52%), hsl(25, 95%, 53%));
+    background: linear-gradient(135deg, hsl(348, 83%, 47%), hsl(25, 95%, 53%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .gradient-dark {
+    background: linear-gradient(135deg, hsl(240, 10%, 6%), hsl(240, 8%, 12%));
+  }
+
+  /* Mesh gradient backgrounds */
+  .mesh-bg {
+    background-color: hsl(var(--background));
+    background-image: 
+      radial-gradient(at 0% 0%, hsl(var(--mesh-1) / 0.08) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsl(var(--mesh-2) / 0.06) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsl(var(--mesh-3) / 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsl(var(--mesh-2) / 0.05) 0px, transparent 50%);
+  }
+
+  .mesh-bg-dark {
+    background-color: hsl(var(--secondary));
+    background-image: 
+      radial-gradient(at 10% 10%, hsl(var(--mesh-1) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 90% 20%, hsl(var(--mesh-2) / 0.1) 0px, transparent 50%),
+      radial-gradient(at 50% 80%, hsl(var(--mesh-3) / 0.12) 0px, transparent 50%);
+  }
+
+  /* Floating particles */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particle-float 8s ease-in-out infinite;
+  }
+
+  @keyframes particle-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+    25% { transform: translateY(-20px) rotate(90deg); opacity: 0.8; }
+    50% { transform: translateY(-10px) rotate(180deg); opacity: 0.4; }
+    75% { transform: translateY(-25px) rotate(270deg); opacity: 0.7; }
   }
 
   .shimmer {
@@ -149,5 +194,47 @@
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-8px); }
+  }
+
+  /* Glow effect for cards */
+  .glow-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .glow-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.04),
+      transparent
+    );
+    animation: card-glow 4s ease-in-out infinite;
+  }
+  @keyframes card-glow {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* Animated gradient border */
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--mesh-1) / 0.3), hsl(var(--mesh-2) / 0.3), hsl(var(--mesh-3) / 0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 }

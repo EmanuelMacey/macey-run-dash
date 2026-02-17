@@ -98,7 +98,7 @@ const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderC
   const statusInfo = NEXT_STATUS[order.status];
 
   return (
-    <div className={`bg-card border rounded-2xl p-4 space-y-3 transition-all duration-300 hover:shadow-md ${isAvailable ? "border-accent/50 shadow-sm" : "border-border"}`}>
+    <div className={`bg-card/90 backdrop-blur-sm border rounded-2xl p-4 space-y-3 transition-all duration-300 hover:shadow-lg ${isAvailable ? "border-accent/50 shadow-md shadow-accent/5" : "border-border/50 hover:shadow-primary/5"}`}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           {order.order_type === "delivery" ? (

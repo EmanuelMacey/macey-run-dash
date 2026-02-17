@@ -60,7 +60,7 @@ const DriverEarnings = () => {
   return (
     <div className="grid grid-cols-2 gap-3 mb-6">
       {stats.map((stat) => (
-        <div key={stat.label} className="bg-card border border-border rounded-2xl p-4 hover:shadow-md transition-shadow">
+        <div key={stat.label} className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-4 hover:shadow-lg hover:shadow-primary/5 transition-all glow-card">
           <div className="flex items-center gap-2 mb-2">
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${stat.color} bg-current/10`}>
               <stat.icon className={`h-4 w-4 ${stat.color}`} />

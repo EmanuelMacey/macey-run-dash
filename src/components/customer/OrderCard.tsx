@@ -74,7 +74,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+    <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-4 space-y-3 hover:shadow-lg hover:shadow-primary/5 transition-all">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           {order.order_type === "delivery" ? (

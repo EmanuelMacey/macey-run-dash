@@ -8,6 +8,7 @@ import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import DriverOrderFeed from "@/components/driver/DriverOrderFeed";
 import DriverEarnings from "@/components/driver/DriverEarnings";
+import NotificationBell from "@/components/customer/NotificationBell";
 
 const DriverDashboard = () => {
   const { user, signOut } = useAuth();
@@ -76,8 +77,12 @@ const DriverDashboard = () => {
   }, [user, isOnline]);
 
   return (
-    <div className="min-h-screen bg-background" onClick={unlockAudio}>
-      <header className="bg-secondary border-b border-border sticky top-0 z-50">
+    <div className="min-h-screen mesh-bg" onClick={unlockAudio}>
+      {/* Decorative particles */}
+      <div className="particle w-3 h-3 bg-success/20 top-24 left-[8%]" style={{ animationDelay: '0s' }} />
+      <div className="particle w-2 h-2 bg-accent/15 top-48 right-[12%]" style={{ animationDelay: '3s' }} />
+
+      <header className="bg-secondary/95 backdrop-blur-xl border-b border-border/30 sticky top-0 z-50">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
@@ -93,6 +98,7 @@ const DriverDashboard = () => {
               <Power className="h-4 w-4 mr-2" />
               {isOnline ? "Online" : "Offline"}
             </Button>
+            <NotificationBell />
             <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
               <LogOut className="h-4 w-4" />
             </Button>
@@ -100,14 +106,14 @@ const DriverDashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-2xl">
+      <main className="container mx-auto px-4 py-6 max-w-2xl relative">
         <h1 className="font-display text-3xl font-bold text-foreground mb-1">Driver Dashboard</h1>
         <p className="text-muted-foreground mb-6">
           {isOnline ? "You're online — waiting for orders..." : "Go online to start receiving orders"}
         </p>
 
         {gpsActive && (
-          <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-success/10 rounded-2xl text-sm text-success font-medium border border-success/20">
+          <div className="flex items-center gap-2 mb-4 px-4 py-2.5 bg-success/10 rounded-2xl text-sm text-success font-medium border border-success/20 backdrop-blur-sm">
             <MapPin className="h-4 w-4 animate-pulse" />
             <span>GPS broadcasting active — updating every 5s</span>
           </div>

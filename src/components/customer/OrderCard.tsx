@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer } from "lucide-react";
+import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer, ShoppingBag } from "lucide-react";
 import DriverMap from "./DriverMap";
 import OrderChat from "@/components/chat/OrderChat";
 import RatingDialog from "./RatingDialog";
@@ -39,10 +39,22 @@ interface OrderCardProps {
 const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
   const [cancelling, setCancelling] = useState(false);
   const [eta, setEta] = useState<number | null>(null);
+  const [orderItems, setOrderItems] = useState<{ id: string; product_name: string; quantity: number; unit_price: number }[]>([]);
   const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   const canCancel = order.status === "pending";
   const showMap = order.driver_id && ["accepted", "picked_up", "on_the_way"].includes(order.status);
   const handleEtaChange = useCallback((minutes: number | null) => setEta(minutes), []);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const { data } = await supabase
+        .from("order_items")
+        .select("id, product_name, quantity, unit_price")
+        .eq("order_id", order.id);
+      if (data && data.length > 0) setOrderItems(data);
+    };
+    fetchItems();
+  }, [order.id]);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -89,10 +101,26 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
           <span className="text-muted-foreground shrink-0">To:</span>
           <span className="text-foreground">{order.dropoff_address}</span>
         </div>
-        {order.description && (
+        {order.description && !orderItems.length && (
           <p className="text-muted-foreground text-xs mt-1">{order.description}</p>
         )}
       </div>
+
+      {/* Order items breakdown */}
+      {orderItems.length > 0 && (
+        <div className="bg-muted/50 rounded-lg p-3 space-y-1.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <ShoppingBag className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-semibold text-foreground">Order Items</span>
+          </div>
+          {orderItems.map((item) => (
+            <div key={item.id} className="flex justify-between text-xs">
+              <span className="text-muted-foreground">{item.quantity}x {item.product_name}</span>
+              <span className="font-medium text-foreground">${(item.unit_price * item.quantity).toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {showMap && (
         <>

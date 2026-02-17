@@ -1,14 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, CheckCircle2, Loader2, Navigation } from "lucide-react";
+import { Package, MapPin, CheckCircle2, Loader2, Navigation, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import OrderChat from "@/components/chat/OrderChat";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Order = Tables<"orders">;
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+}
 
 const NEXT_STATUS: Record<string, { label: string; next: string; color: string }> = {
   accepted: { label: "Mark Picked Up", next: "picked_up", color: "bg-primary" },
@@ -25,6 +32,18 @@ interface DriverOrderCardProps {
 const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderCardProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const { data } = await supabase
+        .from("order_items")
+        .select("id, product_name, quantity, unit_price")
+        .eq("order_id", order.id);
+      if (data && data.length > 0) setOrderItems(data);
+    };
+    fetchItems();
+  }, [order.id]);
 
   const acceptOrder = async () => {
     if (!user) return;
@@ -91,10 +110,26 @@ const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderC
           <span className="text-muted-foreground shrink-0">📍 To:</span>
           <span className="text-foreground">{order.dropoff_address}</span>
         </div>
-        {order.description && (
+        {order.description && !orderItems.length && (
           <p className="text-muted-foreground text-xs italic mt-1">"{order.description}"</p>
         )}
       </div>
+
+      {/* Order items breakdown */}
+      {orderItems.length > 0 && (
+        <div className="bg-muted/50 rounded-lg p-3 space-y-1.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <ShoppingBag className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-semibold text-foreground">Items to Pick Up</span>
+          </div>
+          {orderItems.map((item) => (
+            <div key={item.id} className="flex justify-between text-xs">
+              <span className="text-muted-foreground">{item.quantity}x {item.product_name}</span>
+              <span className="font-medium text-foreground">${(item.unit_price * item.quantity).toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {!isAvailable && ["accepted", "picked_up", "on_the_way"].includes(order.status) && (
         <OrderChat orderId={order.id} />

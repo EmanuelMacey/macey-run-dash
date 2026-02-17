@@ -43,7 +43,7 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("orders").insert({
+      const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: "delivery" as const,
         pickup_address: `${storeName}`,
@@ -52,9 +52,20 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
         price: grandTotal,
         payment_method: paymentMethod,
         status: "pending" as const,
-      });
+      }).select("id").single();
 
       if (error) throw error;
+
+      // Save individual order items
+      const orderItems = items.map((item) => ({
+        order_id: orderData.id,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+      }));
+
+      const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+      if (itemsError) console.error("Failed to save order items:", itemsError);
 
       toast({ title: "Order placed! 🎉", description: "A driver will pick up your food soon." });
       clearCart();

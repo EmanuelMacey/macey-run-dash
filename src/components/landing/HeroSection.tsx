@@ -18,15 +18,15 @@ const HeroSection = () => {
       setShowName(false);
       setRiderExited(false);
 
-      const t1 = setTimeout(() => setShowRider(true), 600);
+      const t1 = setTimeout(() => setShowRider(true), 1000);
       const t2 = setTimeout(() => {
         setShowSmoke(true);
         setRiderExited(true);
-      }, 3500);
-      const t3 = setTimeout(() => setShowName(true), 4200);
-      const t4 = setTimeout(() => setShowSmoke(false), 6000);
-      // Restart cycle every ~10s for a relaxed pace
-      const t5 = setTimeout(() => runCycle(), 10000);
+      }, 5000);
+      const t3 = setTimeout(() => setShowName(true), 6000);
+      const t4 = setTimeout(() => setShowSmoke(false), 8000);
+      // Restart cycle every ~15s for a relaxed pace
+      const t5 = setTimeout(() => runCycle(), 15000);
       return [t1, t2, t3, t4, t5];
     };
     const timers = runCycle();
@@ -138,7 +138,7 @@ const HeroSection = () => {
                     x: -300,
                     transition: { duration: 0.5, ease: 'easeIn' }
                   }}
-                  transition={{ duration: 1.2, ease: 'easeOut' }}
+                  transition={{ duration: 2, ease: 'easeOut' }}
                   className="absolute w-36 h-36 md:w-48 md:h-48 object-contain drop-shadow-2xl z-10"
                   style={{ filter: 'drop-shadow(0 0 30px hsl(25, 95%, 53%, 0.5))' }}
                 />

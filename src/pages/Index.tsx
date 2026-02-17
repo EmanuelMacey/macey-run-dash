@@ -8,6 +8,7 @@ import ContactSection from "@/components/landing/ContactSection";
 import PolicySection from "@/components/landing/PolicySection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
+import CookieConsent from "@/components/landing/CookieConsent";
 
 const Index = () => {
   return (
@@ -22,6 +23,7 @@ const Index = () => {
       <PolicySection />
       <CTASection />
       <Footer />
+      <CookieConsent />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,12 +9,46 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, MapPin, CreditCard, Banknote } from "lucide-react";
+import { Loader2, MapPin, CreditCard, Banknote, Navigation } from "lucide-react";
 
 interface CheckoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+// Haversine distance in km
+const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+// Geocode using Nominatim
+const geocode = async (address: string): Promise<{ lat: number; lon: number } | null> => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+    );
+    const data = await res.json();
+    if (data.length > 0) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+  } catch {}
+  return null;
+};
+
+// Pricing: base + per-km rate (GYD)
+const BASE_FEE = 300;
+const PER_KM_RATE = 150;
+const MIN_FEE = 500;
+const MAX_FEE = 5000;
+
+const calculateDeliveryFee = (distanceKm: number) => {
+  const fee = Math.round(BASE_FEE + distanceKm * PER_KM_RATE);
+  return Math.max(MIN_FEE, Math.min(MAX_FEE, fee));
+};
 
 const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
   const { items, total, storeName, storeId, clearCart } = useCart();
@@ -23,11 +57,49 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
   const [loading, setLoading] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [calculatingFee, setCalculatingFee] = useState(false);
 
-  const deliveryFee = 500;
-  const grandTotal = total + deliveryFee;
-
+  const grandTotal = total + (deliveryFee ?? 0);
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
+
+  // Debounced distance calculation
+  useEffect(() => {
+    if (!deliveryAddress.trim() || !storeName) {
+      setDeliveryFee(null);
+      setDistanceKm(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setCalculatingFee(true);
+      try {
+        // Geocode both store (by name + Guyana) and delivery address
+        const [storeCoords, dropCoords] = await Promise.all([
+          geocode(`${storeName}, Georgetown, Guyana`),
+          geocode(`${deliveryAddress}, Guyana`),
+        ]);
+
+        if (storeCoords && dropCoords) {
+          const dist = haversineKm(storeCoords.lat, storeCoords.lon, dropCoords.lat, dropCoords.lon);
+          setDistanceKm(Math.round(dist * 10) / 10);
+          setDeliveryFee(calculateDeliveryFee(dist));
+        } else {
+          // Fallback if geocoding fails
+          setDistanceKm(null);
+          setDeliveryFee(MIN_FEE);
+        }
+      } catch {
+        setDeliveryFee(MIN_FEE);
+        setDistanceKm(null);
+      } finally {
+        setCalculatingFee(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [deliveryAddress, storeName]);
 
   const buildDescription = () => {
     const itemLines = items.map((i) => `${i.quantity}x ${i.name}`).join(", ");
@@ -37,6 +109,10 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
   const handlePlaceOrder = async () => {
     if (!deliveryAddress.trim()) {
       toast({ title: "Missing address", description: "Please enter a delivery address.", variant: "destructive" });
+      return;
+    }
+    if (deliveryFee === null) {
+      toast({ title: "Calculating fee", description: "Please wait for the delivery fee to calculate.", variant: "destructive" });
       return;
     }
     if (!user) return;
@@ -56,7 +132,6 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
 
       if (error) throw error;
 
-      // Save individual order items
       const orderItems = items.map((item) => ({
         order_id: orderData.id,
         product_name: item.name,
@@ -72,6 +147,8 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
       onOpenChange(false);
       setDeliveryAddress("");
       setNotes("");
+      setDeliveryFee(null);
+      setDistanceKm(null);
     } catch (err: any) {
       toast({ title: "Order failed", description: err.message, variant: "destructive" });
     } finally {
@@ -88,28 +165,7 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
-          {/* Order summary */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-foreground">Order Summary</h3>
-            <div className="bg-muted/50 rounded-xl p-3 space-y-1.5">
-              {items.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{item.quantity}x {item.name}</span>
-                  <span className="font-medium text-foreground">{formatPrice(item.price * item.quantity)}</span>
-                </div>
-              ))}
-              <div className="border-t border-border pt-1.5 flex justify-between text-sm">
-                <span className="text-muted-foreground">Delivery fee</span>
-                <span className="font-medium text-foreground">{formatPrice(deliveryFee)}</span>
-              </div>
-              <div className="flex justify-between text-base font-bold pt-1">
-                <span>Total</span>
-                <span className="text-primary">{formatPrice(grandTotal)} <span className="text-xs font-normal text-muted-foreground">GYD</span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Delivery address */}
+          {/* Delivery address — moved up so fee calculates before summary */}
           <div className="space-y-2">
             <Label htmlFor="address" className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary" /> Delivery Address
@@ -121,6 +177,48 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
               onChange={(e) => setDeliveryAddress(e.target.value)}
               className="rounded-xl"
             />
+            {calculatingFee && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Calculating delivery fee...
+              </p>
+            )}
+            {distanceKm !== null && deliveryFee !== null && !calculatingFee && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Navigation className="h-3 w-3" /> ~{distanceKm} km • Delivery fee: {formatPrice(deliveryFee)} GYD
+              </p>
+            )}
+          </div>
+
+          {/* Order summary */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-foreground">Order Summary</h3>
+            <div className="bg-muted/50 rounded-xl p-3 space-y-1.5">
+              {items.map((item) => (
+                <div key={item.id} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{item.quantity}x {item.name}</span>
+                  <span className="font-medium text-foreground">{formatPrice(item.price * item.quantity)}</span>
+                </div>
+              ))}
+              <div className="border-t border-border pt-1.5 flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium text-foreground">{formatPrice(total)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Delivery fee {distanceKm !== null ? `(${distanceKm} km)` : ""}
+                </span>
+                <span className="font-medium text-foreground">
+                  {deliveryFee !== null ? formatPrice(deliveryFee) : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between text-base font-bold pt-1 border-t border-border">
+                <span>Total</span>
+                <span className="text-primary">
+                  {deliveryFee !== null ? formatPrice(grandTotal) : "—"}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">GYD</span>
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Notes */}
@@ -167,10 +265,10 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
           <Button
             className="w-full h-12 rounded-full text-base font-bold"
             onClick={handlePlaceOrder}
-            disabled={loading || items.length === 0}
+            disabled={loading || items.length === 0 || deliveryFee === null || calculatingFee}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Place Order — {formatPrice(grandTotal)} GYD
+            {deliveryFee !== null ? `Place Order — ${formatPrice(grandTotal)} GYD` : "Enter address to see total"}
           </Button>
         </div>
       </DialogContent>

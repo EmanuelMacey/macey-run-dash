@@ -36,9 +36,9 @@ const CountUp = ({ target, suffix }: { target: number; suffix: string }) => {
 
 const SocialProofSection = () => {
   return (
-    <section className="py-16 mesh-bg-dark relative overflow-hidden">
+    <section className="py-20 mesh-bg-dark relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto">
+        <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -46,15 +46,15 @@ const SocialProofSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="text-center"
+              className="text-center group"
             >
-              <div className="w-12 h-12 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20">
-                <stat.icon size={22} className="text-primary-foreground" />
+              <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary/20 group-hover:scale-110 transition-transform">
+                <stat.icon size={24} className="text-primary-foreground" />
               </div>
-              <div className="font-display font-bold text-3xl md:text-4xl gradient-text mb-1">
+              <div className="font-display font-extrabold text-3xl md:text-5xl gradient-text mb-2">
                 <CountUp target={stat.value} suffix={stat.suffix} />
               </div>
-              <p className="text-muted-foreground text-sm">{stat.label}</p>
+              <p className="text-muted-foreground text-sm font-medium">{stat.label}</p>
             </motion.div>
           ))}
         </div>

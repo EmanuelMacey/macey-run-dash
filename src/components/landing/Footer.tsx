@@ -20,25 +20,43 @@ const Footer = () => {
 
   return (
     <>
-      <footer className="bg-muted dark:bg-secondary border-t border-border/30 py-12">
+      <footer className="bg-secondary dark:bg-secondary border-t border-border/20 py-16">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <img src={logo} alt="MaceyRunners" className="w-8 h-8 rounded-lg object-cover" />
-              <span className="font-display font-bold text-lg text-foreground">MaceyRunners</span>
+          <div className="grid md:grid-cols-3 gap-10 items-start mb-10">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2.5 mb-4">
+                <img src={logo} alt="MaceyRunners" className="w-10 h-10 rounded-xl object-cover shadow-sm ring-1 ring-primary/20" />
+                <span className="font-display font-bold text-xl text-secondary-foreground">MaceyRunners</span>
+              </div>
+              <p className="text-sm text-secondary-foreground/60 leading-relaxed max-w-xs">
+                Guyana's fastest delivery service. From food to errands, we get it done.
+              </p>
             </div>
 
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
-              <a href="#services" className="hover:text-primary transition-colors">Services</a>
-              <a href="#pricing" className="hover:text-primary transition-colors">Pricing</a>
-              <a href="#contact" className="hover:text-primary transition-colors">Contact</a>
-              <button onClick={() => setShowPolicies(true)} className="hover:text-primary transition-colors">Policies</button>
-              <Link to="/login" className="hover:text-primary transition-colors">Login</Link>
+            {/* Links */}
+            <div className="flex flex-col gap-3">
+              <h4 className="font-display font-semibold text-sm text-secondary-foreground mb-1">Quick Links</h4>
+              <a href="#how-it-works" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">How It Works</a>
+              <a href="#services" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Services</a>
+              <a href="#pricing" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Pricing</a>
+              <a href="#contact" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Contact</a>
             </div>
 
-            <p className="text-xs text-muted-foreground/60">
-              © {new Date().getFullYear()} MaceyRunners. All rights reserved.
+            {/* Legal */}
+            <div className="flex flex-col gap-3">
+              <h4 className="font-display font-semibold text-sm text-secondary-foreground mb-1">Legal</h4>
+              <button onClick={() => setShowPolicies(true)} className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors text-left">
+                Policies & Terms
+              </button>
+              <Link to="/login" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Login</Link>
+              <Link to="/signup" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Sign Up</Link>
+            </div>
+          </div>
+
+          <div className="border-t border-secondary-foreground/10 pt-6">
+            <p className="text-xs text-secondary-foreground/40 text-center">
+              © {new Date().getFullYear()} MaceyRunners Delivery Service. All rights reserved.
             </p>
           </div>
         </div>

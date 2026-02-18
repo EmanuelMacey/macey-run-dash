@@ -46,6 +46,10 @@ const Navbar = () => {
             <a href="#services" className="block text-sm text-secondary-foreground/70 hover:text-primary py-2">Services</a>
             <a href="#pricing" className="block text-sm text-secondary-foreground/70 hover:text-primary py-2">Pricing</a>
             <div className="flex flex-col gap-2 pt-2">
+              <div className="flex items-center justify-between px-2 py-2">
+                <span className="text-sm text-secondary-foreground/70">Theme</span>
+                <ThemeToggle />
+              </div>
               <Link to="/login"><Button variant="ghost" className="w-full text-secondary-foreground/70 rounded-full">Log In</Button></Link>
               <Link to="/signup"><Button className="w-full gradient-primary text-primary-foreground rounded-full">Get Started</Button></Link>
             </div>

@@ -134,14 +134,27 @@ const HeroSection = () => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-full blur-[100px]" />
 
             {/* Rider image */}
-            <motion.img
-              src={deliveryRider}
-              alt="MaceyRunners Delivery"
-              animate={{ y: [0, -15, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="relative z-10 w-[420px] h-auto object-contain drop-shadow-2xl"
-              style={{ filter: "drop-shadow(0 25px 50px rgba(0,0,0,0.15))" }}
-            />
+            <div className="relative z-10">
+              <motion.img
+                src={deliveryRider}
+                alt="MaceyRunners Delivery"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="w-[340px] h-auto object-contain drop-shadow-2xl"
+                style={{ filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.15))" }}
+              />
+              {/* Smoke/trail effect */}
+              <motion.div
+                animate={{ opacity: [0.15, 0.35, 0.15], x: [-8, 8, -8], scaleX: [1, 1.15, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[70%] h-8 bg-gradient-to-r from-transparent via-muted-foreground/15 to-transparent rounded-full blur-xl"
+              />
+              <motion.div
+                animate={{ opacity: [0.1, 0.25, 0.1], x: [5, -5, 5] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute bottom-6 left-[30%] w-[40%] h-6 bg-gradient-to-r from-transparent via-accent/10 to-transparent rounded-full blur-lg"
+              />
+            </div>
 
             {/* Floating stat cards */}
             <motion.div

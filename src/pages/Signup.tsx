@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock, Eye, EyeOff, User, Gift } from "lucide-react";
+import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 
 const Signup = () => {
@@ -38,7 +39,6 @@ const Signup = () => {
     if (error) {
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
     } else {
-      // If referral code provided, create referral record after signup
       if (referralCode.trim()) {
         try {
           const { data: referrer } = await supabase
@@ -67,34 +67,60 @@ const Signup = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute top-0 -left-32 w-[400px] h-[400px] bg-primary/15 rounded-full blur-[100px]" />
-        <div className="w-full max-w-md text-center relative z-10">
-          <div className="w-16 h-16 gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+      <div className="min-h-screen mesh-bg flex items-center justify-center p-4 relative overflow-hidden">
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.22, 0.12] }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-0 -left-32 w-[400px] h-[400px] bg-primary/20 rounded-full blur-[120px]"
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md text-center relative z-10"
+        >
+          <div className="w-16 h-16 gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
             <Mail className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-secondary-foreground mb-3">Check your email</h1>
-          <p className="text-muted-foreground mb-6">We sent a verification link to <strong className="text-secondary-foreground">{email}</strong>. Click the link to activate your account.</p>
+          <h1 className="font-display text-3xl font-bold text-foreground mb-3">Check your email</h1>
+          <p className="text-muted-foreground mb-6">We sent a verification link to <strong className="text-foreground">{email}</strong>. Click the link to activate your account.</p>
           <Link to="/login">
-            <Button variant="outline" className="rounded-full">Back to Login</Button>
+            <Button variant="outline" className="rounded-full border-primary/30 hover:bg-primary/10">Back to Login</Button>
           </Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-secondary flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute top-0 -left-32 w-[400px] h-[400px] bg-primary/15 rounded-full blur-[100px]" />
-      <div className="absolute bottom-0 -right-32 w-[400px] h-[400px] bg-accent/15 rounded-full blur-[100px]" />
+    <div className="min-h-screen mesh-bg flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Gradient orbs */}
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.22, 0.12] }}
+        transition={{ duration: 8, repeat: Infinity }}
+        className="absolute top-0 -left-32 w-[400px] h-[400px] bg-primary/20 rounded-full blur-[120px]"
+      />
+      <motion.div
+        animate={{ scale: [1.1, 1, 1.1], opacity: [0.1, 0.18, 0.1] }}
+        transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+        className="absolute bottom-0 -right-32 w-[400px] h-[400px] bg-accent/15 rounded-full blur-[120px]"
+      />
 
-      <div className="w-full max-w-md relative z-10">
+      {/* Particles */}
+      <div className="particle w-3 h-3 bg-primary/15 top-20 left-[10%]" style={{ animationDelay: '0s' }} />
+      <div className="particle w-2 h-2 bg-accent/15 top-40 right-[15%]" style={{ animationDelay: '2s' }} />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md relative z-10"
+      >
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <img src={logo} alt="MaceyRunners" className="w-12 h-12 rounded-xl shadow-lg" />
-            <span className="font-display font-bold text-2xl text-secondary-foreground">MaceyRunners</span>
+            <img src={logo} alt="MaceyRunners" className="w-12 h-12 rounded-xl shadow-lg ring-1 ring-primary/20" />
+            <span className="font-display font-bold text-2xl text-foreground">MaceyRunners</span>
           </Link>
-          <h1 className="font-display text-3xl font-bold text-secondary-foreground">Create your account</h1>
+          <h1 className="font-display text-3xl font-bold text-foreground">Create your account</h1>
           <p className="text-muted-foreground mt-2">Start getting deliveries today</p>
         </div>
 
@@ -134,7 +160,7 @@ const Signup = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full gradient-primary text-primary-foreground rounded-full h-12 text-base font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all" disabled={submitting}>
+          <Button type="submit" className="w-full gradient-primary text-primary-foreground rounded-full h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] transition-all" disabled={submitting}>
             {submitting ? "Creating account..." : "Create Account"}
           </Button>
 
@@ -143,7 +169,7 @@ const Signup = () => {
             <Link to="/login" className="text-primary font-medium hover:underline">Sign in</Link>
           </p>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

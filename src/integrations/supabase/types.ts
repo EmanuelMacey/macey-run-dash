@@ -126,6 +126,59 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_id: string
+          id: string
+          invoice_number: number
+          notes: string | null
+          order_id: string | null
+          paid_at: string | null
+          sent_at: string | null
+          status: string
+          tax_amount: number
+          total_amount: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          customer_id: string
+          id?: string
+          invoice_number?: number
+          notes?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_id?: string
+          id?: string
+          invoice_number?: number
+          notes?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_products: {
         Row: {
           category: string | null
@@ -203,6 +256,39 @@ export type Database = {
           is_open?: boolean
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_retries: {
+        Row: {
+          acknowledged: boolean
+          created_at: string
+          id: string
+          max_retries: number
+          next_retry_at: string | null
+          notification_id: string
+          retry_count: number
+          user_id: string
+        }
+        Insert: {
+          acknowledged?: boolean
+          created_at?: string
+          id?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          notification_id: string
+          retry_count?: number
+          user_id: string
+        }
+        Update: {
+          acknowledged?: boolean
+          created_at?: string
+          id?: string
+          max_retries?: number
+          next_retry_at?: string | null
+          notification_id?: string
+          retry_count?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -504,6 +590,42 @@ export type Database = {
           referred_id?: string
           referrer_id?: string
           status?: string
+        }
+        Relationships: []
+      }
+      testimonials: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          location: string
+          name: string
+          rating: number
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          location?: string
+          name: string
+          rating?: number
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          location?: string
+          name?: string
+          rating?: number
+          text?: string
+          updated_at?: string
         }
         Relationships: []
       }

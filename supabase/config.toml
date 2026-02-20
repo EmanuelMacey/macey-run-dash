@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.delete-account]
 verify_jwt = false
+
+[functions.send-order-email]
+verify_jwt = false
+
+[functions.retry-notifications]
+verify_jwt = false

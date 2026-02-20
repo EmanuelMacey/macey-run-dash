@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -13,6 +13,8 @@ import AdminPromoCodes from "@/components/admin/AdminPromoCodes";
 import AdminStores from "@/components/admin/AdminStores";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminBanners from "@/components/admin/AdminBanners";
+import AdminTestimonials from "@/components/admin/AdminTestimonials";
+import AdminInvoices from "@/components/admin/AdminInvoices";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
@@ -43,37 +45,45 @@ const AdminDashboard = () => {
         <h1 className="font-display text-3xl font-bold text-navy dark:text-white mb-6">Admin Dashboard</h1>
 
         <Tabs defaultValue="analytics" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 bg-card/80 dark:bg-white/5 backdrop-blur-sm border border-navy/10 dark:border-white/10 rounded-2xl p-1">
-            <TabsTrigger value="analytics" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsList className="flex flex-wrap w-full bg-card/80 dark:bg-white/5 backdrop-blur-sm border border-navy/10 dark:border-white/10 rounded-2xl p-1 gap-1">
+            <TabsTrigger value="analytics" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <BarChart3 className="h-4 w-4" /> <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="orders" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <ShoppingBag className="h-4 w-4" /> <span className="hidden sm:inline">Orders</span>
             </TabsTrigger>
-            <TabsTrigger value="stores" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="invoices" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <FileText className="h-4 w-4" /> <span className="hidden sm:inline">Invoices</span>
+            </TabsTrigger>
+            <TabsTrigger value="stores" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Store className="h-4 w-4" /> <span className="hidden sm:inline">Stores</span>
             </TabsTrigger>
-            <TabsTrigger value="drivers" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="drivers" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Users className="h-4 w-4" /> <span className="hidden sm:inline">Drivers</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="users" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Shield className="h-4 w-4" /> <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="promos" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="promos" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Tag className="h-4 w-4" /> <span className="hidden sm:inline">Promos</span>
             </TabsTrigger>
-            <TabsTrigger value="banners" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="banners" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Megaphone className="h-4 w-4" /> <span className="hidden sm:inline">Banners</span>
+            </TabsTrigger>
+            <TabsTrigger value="testimonials" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <MessageSquare className="h-4 w-4" /> <span className="hidden sm:inline">Reviews</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
           <TabsContent value="orders"><AdminOrders /></TabsContent>
+          <TabsContent value="invoices"><AdminInvoices /></TabsContent>
           <TabsContent value="stores"><AdminStores /></TabsContent>
           <TabsContent value="drivers"><AdminDrivers /></TabsContent>
           <TabsContent value="users"><AdminUsers /></TabsContent>
           <TabsContent value="promos"><AdminPromoCodes /></TabsContent>
           <TabsContent value="banners"><AdminBanners /></TabsContent>
+          <TabsContent value="testimonials"><AdminTestimonials /></TabsContent>
         </Tabs>
       </main>
     </div>

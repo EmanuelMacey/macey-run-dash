@@ -1,8 +1,7 @@
-// Custom service worker for push notifications
+// Custom service worker for push notifications with persistent sound
 // This file is used by vite-plugin-pwa as the custom service worker
 
 /// <reference lib="webworker" />
-declare const self: ServiceWorkerGlobalScope;
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
@@ -10,14 +9,20 @@ self.addEventListener("push", (event) => {
   try {
     const data = event.data.json();
     const title = data.title || "MaceyRunners";
-    const options: NotificationOptions = {
+    const options = {
       body: data.body || "",
       icon: "/pwa-icon-192.png",
       badge: "/pwa-icon-192.png",
-      tag: data.data?.order_id || "general",
+      tag: data.data?.order_id || "general-" + Date.now(),
       data: data.data || {},
-      vibrate: [200, 100, 200],
+      vibrate: [300, 150, 300, 150, 300],
       requireInteraction: true,
+      silent: false,
+      renotify: true,
+      actions: [
+        { action: "open", title: "View Order" },
+        { action: "dismiss", title: "Dismiss" },
+      ],
     };
 
     event.waitUntil(self.registration.showNotification(title, options));
@@ -34,14 +39,24 @@ self.addEventListener("notificationclick", (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      // Focus an existing window if available
       for (const client of clients) {
         if (client.url.includes("/dashboard") && "focus" in client) {
           return client.focus();
         }
       }
-      // Open a new window
       return self.clients.openWindow(targetUrl);
     })
   );
+});
+
+// Offline support
+self.addEventListener("fetch", (event) => {
+  // Let workbox handle caching; this is just a fallback
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match("/index.html");
+      })
+    );
+  }
 });

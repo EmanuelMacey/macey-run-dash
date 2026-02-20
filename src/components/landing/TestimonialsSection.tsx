@@ -1,34 +1,34 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 
-const testimonials = [
-  {
-    name: "Shania R.",
-    location: "Georgetown",
-    rating: 5,
-    text: "MaceyRunners delivered my lunch in under 15 minutes! The runner was super friendly and kept me updated the whole time.",
-  },
-  {
-    name: "Kevin M.",
-    location: "East Coast Demerara",
-    rating: 5,
-    text: "I use them for pharmacy runs every week. So convenient — I don't have to leave the house anymore. Highly recommend!",
-  },
-  {
-    name: "Priya D.",
-    location: "Kitty, Georgetown",
-    rating: 4,
-    text: "Great service for grocery shopping. They picked up everything on my list and delivered it fresh. Will definitely use again.",
-  },
-  {
-    name: "Marcus T.",
-    location: "Berbice",
-    rating: 5,
-    text: "Needed important documents couriered across town urgently. MaceyRunners came through fast — lifesaver!",
-  },
-];
+interface Testimonial {
+  id: string;
+  name: string;
+  location: string;
+  rating: number;
+  text: string;
+}
 
 const TestimonialsSection = () => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("testimonials")
+      .select("id, name, location, rating, text")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setTestimonials(data as Testimonial[]);
+        }
+      });
+  }, []);
+
+  if (testimonials.length === 0) return null;
+
   return (
     <section id="testimonials" className="py-28 mesh-bg relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
@@ -52,16 +52,14 @@ const TestimonialsSection = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {testimonials.map((t, i) => (
             <motion.div
-              key={t.name}
+              key={t.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
               className="relative bg-card/90 backdrop-blur-sm rounded-3xl p-7 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-xl group"
             >
-              {/* Quote icon */}
               <Quote size={28} className="text-primary/10 absolute top-5 right-5" />
-
               <div className="flex gap-0.5 mb-5">
                 {[...Array(5)].map((_, si) => (
                   <Star

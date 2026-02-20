@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, MapPin, ShoppingBag, User } from "lucide-react";
+import { LogOut, Package, MapPin, ShoppingBag, User, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
@@ -10,6 +10,7 @@ import NotificationBell from "@/components/customer/NotificationBell";
 import OrdersList from "@/components/customer/OrdersList";
 import MarketplaceBrowser from "@/components/customer/MarketplaceBrowser";
 import CustomerProfile from "@/components/customer/CustomerProfile";
+import CustomerInvoices from "@/components/customer/CustomerInvoices";
 import PromoBanner from "@/components/customer/PromoBanner";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -42,15 +43,18 @@ const CustomerDashboard = () => {
 
       <main className="container mx-auto px-4 py-6 max-w-2xl relative">
         <Tabs defaultValue="order" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-6 h-12 rounded-2xl bg-card/80 dark:bg-white/5 backdrop-blur-sm p-1 border border-navy/10 dark:border-white/10">
+          <TabsList className="w-full grid grid-cols-4 mb-6 h-12 rounded-2xl bg-card/80 dark:bg-white/5 backdrop-blur-sm p-1 border border-navy/10 dark:border-white/10">
             <TabsTrigger value="order" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
-              <Package className="h-4 w-4" /> Services
+              <Package className="h-4 w-4" /> <span className="hidden sm:inline">Services</span>
             </TabsTrigger>
             <TabsTrigger value="marketplace" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
-              <ShoppingBag className="h-4 w-4" /> Order Food
+              <ShoppingBag className="h-4 w-4" /> <span className="hidden sm:inline">Food</span>
+            </TabsTrigger>
+            <TabsTrigger value="invoices" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
+              <FileText className="h-4 w-4" /> <span className="hidden sm:inline">Invoices</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
-              <User className="h-4 w-4" /> Profile
+              <User className="h-4 w-4" /> <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
           </TabsList>
 
@@ -92,6 +96,10 @@ const CustomerDashboard = () => {
 
           <TabsContent value="marketplace" className="animate-fade-in">
             <MarketplaceBrowser />
+          </TabsContent>
+
+          <TabsContent value="invoices" className="animate-fade-in">
+            <CustomerInvoices />
           </TabsContent>
 
           <TabsContent value="profile" className="animate-fade-in">

@@ -51,7 +51,7 @@ const NOTIFICATION_CHIME_URI = (() => {
           + Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.15) * env;
       }
     }
-    sample = Math.max(-1, Math.min(1, sample * 0.95));
+    sample = Math.max(-1, Math.min(1, sample * 1.0));
     view.setInt16(44 + i * 2, sample * 32767, true);
   }
 

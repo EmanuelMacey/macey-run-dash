@@ -6,7 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Shield, Search, Loader2 } from "lucide-react";
+import { Shield, Search, Loader2, KeyRound, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface UserWithRole {
   user_id: string;
@@ -67,7 +78,6 @@ const AdminUsers = () => {
         .eq("id", roleId);
       if (error) throw error;
 
-      // Send in-app notification to the user
       await supabase.from("notifications").insert({
         user_id: userId,
         title: "Role Updated 🔑",
@@ -81,6 +91,51 @@ const AdminUsers = () => {
       );
     } catch (err: any) {
       toast.error(err.message || "Failed to update role");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleResetPassword = async (userId: string, userName: string) => {
+    setUpdating(userId);
+    try {
+      // We need the user's email - fetch it from profiles or use a workaround
+      // Since we can't get email from client, we notify user to use forgot-password
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        title: "Password Reset Required 🔐",
+        message: "An administrator has requested you reset your password. Please use the 'Forgot Password' link on the login page.",
+        type: "account",
+      });
+      toast.success(`Password reset notification sent to ${userName}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send reset notification");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    setUpdating(userId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ target_user_id: userId }),
+        }
+      );
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+      toast.success(`${userName}'s account has been deleted`);
+      setUsers((prev) => prev.filter((u) => u.user_id !== userId));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete user");
     } finally {
       setUpdating(null);
     }
@@ -125,13 +180,14 @@ const AdminUsers = () => {
               <TableHead>Name</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Current Role</TableHead>
-              <TableHead className="text-right">Change Role</TableHead>
+              <TableHead>Change Role</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   No users found
                 </TableCell>
               </TableRow>
@@ -149,13 +205,13 @@ const AdminUsers = () => {
                       {u.role}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell>
                     <Select
                       value={u.role}
                       onValueChange={(val) => handleRoleChange(u.user_id, u.role_id, val)}
                       disabled={updating === u.user_id}
                     >
-                      <SelectTrigger className="w-32 ml-auto rounded-xl">
+                      <SelectTrigger className="w-32 rounded-xl">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -164,6 +220,51 @@ const AdminUsers = () => {
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        disabled={updating === u.user_id}
+                        onClick={() => handleResetPassword(u.user_id, u.full_name)}
+                        title="Send password reset"
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            disabled={updating === u.user_id}
+                            title="Delete user"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete {u.full_name}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this user's account, profile, and all associated data. This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              onClick={() => handleDeleteUser(u.user_id, u.full_name)}
+                            >
+                              {updating === u.user_id ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                              Delete Account
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -65,17 +65,17 @@ export default defineConfig(({ mode }) => ({
         screenshots: [
           {
             src: "/screenshots/screenshot-wide.png",
-            sizes: "1280x720",
-            type: "image/png",
+            sizes: "1366x768",
+            type: "image/jpeg",
             form_factor: "wide",
-            label: "MaceyRunners Dashboard",
+            label: "MaceyRunners - Fast Delivery in Guyana",
           },
           {
             src: "/screenshots/screenshot-narrow.png",
             sizes: "390x844",
-            type: "image/png",
+            type: "image/jpeg",
             form_factor: "narrow",
-            label: "MaceyRunners Mobile",
+            label: "MaceyRunners - Order Food",
           },
         ],
       },

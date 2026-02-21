@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, MapPin, ShoppingBag, User, FileText } from "lucide-react";
+import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
@@ -13,10 +13,12 @@ import CustomerProfile from "@/components/customer/CustomerProfile";
 import CustomerInvoices from "@/components/customer/CustomerInvoices";
 import PromoBanner from "@/components/customer/PromoBanner";
 import ThemeToggle from "@/components/ThemeToggle";
+import { motion } from "framer-motion";
 
 const CustomerDashboard = () => {
   const { signOut } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState("order");
 
   return (
     <div className="min-h-screen mesh-bg" onClick={unlockAudio}>
@@ -25,16 +27,16 @@ const CustomerDashboard = () => {
       <div className="particle w-2 h-2 bg-accent/20 top-40 right-[15%]" style={{ animationDelay: '2s' }} />
       <div className="particle w-4 h-4 bg-primary/10 bottom-32 left-[20%]" style={{ animationDelay: '4s' }} />
 
-      <header className="bg-navy dark:bg-secondary/95 backdrop-blur-xl border-b border-navy/20 dark:border-white/10 sticky top-0 z-50">
+      <header className="bg-secondary dark:bg-secondary/95 backdrop-blur-xl border-b border-border/20 sticky top-0 z-50">
         <div className="container mx-auto px-4 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
-            <span className="font-display font-bold text-lg text-navy-foreground dark:text-white">MaceyRunners</span>
+            <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
             <NotificationBell />
-            <Button variant="ghost" onClick={signOut} className="text-navy-foreground/70 hover:text-navy-foreground dark:text-white/70 dark:hover:text-white">
+            <Button variant="ghost" onClick={signOut} className="text-secondary-foreground/70 hover:text-secondary-foreground">
               <LogOut className="h-4 w-4 mr-2" /> Sign Out
             </Button>
           </div>
@@ -42,8 +44,8 @@ const CustomerDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl relative">
-        <Tabs defaultValue="order" className="w-full">
-          <TabsList className="w-full grid grid-cols-4 mb-6 h-12 rounded-2xl bg-card/80 dark:bg-white/5 backdrop-blur-sm p-1 border border-navy/10 dark:border-white/10">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full grid grid-cols-4 mb-6 h-12 rounded-2xl bg-card/80 dark:bg-card/50 backdrop-blur-sm p-1 border border-border/50">
             <TabsTrigger value="order" className="gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md font-semibold transition-all">
               <Package className="h-4 w-4" /> <span className="hidden sm:inline">Services</span>
             </TabsTrigger>
@@ -60,8 +62,25 @@ const CustomerDashboard = () => {
 
           <TabsContent value="order" className="animate-fade-in">
             <PromoBanner />
-            <h1 className="font-display text-3xl font-bold text-navy dark:text-white mb-2">Welcome back! 👋</h1>
-            <p className="text-muted-foreground mb-8">What do you need delivered today?</p>
+            <h1 className="font-display text-3xl font-bold text-foreground mb-2">Welcome back! 👋</h1>
+            <p className="text-muted-foreground mb-6">What do you need delivered today?</p>
+
+            {/* Prominent Food Section Banner */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab("marketplace")}
+              className="w-full mb-6 bg-gradient-to-r from-accent/90 to-accent rounded-2xl p-4 flex items-center gap-4 text-left shadow-lg shadow-accent/20 border border-accent/30 hover:shadow-xl transition-all"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+                <UtensilsCrossed className="h-6 w-6 text-accent-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-display text-lg font-bold text-accent-foreground">🍔 Order Food Now!</h3>
+                <p className="text-accent-foreground/80 text-sm">Browse restaurants and get food delivered fast</p>
+              </div>
+              <span className="text-accent-foreground/60 text-2xl">→</span>
+            </motion.button>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
               <NewOrderDialog onOrderCreated={() => setRefreshKey((k) => k + 1)}>

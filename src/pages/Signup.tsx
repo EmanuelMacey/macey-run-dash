@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, Eye, EyeOff, User, Gift } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Gift, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 
@@ -16,6 +16,7 @@ const Signup = () => {
   const [searchParams] = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -39,6 +40,18 @@ const Signup = () => {
     if (error) {
       toast({ title: "Signup failed", description: error.message, variant: "destructive" });
     } else {
+      // Store phone number in profile after signup
+      if (phone.trim()) {
+        try {
+          const { data: { user: newUser } } = await supabase.auth.getUser();
+          if (newUser) {
+            await supabase.from("profiles").update({ phone: phone.trim() }).eq("user_id", newUser.id);
+          }
+        } catch {
+          // Silently fail - phone update is not critical
+        }
+      }
+
       if (referralCode.trim()) {
         try {
           const { data: referrer } = await supabase
@@ -138,6 +151,14 @@ const Signup = () => {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 rounded-xl h-11" required />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input id="phone" type="tel" placeholder="+592 600 0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 rounded-xl h-11" />
             </div>
           </div>
 

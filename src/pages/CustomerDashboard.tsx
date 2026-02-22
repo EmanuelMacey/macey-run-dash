@@ -12,6 +12,7 @@ import MarketplaceBrowser from "@/components/customer/MarketplaceBrowser";
 import CustomerProfile from "@/components/customer/CustomerProfile";
 import CustomerInvoices from "@/components/customer/CustomerInvoices";
 import PromoBanner from "@/components/customer/PromoBanner";
+import LoyaltyCard from "@/components/customer/LoyaltyCard";
 import ThemeToggle from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
 
@@ -109,8 +110,11 @@ const CustomerDashboard = () => {
                 </button>
               </NewOrderDialog>
             </div>
+            <LoyaltyCard />
 
-            <OrdersList refreshKey={refreshKey} />
+            <div className="mt-6">
+              <OrdersList refreshKey={refreshKey} />
+            </div>
           </TabsContent>
 
           <TabsContent value="marketplace" className="animate-fade-in">

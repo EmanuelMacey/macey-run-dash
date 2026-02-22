@@ -83,6 +83,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
 
   const minutesAgo = Math.round((Date.now() - new Date(order.created_at).getTime()) / 60000);
   const timeLabel = minutesAgo < 1 ? "Just now" : minutesAgo < 60 ? `${minutesAgo}m ago` : new Date(order.created_at).toLocaleDateString();
+  const scheduledFor = (order as any).scheduled_for;
 
   return (
     <motion.div
@@ -131,7 +132,9 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
             </div>
             <div>
               <p className="font-display font-bold text-sm text-foreground capitalize">{order.order_type} Order</p>
-              <p className="text-xs text-muted-foreground">{timeLabel}</p>
+              <p className="text-xs text-muted-foreground">
+                {scheduledFor ? `📅 ${new Date(scheduledFor).toLocaleString()}` : timeLabel}
+              </p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">

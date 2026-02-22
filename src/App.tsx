@@ -17,7 +17,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Marketplace from "./pages/Marketplace";
 import StorePage from "./pages/StorePage";
 import NotFound from "./pages/NotFound";
-
+import AboutUs from "./pages/AboutUs";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -30,6 +30,7 @@ const App = () => (
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/about" element={<AboutUs />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/store/:storeId" element={<StorePage />} />
               <Route path="/login" element={<Login />} />

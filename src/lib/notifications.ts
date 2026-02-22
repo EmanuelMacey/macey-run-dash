@@ -1,14 +1,14 @@
 /**
- * Notification utilities: Messenger-style sound, vibration, and browser notifications.
+ * Notification utilities: Pleasant chime sound, vibration, and browser notifications.
  * Uses HTMLAudioElement with a pre-generated WAV for reliable playback.
  */
 
 let audioUnlocked = false;
 
-// Generate a Messenger-style two-tone chime as a WAV data URI
+// Generate a pleasant 3-note ascending chime (C6 → E6 → G6) as a WAV data URI
 const NOTIFICATION_CHIME_URI = (() => {
   const sampleRate = 44100;
-  const totalDuration = 0.6;
+  const totalDuration = 0.9;
   const numSamples = Math.floor(sampleRate * totalDuration);
   const buffer = new ArrayBuffer(44 + numSamples * 2);
   const view = new DataView(buffer);
@@ -30,10 +30,11 @@ const NOTIFICATION_CHIME_URI = (() => {
   writeStr(36, "data");
   view.setUint32(40, numSamples * 2, true);
 
-  // Gentle two-note "ding-dong": E5 → G5, soft sine with smooth decay
+  // Pleasant ascending triad: C6 → E6 → G6 with soft bell-like harmonics
   const tones = [
-    { freq: 659.25, start: 0, dur: 0.25 },   // E5 - bright but soft
-    { freq: 783.99, start: 0.18, dur: 0.35 }, // G5 - resolves upward
+    { freq: 1046.50, start: 0,    dur: 0.45 }, // C6
+    { freq: 1318.51, start: 0.15, dur: 0.45 }, // E6
+    { freq: 1567.98, start: 0.30, dur: 0.55 }, // G6
   ];
 
   for (let i = 0; i < numSamples; i++) {
@@ -42,16 +43,18 @@ const NOTIFICATION_CHIME_URI = (() => {
     for (const tone of tones) {
       const tLocal = t - tone.start;
       if (tLocal >= 0 && tLocal < tone.dur) {
-        // Smooth exponential decay envelope — no harsh attack
-        const attack = Math.min(1, tLocal / 0.008);
-        const decay = Math.exp(-tLocal * 6);
-        const env = attack * decay;
-        // Pure sine + soft octave harmonic for warmth
-        sample += (Math.sin(2 * Math.PI * tone.freq * tLocal) * 0.8
-          + Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.15) * env;
+        // Soft attack with bell-like exponential decay
+        const attack = Math.min(1, tLocal / 0.005);
+        const decay = Math.exp(-tLocal * 5.5);
+        const env = attack * decay * 0.35;
+        // Fundamental + soft 2nd and 3rd harmonics for richness
+        sample +=
+          Math.sin(2 * Math.PI * tone.freq * tLocal) * 0.75 * env +
+          Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.18 * env +
+          Math.sin(2 * Math.PI * tone.freq * 3 * tLocal) * 0.07 * env;
       }
     }
-    sample = Math.max(-1, Math.min(1, sample * 1.0));
+    sample = Math.max(-1, Math.min(1, sample));
     view.setInt16(44 + i * 2, sample * 32767, true);
   }
 
@@ -62,23 +65,17 @@ const NOTIFICATION_CHIME_URI = (() => {
 })();
 
 /**
- * Unlock audio on user gesture. Creates a fresh Audio element each time
- * and plays it at near-zero volume to satisfy the browser's autoplay policy.
- * After this, subsequent new Audio() + play() calls will work.
+ * Unlock audio on user gesture.
  */
 export const unlockAudio = () => {
   if (audioUnlocked) return;
   try {
     const a = new Audio(NOTIFICATION_CHIME_URI);
-    a.volume = 0.01; // Near-silent but not muted (muted doesn't count as "play")
+    a.volume = 0.01;
     const p = a.play();
     if (p) {
       p.then(() => {
-        // Stop after a tiny moment
-        setTimeout(() => {
-          a.pause();
-          a.currentTime = 0;
-        }, 50);
+        setTimeout(() => { a.pause(); a.currentTime = 0; }, 50);
         audioUnlocked = true;
         console.log("[Notifications] Audio unlocked via user gesture");
       }).catch(() => {
@@ -91,8 +88,7 @@ export const unlockAudio = () => {
 };
 
 /**
- * Play the Messenger-style notification chime at full volume.
- * Creates a new Audio element each time for reliability.
+ * Play the notification chime at full volume.
  */
 export const playNotificationSound = () => {
   try {
@@ -101,7 +97,7 @@ export const playNotificationSound = () => {
     const p = audio.play();
     if (p) {
       p.then(() => {
-        console.log("[Notifications] Messenger chime played successfully");
+        console.log("[Notifications] Chime played successfully");
       }).catch((e) => {
         console.warn("[Notifications] Sound play failed:", e.message);
       });

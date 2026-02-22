@@ -65,21 +65,21 @@ const CustomerDashboard = () => {
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">Welcome back! 👋</h1>
             <p className="text-muted-foreground mb-6">What do you need delivered today?</p>
 
-            {/* Prominent Food Section Banner */}
+            {/* Food Section Card */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={() => setActiveTab("marketplace")}
-              className="w-full mb-6 bg-gradient-to-r from-accent/90 to-accent rounded-2xl p-4 flex items-center gap-4 text-left shadow-lg shadow-accent/20 border border-accent/30 hover:shadow-xl transition-all"
+              className="w-full mb-6 bg-card/90 backdrop-blur-sm rounded-2xl p-4 flex items-center gap-4 text-left border border-border/50 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
             >
-              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-                <UtensilsCrossed className="h-6 w-6 text-accent-foreground" />
+              <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                <UtensilsCrossed className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h3 className="font-display text-lg font-bold text-accent-foreground">🍔 Order Food Now!</h3>
-                <p className="text-accent-foreground/80 text-sm">Browse restaurants and get food delivered fast</p>
+                <h3 className="font-display text-base font-semibold text-card-foreground">Browse Food & Restaurants</h3>
+                <p className="text-muted-foreground text-xs">Order from local restaurants for delivery</p>
               </div>
-              <span className="text-accent-foreground/60 text-2xl">→</span>
+              <span className="text-muted-foreground text-lg">›</span>
             </motion.button>
 
             <div className="grid grid-cols-2 gap-4 mb-8">

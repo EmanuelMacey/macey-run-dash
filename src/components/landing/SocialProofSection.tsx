@@ -1,47 +1,28 @@
-import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
-import { Package, Users, MapPin } from "lucide-react";
+import { motion } from "framer-motion";
+import { Zap, Shield, Heart } from "lucide-react";
 
-const stats = [
-  { icon: Package, value: 500, suffix: "+", label: "Orders Completed" },
-  { icon: Users, value: 25, suffix: "+", label: "Active Runners" },
-  { icon: MapPin, value: 5, suffix: "", label: "Cities Served" },
+const values = [
+  { icon: Zap, title: "Lightning Fast", description: "Average delivery in under 30 minutes across Georgetown" },
+  { icon: Shield, title: "Trusted & Insured", description: "Every package is handled with care and fully insured" },
+  { icon: Heart, title: "Community First", description: "Empowering youth and building opportunities in Guyana" },
 ];
-
-const CountUp = ({ target, suffix }: { target: number; suffix: string }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (!isInView) return;
-    const duration = 2000;
-    const steps = 60;
-    const increment = target / steps;
-    let current = 0;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, duration / steps);
-    return () => clearInterval(timer);
-  }, [isInView, target]);
-
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-};
 
 const SocialProofSection = () => {
   return (
     <section className="py-20 mesh-bg-dark relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
-          {stats.map((stat, i) => (
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="font-display text-2xl md:text-3xl font-bold text-center gradient-text mb-12"
+        >
+          Why Guyana Trusts MaceyRunners
+        </motion.h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          {values.map((v, i) => (
             <motion.div
-              key={stat.label}
+              key={v.title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -49,12 +30,10 @@ const SocialProofSection = () => {
               className="text-center group"
             >
               <div className="w-14 h-14 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary/20 group-hover:scale-110 transition-transform">
-                <stat.icon size={24} className="text-primary-foreground" />
+                <v.icon size={24} className="text-primary-foreground" />
               </div>
-              <div className="font-display font-extrabold text-3xl md:text-5xl gradient-text mb-2">
-                <CountUp target={stat.value} suffix={stat.suffix} />
-              </div>
-              <p className="text-muted-foreground text-sm font-medium">{stat.label}</p>
+              <h3 className="font-display font-bold text-lg text-foreground mb-2">{v.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{v.description}</p>
             </motion.div>
           ))}
         </div>

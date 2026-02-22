@@ -9,7 +9,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle } from "lucide-react";
+import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle, CalendarClock } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 
 interface CheckoutDialogProps {
@@ -66,6 +66,8 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const [completedItems, setCompletedItems] = useState<any[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [defaultAddress, setDefaultAddress] = useState<string | null>(null);
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
 
   // Fetch customer name and default address
   useEffect(() => {
@@ -137,6 +139,11 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
 
     setLoading(true);
     try {
+      let scheduledFor: string | null = null;
+      if (scheduledDate && scheduledTime) {
+        scheduledFor = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
+      }
+
       const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: "delivery" as const,
@@ -146,7 +153,8 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
         price: grandTotal,
         payment_method: paymentMethod === "mmg" ? "cash" as const : paymentMethod,
         status: "pending" as const,
-      }).select("id").single();
+        scheduled_for: scheduledFor,
+      } as any).select("id").single();
 
       if (error) throw error;
 
@@ -295,6 +303,33 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
               className="rounded-xl min-h-[60px]"
               maxLength={500}
             />
+          </div>
+
+          {/* Schedule Delivery */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <CalendarClock className="h-3.5 w-3.5" /> Schedule for Later (optional)
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                type="date"
+                min={new Date().toISOString().split("T")[0]}
+                value={scheduledDate}
+                onChange={(e) => setScheduledDate(e.target.value)}
+                className="rounded-xl text-sm"
+              />
+              <Input
+                type="time"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                className="rounded-xl text-sm"
+              />
+            </div>
+            {scheduledDate && scheduledTime && (
+              <p className="text-xs text-primary">
+                📅 Scheduled for {new Date(`${scheduledDate}T${scheduledTime}`).toLocaleString()}
+              </p>
+            )}
           </div>
 
           {/* Payment method */}

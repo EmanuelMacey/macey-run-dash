@@ -179,6 +179,74 @@ export type Database = {
           },
         ]
       }
+      loyalty_points: {
+        Row: {
+          created_at: string
+          id: string
+          points: number
+          total_earned: number
+          total_redeemed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points?: number
+          total_earned?: number
+          total_redeemed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points?: number
+          total_earned?: number
+          total_redeemed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loyalty_transactions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string | null
+          points: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          points: number
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          points?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_products: {
         Row: {
           category: string | null
@@ -383,6 +451,7 @@ export type Database = {
           payment_status: Database["public"]["Enums"]["payment_status"]
           pickup_address: string
           price: number
+          scheduled_for: string | null
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
         }
@@ -400,6 +469,7 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pickup_address: string
           price: number
+          scheduled_for?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
         }
@@ -417,6 +487,7 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pickup_address?: string
           price?: number
+          scheduled_for?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
         }

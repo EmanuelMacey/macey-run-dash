@@ -5,7 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2, Paperclip, X, MessageCircle } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -27,6 +27,8 @@ const orderSchema = z.object({
   description: z.string().trim().max(1000).optional(),
   payment_method: z.enum(["cash", "mmg"]),
   promo_code: z.string().trim().max(50).optional(),
+  scheduled_date: z.string().optional(),
+  scheduled_time: z.string().optional(),
 });
 
 type OrderFormValues = z.infer<typeof orderSchema>;
@@ -55,6 +57,8 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
       description: "",
       payment_method: "cash",
       promo_code: "",
+      scheduled_date: "",
+      scheduled_time: "",
     },
   });
 
@@ -118,6 +122,12 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
     setSubmitting(true);
 
     try {
+      // Build scheduled_for timestamp
+      let scheduledFor: string | null = null;
+      if (values.scheduled_date && values.scheduled_time) {
+        scheduledFor = new Date(`${values.scheduled_date}T${values.scheduled_time}`).toISOString();
+      }
+
       const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: values.order_type,
@@ -128,7 +138,8 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         price: finalPrice,
         status: "pending",
         payment_status: "pending",
-      }).select("id").single();
+        scheduled_for: scheduledFor,
+      } as any).select("id").single();
 
       if (error) throw error;
 
@@ -279,6 +290,31 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                 )}
               </div>
             )}
+
+            {/* Schedule Delivery */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <CalendarClock className="h-3.5 w-3.5" /> Schedule for Later (optional)
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  {...form.register("scheduled_date")}
+                  className="rounded-xl text-sm"
+                />
+                <Input
+                  type="time"
+                  {...form.register("scheduled_time")}
+                  className="rounded-xl text-sm"
+                />
+              </div>
+              {form.watch("scheduled_date") && form.watch("scheduled_time") && (
+                <p className="text-xs text-primary">
+                  📅 Scheduled for {new Date(`${form.watch("scheduled_date")}T${form.watch("scheduled_time")}`).toLocaleString()}
+                </p>
+              )}
+            </div>
 
             {/* Payment */}
             <FormField

@@ -18,6 +18,8 @@ import Marketplace from "./pages/Marketplace";
 import StorePage from "./pages/StorePage";
 import NotFound from "./pages/NotFound";
 import AboutUs from "./pages/AboutUs";
+import Support from "./pages/Support";
+import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -31,6 +33,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<AboutUs />} />
+              <Route path="/support" element={<Support />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/store/:storeId" element={<StorePage />} />
               <Route path="/login" element={<Login />} />
@@ -63,6 +66,7 @@ const App = () => (
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <SupportChatWidget />
           </AuthProvider>
         </BrowserRouter>
       </CartProvider>

@@ -1,17 +1,24 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Star, Gift, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { Star, Gift, TrendingUp, ChevronDown, ChevronUp, Crown, Sparkles, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 const REDEEM_TIERS = [
-  { points: 50, discount: 500, label: "$500 GYD off" },
-  { points: 100, discount: 1000, label: "$1,000 GYD off" },
-  { points: 200, discount: 2500, label: "$2,500 GYD off" },
+  { points: 50, discount: 500, label: "$500 GYD off", emoji: "🎁" },
+  { points: 100, discount: 1000, label: "$1,000 GYD off", emoji: "🎉" },
+  { points: 200, discount: 2500, label: "$2,500 GYD off", emoji: "💎" },
 ];
+
+const TIER_CONFIG = {
+  Bronze: { icon: Star, color: "text-amber-600", bg: "from-amber-500/20 to-orange-500/10", border: "border-amber-500/30", min: 0, max: 100 },
+  Silver: { icon: Trophy, color: "text-slate-400", bg: "from-slate-300/20 to-slate-500/10", border: "border-slate-400/30", min: 100, max: 200 },
+  Gold: { icon: Crown, color: "text-yellow-500", bg: "from-yellow-400/20 to-amber-500/10", border: "border-yellow-500/30", min: 200, max: 500 },
+} as const;
 
 const LoyaltyCard = () => {
   const { user } = useAuth();
@@ -45,15 +52,9 @@ const LoyaltyCard = () => {
     setTransactions(data || []);
   };
 
-  useEffect(() => {
-    fetchLoyalty();
-  }, [user]);
+  useEffect(() => { fetchLoyalty(); }, [user]);
+  useEffect(() => { if (showHistory) fetchTransactions(); }, [showHistory, user]);
 
-  useEffect(() => {
-    if (showHistory) fetchTransactions();
-  }, [showHistory, user]);
-
-  // Realtime updates
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -67,35 +68,22 @@ const LoyaltyCard = () => {
     if (!user || points < tier.points) return;
     setRedeeming(true);
     try {
-      // Deduct points
       const { error } = await supabase
         .from("loyalty_points")
-        .update({
-          points: points - tier.points,
-          total_redeemed: totalEarned - (points - tier.points),
-        })
+        .update({ points: points - tier.points, total_redeemed: totalEarned - (points - tier.points) })
         .eq("user_id", user.id);
       if (error) throw error;
 
-      // Log transaction
       await supabase.from("loyalty_transactions").insert({
-        user_id: user.id,
-        points: -tier.points,
-        type: "redeem",
-        description: `Redeemed for ${tier.label}`,
+        user_id: user.id, points: -tier.points, type: "redeem", description: `Redeemed for ${tier.label}`,
       });
 
-      // Create a promo code for the discount
       const code = `LOYAL${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       await supabase.from("promo_codes").insert({
-        code,
-        discount_amount: tier.discount,
-        is_active: true,
-        max_uses: 1,
-        current_uses: 0,
+        code, discount_amount: tier.discount, is_active: true, max_uses: 1, current_uses: 0,
       });
 
-      toast.success(`Redeemed! Use promo code: ${code}`, { duration: 10000 });
+      toast.success(`${tier.emoji} Redeemed! Use promo code: ${code}`, { duration: 10000 });
       fetchLoyalty();
       if (showHistory) fetchTransactions();
     } catch (err: any) {
@@ -105,62 +93,97 @@ const LoyaltyCard = () => {
     }
   };
 
-  // Determine tier level
   const tierName = totalEarned >= 200 ? "Gold" : totalEarned >= 100 ? "Silver" : "Bronze";
-  const tierColor = totalEarned >= 200 ? "text-yellow-500" : totalEarned >= 100 ? "text-gray-400" : "text-amber-600";
-  const nextTier = totalEarned >= 200 ? null : totalEarned >= 100 ? { name: "Gold", needed: 200 - totalEarned } : { name: "Silver", needed: 100 - totalEarned };
+  const tier = TIER_CONFIG[tierName];
+  const TierIcon = tier.icon;
+  const nextTier = tierName === "Gold" ? null : tierName === "Silver" ? { name: "Gold", needed: 200 - totalEarned, target: 200 } : { name: "Silver", needed: 100 - totalEarned, target: 100 };
+  const tierProgress = nextTier ? ((totalEarned - tier.min) / (nextTier.target - tier.min)) * 100 : 100;
 
   return (
-    <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Star className={`h-5 w-5 ${tierColor} fill-current`} />
-            <h3 className="font-display font-bold text-foreground">Loyalty Rewards</h3>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card border border-border/50 rounded-2xl overflow-hidden relative"
+    >
+      {/* Decorative shimmer */}
+      <div className="absolute inset-0 shimmer pointer-events-none opacity-50" />
+
+      {/* Header with gradient */}
+      <div className={`relative bg-gradient-to-r ${tier.bg} p-5 pb-4`}>
+        <div className="absolute top-3 right-3 opacity-10">
+          <Sparkles className="h-16 w-16" />
+        </div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tier.bg} ${tier.border} border flex items-center justify-center`}>
+              <TierIcon className={`h-5 w-5 ${tier.color} fill-current`} />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-foreground text-base">Loyalty Rewards</h3>
+              <Badge variant="outline" className={`${tier.color} border-current text-[10px] font-bold mt-0.5`}>
+                {tierName} Member
+              </Badge>
+            </div>
           </div>
-          <Badge variant="outline" className={`${tierColor} border-current text-xs font-bold`}>
-            {tierName}
-          </Badge>
         </div>
-        <div className="flex items-baseline gap-1">
-          <span className="font-display text-3xl font-bold text-primary">{points}</span>
-          <span className="text-sm text-muted-foreground">points available</span>
+
+        <div className="flex items-baseline gap-1.5 mb-3">
+          <span className="font-display text-4xl font-bold gradient-text">{points}</span>
+          <span className="text-sm text-muted-foreground font-medium">points</span>
         </div>
+
+        {/* Tier progress */}
         {nextTier && (
-          <p className="text-xs text-muted-foreground mt-1">
-            <TrendingUp className="inline h-3 w-3 mr-1" />
-            {nextTier.needed} more points to {nextTier.name}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                {nextTier.needed} pts to {nextTier.name}
+              </span>
+              <span className="text-muted-foreground font-medium">{Math.round(tierProgress)}%</span>
+            </div>
+            <Progress value={tierProgress} className="h-2" />
+          </div>
+        )}
+        {!nextTier && (
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Crown className="h-3 w-3 text-yellow-500" /> You've reached the highest tier! 🎉
           </p>
         )}
       </div>
 
-      {/* Redeem tiers */}
-      <div className="p-4 space-y-2">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Redeem Points</p>
+      {/* Redeem section */}
+      <div className="p-4 space-y-3">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Redeem Rewards</p>
         <div className="grid grid-cols-3 gap-2">
-          {REDEEM_TIERS.map((tier) => (
-            <Button
-              key={tier.points}
-              variant={points >= tier.points ? "default" : "outline"}
-              size="sm"
-              disabled={points < tier.points || redeeming}
-              onClick={() => handleRedeem(tier)}
-              className="flex flex-col h-auto py-2 rounded-xl text-xs"
-            >
-              <Gift className="h-3.5 w-3.5 mb-0.5" />
-              <span className="font-bold">{tier.points} pts</span>
-              <span className="text-[10px] opacity-80">{tier.label}</span>
-            </Button>
-          ))}
+          {REDEEM_TIERS.map((t) => {
+            const canRedeem = points >= t.points;
+            return (
+              <motion.div key={t.points} whileHover={canRedeem ? { scale: 1.03 } : {}} whileTap={canRedeem ? { scale: 0.97 } : {}}>
+                <Button
+                  variant={canRedeem ? "default" : "outline"}
+                  size="sm"
+                  disabled={!canRedeem || redeeming}
+                  onClick={() => handleRedeem(t)}
+                  className={`flex flex-col h-auto py-3 rounded-xl text-xs w-full transition-all ${canRedeem ? "shadow-md shadow-primary/20 glow-card" : "opacity-60"}`}
+                >
+                  <span className="text-base mb-0.5">{t.emoji}</span>
+                  <span className="font-bold">{t.points} pts</span>
+                  <span className="text-[10px] opacity-80 mt-0.5">{t.label}</span>
+                </Button>
+              </motion.div>
+            );
+          })}
         </div>
-        <p className="text-[10px] text-muted-foreground">Earn ~10 points per $1,000 GYD spent</p>
+        <p className="text-[10px] text-muted-foreground text-center">
+          Earn ~10 points per $1,000 GYD spent • Points never expire
+        </p>
       </div>
 
       {/* History toggle */}
       <button
         onClick={() => setShowHistory(!showHistory)}
-        className="w-full px-4 py-2 text-xs text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 border-t border-border/50 transition-colors"
+        className="w-full px-4 py-2.5 text-xs text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 border-t border-border/50 transition-colors font-medium"
       >
         {showHistory ? "Hide" : "View"} Points History
         {showHistory ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -174,15 +197,15 @@ const LoyaltyCard = () => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-1.5 max-h-48 overflow-y-auto">
+            <div className="px-4 pb-4 space-y-2 max-h-48 overflow-y-auto">
               {transactions.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-3">No transactions yet</p>
+                <p className="text-xs text-muted-foreground text-center py-4">No transactions yet — place an order to start earning!</p>
               ) : (
                 transactions.map((t) => (
-                  <div key={t.id} className="flex items-center justify-between text-xs">
+                  <div key={t.id} className="flex items-center justify-between text-xs bg-muted/30 rounded-lg px-3 py-2">
                     <div>
-                      <span className="text-foreground">{t.description}</span>
-                      <span className="text-muted-foreground ml-2">
+                      <span className="text-foreground font-medium">{t.description}</span>
+                      <span className="text-muted-foreground ml-2 text-[10px]">
                         {new Date(t.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -196,7 +219,7 @@ const LoyaltyCard = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 

@@ -295,6 +295,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- NEW SIGNUP EMAIL TO ADMINS ----
+    if (type === 'new_signup') {
+      const { user_email, user_name } = body;
+      
+      const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
+      const adminEmails: string[] = [];
+      if (adminRoles) {
+        for (const ar of adminRoles) {
+          const { data: au } = await supabase.auth.admin.getUserById(ar.user_id);
+          if (au?.user?.email) adminEmails.push(au.user.email);
+        }
+      }
+
+      const signupHtml = emailTemplate(`
+        <h2 style="color: #1e3a5f; margin-top: 0;">👤 New Account Created</h2>
+        <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Name:</strong> ${user_name || 'Not provided'}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${user_email || 'Unknown'}</p>
+        </div>
+        <p style="color: #64748b; font-size: 13px;">A new customer has signed up on MaceyRunners. Check the admin dashboard for more details.</p>
+      `);
+
+      for (const ae of adminEmails) {
+        await sendEmail(ae, `[New Signup] ${user_name || user_email}`, signupHtml);
+      }
+
+      return new Response(JSON.stringify({ sent: true, admins: adminEmails.length }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown email type' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

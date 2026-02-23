@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.retry-notifications]
 verify_jwt = false
+
+[functions.support-chat]
+verify_jwt = false
+
+[functions.send-promotional-notifications]
+verify_jwt = false

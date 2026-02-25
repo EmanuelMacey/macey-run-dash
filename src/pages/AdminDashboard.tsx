@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -16,6 +16,7 @@ import AdminBanners from "@/components/admin/AdminBanners";
 import AdminTestimonials from "@/components/admin/AdminTestimonials";
 import AdminInvoices from "@/components/admin/AdminInvoices";
 import AdminPromotions from "@/components/admin/AdminPromotions";
+import AdminLeadership from "@/components/admin/AdminLeadership";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
@@ -77,6 +78,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="promotions" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Bell className="h-4 w-4" /> <span className="hidden sm:inline">Notify</span>
             </TabsTrigger>
+            <TabsTrigger value="leadership" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <Crown className="h-4 w-4" /> <span className="hidden sm:inline">Team</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
@@ -89,6 +93,7 @@ const AdminDashboard = () => {
           <TabsContent value="banners"><AdminBanners /></TabsContent>
           <TabsContent value="testimonials"><AdminTestimonials /></TabsContent>
           <TabsContent value="promotions"><AdminPromotions /></TabsContent>
+          <TabsContent value="leadership"><AdminLeadership /></TabsContent>
         </Tabs>
       </main>
     </div>

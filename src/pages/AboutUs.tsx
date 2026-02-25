@@ -1,29 +1,19 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Target, Heart, Users, Rocket, Award, Globe } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
-const team = [
-  {
-    name: "Emanuel Macey",
-    title: "Owner & Founder",
-    initials: "EM",
-    bio: "Emanuel Macey is the strategic visionary behind MaceyRunners, building a scalable and purpose-driven delivery brand rooted in operational excellence. He leads the company's long-term growth strategy while maintaining a strong commitment to youth empowerment.",
-  },
-  {
-    name: "Jahquan Hinds",
-    title: "Co-Founder & Chief Operations Officer",
-    initials: "JH",
-    bio: "Jahquan Hinds oversees operations and service performance at MaceyRunners. He ensures efficiency, reliability, and high service standards across the company's delivery network.",
-  },
-  {
-    name: "Kathlyn Simpson",
-    title: "Chief Financial Officer",
-    initials: "KS",
-    bio: "Kathlyn Simpson leads financial planning and oversight, ensuring fiscal stability and strategic resource management supporting long-term growth.",
-  },
-];
+interface Leader {
+  id: string;
+  name: string;
+  title: string;
+  bio: string;
+  image_url: string | null;
+  display_order: number;
+}
 
 const values = [
   { icon: Rocket, title: "Speed & Reliability", desc: "Every delivery completed with urgency and precision." },
@@ -45,6 +35,17 @@ const fadeUp = {
 };
 
 const AboutUs = () => {
+  const [team, setTeam] = useState<Leader[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("leadership_team")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .then(({ data }) => setTeam((data as Leader[]) || []));
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -76,12 +77,7 @@ const AboutUs = () => {
         <div className="container mx-auto px-4 max-w-5xl py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                {...fadeUp}
-                transition={{ delay: i * 0.1 }}
-                className="text-center"
-              >
+              <motion.div key={stat.label} {...fadeUp} transition={{ delay: i * 0.1 }} className="text-center">
                 <p className="font-display text-3xl md:text-4xl font-bold gradient-text">{stat.value}</p>
                 <p className="text-muted-foreground text-sm mt-1">{stat.label}</p>
               </motion.div>
@@ -148,33 +144,43 @@ const AboutUs = () => {
           </section>
 
           {/* Leadership */}
-          <section className="py-16 border-t border-border/30">
-            <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="text-center mb-12">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <Users className="h-5 w-5 text-primary" />
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Leadership Team</h2>
-              </div>
-              <p className="text-muted-foreground max-w-lg mx-auto">The people behind the mission</p>
-            </motion.div>
+          {team.length > 0 && (
+            <section className="py-16 border-t border-border/30">
+              <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="text-center mb-12">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Leadership Team</h2>
+                </div>
+                <p className="text-muted-foreground max-w-lg mx-auto">The people behind the mission</p>
+              </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {team.map((member, i) => (
-                <motion.div
-                  key={member.name}
-                  {...fadeUp}
-                  transition={{ delay: 0.25 + i * 0.1 }}
-                  className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 text-center group"
-                >
-                  <div className="w-20 h-20 mx-auto gradient-primary rounded-full flex items-center justify-center mb-4 shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
-                    <span className="font-display text-2xl font-bold text-primary-foreground">{member.initials}</span>
-                  </div>
-                  <h3 className="font-display text-lg font-bold text-foreground">{member.name}</h3>
-                  <p className="text-primary text-sm font-medium mb-3">{member.title}</p>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{member.bio}</p>
-                </motion.div>
-              ))}
-            </div>
-          </section>
+              <div className="grid md:grid-cols-3 gap-6">
+                {team.map((member, i) => (
+                  <motion.div
+                    key={member.id}
+                    {...fadeUp}
+                    transition={{ delay: 0.25 + i * 0.1 }}
+                    className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 text-center group"
+                  >
+                    <div className="w-24 h-24 mx-auto rounded-full overflow-hidden mb-4 shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform">
+                      {member.image_url ? (
+                        <img src={member.image_url} alt={member.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full gradient-primary flex items-center justify-center">
+                          <span className="font-display text-2xl font-bold text-primary-foreground">
+                            {member.name.split(" ").map(n => n[0]).join("")}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-display text-lg font-bold text-foreground">{member.name}</h3>
+                    <p className="text-primary text-sm font-medium mb-3">{member.title}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{member.bio}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </main>
 

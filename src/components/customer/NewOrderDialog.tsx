@@ -33,7 +33,8 @@ const orderSchema = z.object({
 
 type OrderFormValues = z.infer<typeof orderSchema>;
 
-const PRICES = { delivery: 1000, errand: 1500 };
+const BASE_PRICES = { delivery: 700, errand: 1000 };
+const PRICE_PER_KM = 150;
 
 interface NewOrderDialogProps {
   onOrderCreated: () => void;
@@ -63,7 +64,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   });
 
   const orderType = form.watch("order_type");
-  const basePrice = PRICES[orderType];
+  const basePrice = BASE_PRICES[orderType];
   const finalPrice = Math.max(0, basePrice - discount);
 
   const applyPromo = async () => {
@@ -196,7 +197,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                       <span className={`font-display font-semibold text-sm ${field.value === "delivery" ? "text-primary" : "text-foreground"}`}>
                         Delivery
                       </span>
-                      <span className="text-xs text-muted-foreground">$1,000 GYD</span>
+                      <span className="text-xs text-muted-foreground">From $700 GYD</span>
                     </button>
                     <button
                       type="button"
@@ -211,7 +212,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                       <span className={`font-display font-semibold text-sm ${field.value === "errand" ? "text-primary" : "text-foreground"}`}>
                         Errand
                       </span>
-                      <span className="text-xs text-muted-foreground">$1,500 GYD</span>
+                      <span className="text-xs text-muted-foreground">From $1,000 GYD</span>
                     </button>
                   </div>
                 </FormItem>

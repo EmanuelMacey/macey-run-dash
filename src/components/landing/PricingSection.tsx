@@ -1,24 +1,26 @@
 import { motion } from "framer-motion";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const plans = [
   {
     name: "Delivery",
-    price: "$1,000",
+    price: "From $700",
     currency: "GYD",
-    description: "Food, groceries, and package delivery",
+    description: "Food, groceries, and package delivery — priced by distance",
     features: ["Real-time tracking", "Live driver updates", "Pay with card or cash", "Order notifications", "Chat with your runner"],
     featured: false,
+    note: "Base rate $700 + distance",
   },
   {
     name: "Errand",
-    price: "$1,500",
+    price: "From $1,000",
     currency: "GYD",
-    description: "Let us handle your errands",
+    description: "Let us handle your errands — priced by distance",
     features: ["Everything in Delivery", "Upload errand images", "Custom task instructions", "Priority assignment", "Receipt confirmation"],
     featured: true,
+    note: "Base rate $1,000 + distance",
   },
 ];
 
@@ -39,7 +41,7 @@ const PricingSection = () => {
             Transparent pricing
           </h2>
           <p className="text-muted-foreground text-lg max-w-md mx-auto">
-            No hidden fees. Flat rates you can count on.
+            Distance-based rates you can count on. No hidden fees.
           </p>
         </motion.div>
 
@@ -69,9 +71,13 @@ const PricingSection = () => {
               <div className="relative">
                 <h3 className="font-display font-bold text-xl text-foreground mb-2">{plan.name}</h3>
                 <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
-                <div className="flex items-baseline gap-1 mb-8">
-                  <span className="font-display font-extrabold text-5xl text-foreground">{plan.price}</span>
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className="font-display font-extrabold text-4xl text-foreground">{plan.price}</span>
                   <span className="text-sm text-muted-foreground ml-1">{plan.currency}</span>
+                </div>
+                <div className="flex items-center gap-1.5 mb-8">
+                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs text-muted-foreground">{plan.note}</span>
                 </div>
                 <ul className="space-y-3.5 mb-8">
                   {plan.features.map((feature) => (

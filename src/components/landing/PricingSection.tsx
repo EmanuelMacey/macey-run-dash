@@ -2,69 +2,50 @@ import { motion } from "framer-motion";
 import { Check, Sparkles, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
-const plans = [
-  {
-    name: "Delivery",
-    price: "From $700",
-    currency: "GYD",
-    description: "Food, groceries, and package delivery — priced by distance",
-    features: ["Real-time tracking", "Live driver updates", "Pay with card or cash", "Order notifications", "Chat with your runner"],
-    featured: false,
-    note: "Base rate $700 + distance",
-  },
-  {
-    name: "Errand",
-    price: "From $1,000",
-    currency: "GYD",
-    description: "Let us handle your errands — priced by distance",
-    features: ["Everything in Delivery", "Upload errand images", "Custom task instructions", "Priority assignment", "Receipt confirmation"],
-    featured: true,
-    note: "Base rate $1,000 + distance",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 const PricingSection = () => {
+  const { t } = useTranslation();
+
+  const plans = [
+    {
+      name: t('pricing.delivery.name'),
+      price: t('pricing.delivery.price'),
+      currency: "GYD",
+      description: t('pricing.delivery.desc'),
+      features: [t('pricing.feature.tracking'), t('pricing.feature.updates'), t('pricing.feature.payment'), t('pricing.feature.notifications'), t('pricing.feature.chat')],
+      featured: false,
+      note: t('pricing.delivery.note'),
+    },
+    {
+      name: t('pricing.errand.name'),
+      price: t('pricing.errand.price'),
+      currency: "GYD",
+      description: t('pricing.errand.desc'),
+      features: [t('pricing.feature.everything'), t('pricing.feature.images'), t('pricing.feature.instructions'), t('pricing.feature.priority'), t('pricing.feature.receipt')],
+      featured: true,
+      note: t('pricing.errand.note'),
+    },
+  ];
+
   return (
     <section id="pricing" className="py-28 mesh-bg-dark relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-20"
-        >
-          <div className="inline-block px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold mb-4">
-            PRICING
-          </div>
-          <h2 className="font-display font-bold text-3xl md:text-5xl text-foreground mb-4">
-            Transparent pricing
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-md mx-auto">
-            Distance-based rates you can count on. No hidden fees.
-          </p>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-20">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-semibold mb-4">{t('pricing.badge')}</div>
+          <h2 className="font-display font-bold text-3xl md:text-5xl text-foreground mb-4">{t('pricing.title')}</h2>
+          <p className="text-muted-foreground text-lg max-w-md mx-auto">{t('pricing.subtitle')}</p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {plans.map((plan, i) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className={`relative rounded-3xl p-8 border backdrop-blur-sm transition-all duration-300 hover:shadow-2xl overflow-hidden ${
-                plan.featured
-                  ? "bg-gradient-to-br from-primary/5 via-card to-accent/5 border-primary/30 shadow-xl"
-                  : "bg-card/90 border-border/50"
-              }`}
-            >
+            <motion.div key={plan.name} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }}
+              className={`relative rounded-3xl p-8 border backdrop-blur-sm transition-all duration-300 hover:shadow-2xl overflow-hidden ${plan.featured ? "bg-gradient-to-br from-primary/5 via-card to-accent/5 border-primary/30 shadow-xl" : "bg-card/90 border-border/50"}`}>
               {plan.featured && (
                 <>
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 pointer-events-none" />
                   <div className="relative inline-flex items-center gap-1.5 gradient-primary text-primary-foreground text-xs font-semibold px-4 py-1.5 rounded-full mb-5 shadow-lg">
-                    <Sparkles size={12} />
-                    Most Popular
+                    <Sparkles size={12} /> {t('pricing.mostPopular')}
                   </div>
                 </>
               )}
@@ -90,14 +71,8 @@ const PricingSection = () => {
                   ))}
                 </ul>
                 <Link to="/signup">
-                  <Button
-                    className={`w-full rounded-full h-12 font-semibold text-base ${
-                      plan.featured
-                        ? "gradient-primary text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-[1.02] transition-all"
-                        : "bg-primary hover:bg-primary/90 text-primary-foreground"
-                    }`}
-                  >
-                    Get Started
+                  <Button className={`w-full rounded-full h-12 font-semibold text-base ${plan.featured ? "gradient-primary text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-2xl hover:scale-[1.02] transition-all" : "bg-primary hover:bg-primary/90 text-primary-foreground"}`}>
+                    {t('common.getStarted')}
                   </Button>
                 </Link>
               </div>

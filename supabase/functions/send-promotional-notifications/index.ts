@@ -18,6 +18,27 @@ const DAILY_TIPS = [
   { title: "🚀 Pro Tip", message: "Track your driver in real-time on the map! You'll always know exactly where your delivery is." },
 ];
 
+function buildEmailHtml(title: string, message: string): string {
+  return `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 0;">
+      <div style="background: linear-gradient(135deg, #1e3a5f, #2563eb); padding: 24px 32px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">🏃 MaceyRunners</h1>
+      </div>
+      <div style="padding: 32px; background: white;">
+        <h2 style="color: #1e3a5f; margin-top: 0;">${title}</h2>
+        <p style="color: #475569; font-size: 16px; line-height: 1.6;">${message}</p>
+        <div style="text-align: center; margin-top: 24px;">
+          <a href="https://macey-run-dash.lovable.app/dashboard" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block;">Open MaceyRunners</a>
+        </div>
+      </div>
+      <div style="padding: 16px 32px; text-align: center; color: #94a3b8; font-size: 12px;">
+        <p>MaceyRunners — Delivering with Purpose 🏃</p>
+        <p>© ${new Date().getFullYear()} MaceyRunners. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -26,6 +47,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
@@ -36,10 +58,10 @@ Deno.serve(async (req) => {
 
     if (target === 'all' || !target) {
       const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'customer');
-      userIds = (roles || []).map(r => r.user_id);
+      userIds = (roles || []).map((r: any) => r.user_id);
     } else if (target === 'inactive') {
       const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'customer');
-      const allCustomerIds = (roles || []).map(r => r.user_id);
+      const allCustomerIds = (roles || []).map((r: any) => r.user_id);
       
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data: recentOrders } = await supabase
@@ -47,8 +69,8 @@ Deno.serve(async (req) => {
         .select('customer_id')
         .gte('created_at', sevenDaysAgo);
       
-      const activeIds = new Set((recentOrders || []).map(o => o.customer_id));
-      userIds = allCustomerIds.filter(id => !activeIds.has(id));
+      const activeIds = new Set((recentOrders || []).map((o: any) => o.customer_id));
+      userIds = allCustomerIds.filter((id: string) => !activeIds.has(id));
     }
 
     if (userIds.length === 0) {
@@ -66,8 +88,8 @@ Deno.serve(async (req) => {
       notifMessage = tip.message;
     }
 
-    // Insert notifications for all target users
-    const notifications = userIds.map(userId => ({
+    // Insert in-app notifications
+    const notifications = userIds.map((userId: string) => ({
       user_id: userId,
       title: notifTitle,
       message: notifMessage,
@@ -85,48 +107,55 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Send emails to users
+    // Send emails directly via Resend API
     let emailsSent = 0;
-    // Get user emails in batches
-    for (let i = 0; i < userIds.length; i += 50) {
-      const batch = userIds.slice(i, i + 50);
-      const { data: users } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-      
-      if (users?.users) {
-        const emailBatch = users.users
-          .filter(u => batch.includes(u.id) && u.email)
-          .map(u => u.email!);
-        
-        // Send email via send-order-email function
-        for (const email of emailBatch) {
-          try {
-            await supabase.functions.invoke('send-order-email', {
-              body: {
-                to: email,
-                subject: notifTitle,
-                html: `
-                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <div style="background: linear-gradient(135deg, #2563eb, #f97316); padding: 24px; border-radius: 16px 16px 0 0; text-align: center;">
-                      <h1 style="color: white; margin: 0; font-size: 24px;">MaceyRunners</h1>
-                    </div>
-                    <div style="background: #ffffff; padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 16px 16px;">
-                      <h2 style="color: #1e293b; margin-top: 0;">${notifTitle}</h2>
-                      <p style="color: #475569; font-size: 16px; line-height: 1.6;">${notifMessage}</p>
-                      <div style="text-align: center; margin-top: 24px;">
-                        <a href="https://macey-run-dash.lovable.app/dashboard" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold;">Open MaceyRunners</a>
-                      </div>
-                    </div>
-                    <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-top: 16px;">MaceyRunners — Delivering with Purpose 🏃</p>
-                  </div>
-                `,
-              },
-            });
-            emailsSent++;
-          } catch (emailErr) {
-            console.error('Email send error:', emailErr);
-          }
+    if (RESEND_API_KEY) {
+      // Get all users to find emails
+      const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const userMap = new Map<string, string>();
+      if (usersData?.users) {
+        for (const u of usersData.users) {
+          if (u.email) userMap.set(u.id, u.email);
         }
       }
+
+      const emailHtml = buildEmailHtml(notifTitle, notifMessage);
+
+      // Send emails in parallel batches of 10
+      const emailPromises: Promise<void>[] = [];
+      for (const userId of userIds) {
+        const email = userMap.get(userId);
+        if (!email) continue;
+
+        emailPromises.push(
+          fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'MaceyRunners <noreply@maceyrunners.com>',
+              to: [email],
+              subject: notifTitle,
+              html: emailHtml,
+            }),
+          }).then(async (res) => {
+            if (res.ok) {
+              emailsSent++;
+            } else {
+              const errData = await res.json();
+              console.error('Resend error for', email, errData);
+            }
+          }).catch((err) => {
+            console.error('Email send error for', email, err);
+          })
+        );
+      }
+
+      await Promise.all(emailPromises);
+    } else {
+      console.warn('RESEND_API_KEY not configured — skipping emails');
     }
 
     return new Response(JSON.stringify({ sent, emails_sent: emailsSent, total_users: userIds.length }), {

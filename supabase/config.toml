@@ -1,19 +1,17 @@
 project_id = "aczkjkkiiqrvljlrkccw"
 
-[functions.send-push-notification]
-verify_jwt = false
-
-[functions.delete-account]
-verify_jwt = false
-
-[functions.send-order-email]
-verify_jwt = false
-
-[functions.retry-notifications]
-verify_jwt = false
-
-[functions.support-chat]
-verify_jwt = false
-
-[functions.send-promotional-notifications]
-verify_jwt = false
+[functions]
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.delete-account]
+    verify_jwt = false
+  [functions.retry-notifications]
+    verify_jwt = false
+  [functions.send-order-email]
+    verify_jwt = false
+  [functions.send-promotional-notifications]
+    verify_jwt = false
+  [functions.send-push-notification]
+    verify_jwt = false
+  [functions.support-chat]
+    verify_jwt = false

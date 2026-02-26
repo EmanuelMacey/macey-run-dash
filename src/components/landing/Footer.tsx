@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import logo from "@/assets/logo.png";
 
 const policies = [
@@ -17,47 +18,41 @@ const policies = [
 const Footer = () => {
   const [showPolicies, setShowPolicies] = useState(false);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   return (
     <>
       <footer className="bg-secondary dark:bg-secondary border-t border-border/20 py-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-10 items-start mb-10">
-            {/* Brand */}
             <div>
               <div className="flex items-center gap-2.5 mb-4">
                 <img src={logo} alt="MaceyRunners" className="w-10 h-10 rounded-xl object-cover shadow-sm ring-1 ring-primary/20" />
                 <span className="font-display font-bold text-xl text-secondary-foreground">MaceyRunners</span>
               </div>
-              <p className="text-sm text-secondary-foreground/60 leading-relaxed max-w-xs">
-                Guyana's fastest delivery service. From food to errands, we get it done.
-              </p>
+              <p className="text-sm text-secondary-foreground/60 leading-relaxed max-w-xs">{t('footer.tagline')}</p>
             </div>
 
-            {/* Links */}
             <div className="flex flex-col gap-3">
-              <h4 className="font-display font-semibold text-sm text-secondary-foreground mb-1">Quick Links</h4>
-              <a href="#how-it-works" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">How It Works</a>
-              <a href="#services" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Services</a>
-              <a href="#pricing" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Pricing</a>
-              <a href="#contact" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Contact</a>
-              <Link to="/about" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">About Us</Link>
+              <h4 className="font-display font-semibold text-sm text-secondary-foreground mb-1">{t('footer.quickLinks')}</h4>
+              <a href="#how-it-works" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('nav.howItWorks')}</a>
+              <a href="#services" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('nav.services')}</a>
+              <a href="#pricing" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('nav.pricing')}</a>
+              <a href="#contact" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('footer.contact')}</a>
+              <Link to="/about" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('footer.aboutUs')}</Link>
             </div>
 
-            {/* Legal */}
             <div className="flex flex-col gap-3">
-              <h4 className="font-display font-semibold text-sm text-secondary-foreground mb-1">Legal</h4>
-              <button onClick={() => setShowPolicies(true)} className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors text-left">
-                Policies & Terms
-              </button>
-              <Link to="/login" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Login</Link>
-              <Link to="/signup" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Sign Up</Link>
+              <h4 className="font-display font-semibold text-sm text-secondary-foreground mb-1">{t('footer.legal')}</h4>
+              <button onClick={() => setShowPolicies(true)} className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors text-left">{t('footer.policies')}</button>
+              <Link to="/login" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('nav.login')}</Link>
+              <Link to="/signup" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('nav.getStarted')}</Link>
             </div>
           </div>
 
           <div className="border-t border-secondary-foreground/10 pt-6">
             <p className="text-xs text-secondary-foreground/40 text-center">
-              © {new Date().getFullYear()} MaceyRunners Delivery Service. All rights reserved.
+              {t('footer.copyright', { year: new Date().getFullYear() })}
             </p>
           </div>
         </div>
@@ -66,28 +61,19 @@ const Footer = () => {
       <Dialog open={showPolicies} onOpenChange={setShowPolicies}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl">Policies & Terms</DialogTitle>
+            <DialogTitle className="font-display text-xl">{t('footer.policies')}</DialogTitle>
             <DialogDescription>Please review our policies below. By using MaceyRunners, you agree to these terms.</DialogDescription>
           </DialogHeader>
           <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden bg-card">
             {policies.map((policy, i) => (
               <div key={policy.title}>
-                <button
-                  onClick={() => setExpandedIndex(expandedIndex === i ? null : i)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/50 transition-colors"
-                >
+                <button onClick={() => setExpandedIndex(expandedIndex === i ? null : i)} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/50 transition-colors">
                   <span className="text-sm font-semibold text-foreground">{policy.title}</span>
                   <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform duration-200 ${expandedIndex === i ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>
                   {expandedIndex === i && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                       <p className="px-5 pb-4 text-xs leading-relaxed text-muted-foreground">{policy.content}</p>
                     </motion.div>
                   )}

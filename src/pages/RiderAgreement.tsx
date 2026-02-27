@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, FileText, Users, DollarSign, Clock, Briefcase, Building2, ShieldAlert, Lock, Scale, XCircle, PenTool } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import logo from "@/assets/logo.png";
 
 const RiderAgreement = () => {
@@ -9,226 +9,249 @@ const RiderAgreement = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="gradient-primary py-6 print:py-4">
+      <div className="gradient-primary py-8 print:py-4">
         <div className="container mx-auto px-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="MaceyRunners" className="w-10 h-10 rounded-xl object-cover" />
-            <span className="font-display font-bold text-xl text-primary-foreground">MaceyRunners</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="MaceyRunners" className="w-12 h-12 rounded-xl object-cover ring-2 ring-primary-foreground/20" />
+            <div>
+              <span className="font-display font-bold text-xl text-primary-foreground block">MaceyRunners</span>
+              <span className="text-xs text-primary-foreground/70">Confidential — Team Member Agreement</span>
+            </div>
+          </div>
           <div className="flex gap-2 print:hidden">
             <Button variant="secondary" size="sm" onClick={handlePrint} className="gap-2">
-              <Download className="h-4 w-4" /> Download PDF
+              <Download className="h-4 w-4" /> Export PDF
             </Button>
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10 gap-2">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </Button>
-            </Link>
+            <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="text-primary-foreground hover:bg-primary-foreground/10 gap-2">
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-10 max-w-4xl">
-        <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
-          {/* Title */}
-          <div className="text-center border-b border-border pb-8 mb-8">
-            <h1 className="font-display text-4xl font-bold text-foreground mb-2">Runner / Rider Agreement</h1>
-            <p className="text-muted-foreground text-lg">MaceyRunners Independent Contractor Agreement</p>
-            <p className="text-muted-foreground text-sm mt-2">464 East Ruimveldt, Georgetown, Guyana</p>
-            <p className="text-muted-foreground text-xs mt-1">Effective Date: February 2026</p>
-          </div>
+        <div className="space-y-8">
+          {/* Title Card */}
+          <Card className="border-primary/20 bg-gradient-to-br from-card to-muted/30">
+            <CardContent className="pt-8 pb-8 text-center">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 text-xs font-semibold mb-4">
+                <FileText className="h-3.5 w-3.5" /> INTERNAL DOCUMENT — CONFIDENTIAL
+              </div>
+              <h1 className="font-display text-4xl font-bold text-foreground mb-3">Team Member Service Agreement</h1>
+              <p className="text-muted-foreground text-lg">MaceyRunners Delivery Professional Agreement</p>
+              <p className="text-muted-foreground text-sm mt-2">464 East Ruimveldt, Georgetown, Guyana</p>
+              <p className="text-muted-foreground text-xs mt-1">Effective Date: February 2026</p>
+            </CardContent>
+          </Card>
 
           {/* Preamble */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">1. Preamble</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              This Runner/Rider Agreement ("Agreement") is entered into between <strong className="text-foreground">MaceyRunners</strong> ("the Company"), located at 464 East Ruimveldt, Georgetown, Guyana, and the individual accepting this agreement ("the Runner" or "Rider"). By accepting deliveries or errands through the MaceyRunners platform, the Runner agrees to be bound by all terms and conditions outlined herein.
+          <Section icon={<FileText className="h-5 w-5" />} title="1. Preamble">
+            <p className="text-muted-foreground leading-relaxed text-sm">
+              This Team Member Service Agreement ("Agreement") is entered into between <strong className="text-foreground">MaceyRunners</strong> ("the Company"), located at 464 East Ruimveldt, Georgetown, Guyana, and the individual accepting this agreement ("the Team Member" or "Delivery Professional"). By accepting deliveries or errands through the MaceyRunners platform, the Team Member agrees to be bound by all terms and conditions outlined herein.
             </p>
-          </section>
+          </Section>
 
           {/* Engagement */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">2. Nature of Engagement</h2>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>The Runner is engaged as an <strong className="text-foreground">independent contractor</strong>, not an employee of MaceyRunners.</li>
-              <li>The Runner is free to accept or decline any delivery or errand offered through the platform.</li>
-              <li>The Runner may work for other delivery services simultaneously, provided it does not interfere with active MaceyRunners orders.</li>
-              <li>MaceyRunners does not guarantee a minimum number of deliveries or earnings.</li>
+          <Section icon={<Users className="h-5 w-5" />} title="2. Nature of Engagement">
+            <ul className="space-y-3 text-muted-foreground text-sm">
+              <li>The Team Member is engaged as a <strong className="text-foreground">valued member of the MaceyRunners delivery team</strong> and is expected to uphold the company's standards of professionalism and excellence.</li>
+              <li>The Team Member may accept or decline delivery assignments based on availability, though consistent reliability is expected and rewarded.</li>
+              <li>MaceyRunners invests in its team through mentorship, branded equipment, and growth opportunities within the organisation.</li>
+              <li>Compensation is performance-based under the 60/40 revenue-sharing model outlined below.</li>
             </ul>
-          </section>
+          </Section>
 
           {/* Revenue Split */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">3. Compensation — 60/40 Revenue Split</h2>
-            <div className="bg-card border border-border/50 rounded-xl p-6 space-y-4">
-              <p className="text-muted-foreground">The Runner shall receive <strong className="text-foreground">60% (sixty percent)</strong> of the total delivery or errand fee for each completed order. MaceyRunners retains <strong className="text-foreground">40% (forty percent)</strong> to cover platform operations, technology, marketing, and administrative costs.</p>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left p-3 text-sm font-display text-foreground">Service</th>
-                      <th className="text-center p-3 text-sm font-display text-foreground">Base Fee</th>
-                      <th className="text-center p-3 text-sm font-display text-foreground">Runner (60%)</th>
-                      <th className="text-center p-3 text-sm font-display text-foreground">Company (40%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-border/30">
-                      <td className="p-3 text-muted-foreground">Delivery</td>
-                      <td className="p-3 text-center text-foreground">$700 GYD</td>
-                      <td className="p-3 text-center font-semibold text-foreground">$420 GYD</td>
-                      <td className="p-3 text-center text-primary">$280 GYD</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 text-muted-foreground">Errand</td>
-                      <td className="p-3 text-center text-foreground">$1,000 GYD</td>
-                      <td className="p-3 text-center font-semibold text-foreground">$600 GYD</td>
-                      <td className="p-3 text-center text-primary">$400 GYD</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <p className="text-sm text-muted-foreground">* Fees increase with distance at $150 GYD/km. The split applies to the total fee regardless of distance surcharges.</p>
-            </div>
-          </section>
+          <Section icon={<DollarSign className="h-5 w-5" />} title="3. Compensation — 60/40 Revenue Split">
+            <Card className="border-border/50">
+              <CardContent className="p-6 space-y-4">
+                <p className="text-muted-foreground text-sm">The Team Member shall receive <strong className="text-foreground">60% (sixty percent)</strong> of the total delivery or errand fee for each completed order. MaceyRunners retains <strong className="text-foreground">40% (forty percent)</strong> to cover platform operations, technology, marketing, and administrative costs.</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left p-3 text-xs font-display text-foreground">Service</th>
+                        <th className="text-center p-3 text-xs font-display text-foreground">Base Fee</th>
+                        <th className="text-center p-3 text-xs font-display text-foreground">Team Member (60%)</th>
+                        <th className="text-center p-3 text-xs font-display text-foreground">Company (40%)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-border/30">
+                        <td className="p-3 text-muted-foreground text-sm">Delivery</td>
+                        <td className="p-3 text-center text-foreground text-sm">$700 GYD</td>
+                        <td className="p-3 text-center font-semibold text-foreground text-sm">$420 GYD</td>
+                        <td className="p-3 text-center text-primary text-sm">$280 GYD</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 text-muted-foreground text-sm">Errand</td>
+                        <td className="p-3 text-center text-foreground text-sm">$1,000 GYD</td>
+                        <td className="p-3 text-center font-semibold text-foreground text-sm">$600 GYD</td>
+                        <td className="p-3 text-center text-primary text-sm">$400 GYD</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-xs text-muted-foreground">* Fees increase with distance at $150 GYD/km. The split applies to the total fee regardless of distance surcharges.</p>
+              </CardContent>
+            </Card>
+          </Section>
 
           {/* Delivery Standards */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">4. Delivery Time Standards & Guarantee</h2>
+          <Section icon={<Clock className="h-5 w-5" />} title="4. Delivery Time Standards & Guarantee">
             <div className="space-y-4">
-              <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-5">
-                <h3 className="font-display font-bold text-foreground mb-2">⚠️ Critical Policy</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  The average delivery time target is <strong className="text-foreground">15–30 minutes</strong> from order acceptance. If a delivery exceeds this timeframe and the Runner <strong className="text-foreground">fails to communicate</strong> a logical reason for the delay to both the customer and the MaceyRunners admin team:
-                </p>
-                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  <li>🔴 The <strong className="text-foreground">customer's delivery will be FREE</strong> — the delivery fee is fully waived.</li>
-                  <li>🔴 The <strong className="text-foreground">Runner will receive NO compensation</strong> for that delivery.</li>
-                  <li>🔴 Repeated violations will result in <strong className="text-foreground">performance review and potential deactivation</strong>.</li>
-                </ul>
-              </div>
-              <div className="bg-card border border-border/50 rounded-xl p-5">
-                <h3 className="font-display font-bold text-foreground mb-2">✅ Acceptable Delay Reasons</h3>
-                <p className="text-muted-foreground text-sm">The following reasons may be accepted if communicated promptly to admin and customer:</p>
-                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  <li>• Traffic congestion or road closures</li>
-                  <li>• Severe weather conditions</li>
-                  <li>• Long wait times at pickup location (restaurant/store)</li>
-                  <li>• Incorrect address provided by customer (documented in chat)</li>
-                  <li>• Vehicle breakdown (with proof)</li>
-                </ul>
-              </div>
+              <Card className="border-destructive/30 bg-destructive/5">
+                <CardContent className="p-5">
+                  <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4 text-destructive" /> Critical Policy
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    The target delivery time is <strong className="text-foreground">15–30 minutes</strong> from order acceptance. If a delivery exceeds this timeframe and the Team Member <strong className="text-foreground">fails to communicate</strong> a logical reason to both the customer and management:
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2"><span className="text-destructive">•</span> The <strong className="text-foreground">customer's delivery will be free</strong> — the delivery fee is fully waived.</li>
+                    <li className="flex items-start gap-2"><span className="text-destructive">•</span> The <strong className="text-foreground">Team Member will receive no compensation</strong> for that delivery.</li>
+                    <li className="flex items-start gap-2"><span className="text-destructive">•</span> Repeated violations will result in <strong className="text-foreground">performance review and potential suspension</strong>.</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              <Card className="border-border/50">
+                <CardContent className="p-5">
+                  <h3 className="font-display font-bold text-foreground mb-2">Acceptable Delay Reasons</h3>
+                  <p className="text-muted-foreground text-xs mb-2">The following may be accepted if communicated promptly to management and the customer:</p>
+                  <ul className="space-y-1 text-xs text-muted-foreground">
+                    <li>• Traffic congestion or road closures</li>
+                    <li>• Severe weather conditions</li>
+                    <li>• Extended wait times at pickup location</li>
+                    <li>• Incorrect address provided by customer (documented in chat)</li>
+                    <li>• Vehicle breakdown (with proof)</li>
+                  </ul>
+                </CardContent>
+              </Card>
             </div>
-          </section>
+          </Section>
 
-          {/* Runner Obligations */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">5. Runner Obligations</h2>
-            <ul className="space-y-3 text-muted-foreground">
-              <li><strong className="text-foreground">5.1 Professional Conduct:</strong> The Runner shall conduct themselves in a professional and courteous manner at all times when interacting with customers, merchants, and MaceyRunners staff.</li>
-              <li><strong className="text-foreground">5.2 Communication:</strong> The Runner must maintain an active phone/data connection during active deliveries and respond to customer/admin messages within 2 minutes.</li>
-              <li><strong className="text-foreground">5.3 Location Sharing:</strong> The Runner must keep real-time GPS location sharing active during all active orders for customer tracking purposes.</li>
-              <li><strong className="text-foreground">5.4 Item Care:</strong> The Runner is responsible for the safe and secure transport of all items. Damaged, lost, or tampered items are the Runner's liability and may result in deductions from future earnings.</li>
-              <li><strong className="text-foreground">5.5 Cash Handling:</strong> For Cash on Delivery orders, the Runner must collect the full amount and remit MaceyRunners' 40% share within 24 hours via MMG or approved payment method.</li>
-              <li><strong className="text-foreground">5.6 No Substance Use:</strong> The Runner shall not operate under the influence of alcohol or any controlled substance while performing deliveries.</li>
-              <li><strong className="text-foreground">5.7 Dress Code:</strong> While formal uniforms are not required, Runners must present a clean and presentable appearance. MaceyRunners-branded items (when provided) should be worn during deliveries.</li>
+          {/* Team Member Obligations */}
+          <Section icon={<Briefcase className="h-5 w-5" />} title="5. Team Member Obligations">
+            <ul className="space-y-3 text-muted-foreground text-sm">
+              <li><strong className="text-foreground">5.1 Professional Conduct:</strong> Team members shall conduct themselves with professionalism and courtesy at all times when representing MaceyRunners.</li>
+              <li><strong className="text-foreground">5.2 Communication:</strong> Team members must maintain an active phone/data connection during active deliveries and respond to customer/management messages within 2 minutes.</li>
+              <li><strong className="text-foreground">5.3 Location Sharing:</strong> Real-time GPS location sharing must be active during all active orders for customer tracking purposes.</li>
+              <li><strong className="text-foreground">5.4 Item Care:</strong> Team members are responsible for the safe and secure transport of all items. Damaged, lost, or tampered items are the team member's liability.</li>
+              <li><strong className="text-foreground">5.5 Cash Handling:</strong> For Cash on Delivery orders, team members must collect the full amount and remit MaceyRunners' 40% share within 24 hours via MMG or an approved payment method.</li>
+              <li><strong className="text-foreground">5.6 Substance Policy:</strong> Team members shall not operate under the influence of alcohol or any controlled substance while performing deliveries.</li>
+              <li><strong className="text-foreground">5.7 Appearance Standards:</strong> Team members must present a clean and professional appearance. MaceyRunners-branded items (when provided) should be worn during deliveries.</li>
             </ul>
-          </section>
+          </Section>
 
           {/* Company Obligations */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">6. MaceyRunners Obligations</h2>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>Provide a functional and reliable technology platform for order management</li>
-              <li>Process and distribute Runner earnings promptly</li>
-              <li>Provide customer support to resolve disputes fairly</li>
-              <li>Maintain transparency in fee calculations and deductions</li>
-              <li>Offer mentorship and growth opportunities within the organization</li>
+          <Section icon={<Building2 className="h-5 w-5" />} title="6. MaceyRunners Obligations">
+            <ul className="space-y-2 text-muted-foreground text-sm">
+              <li>• Provide a functional and reliable technology platform for order management</li>
+              <li>• Process and distribute team member earnings promptly</li>
+              <li>• Provide customer support to resolve disputes fairly</li>
+              <li>• Maintain transparency in fee calculations and deductions</li>
+              <li>• Offer mentorship, training, and growth opportunities within the organisation</li>
+              <li>• Provide branded materials and equipment where applicable</li>
             </ul>
-          </section>
+          </Section>
 
-          {/* Deactivation */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">7. Grounds for Deactivation</h2>
-            <p className="text-muted-foreground mb-3">MaceyRunners reserves the right to temporarily suspend or permanently deactivate a Runner for:</p>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>🔴 Consistent failure to meet delivery time standards without communication</li>
-              <li>🔴 Customer rating consistently below 3.0 stars</li>
-              <li>🔴 Theft, fraud, or dishonest behavior</li>
-              <li>🔴 Physical or verbal abuse toward customers, merchants, or staff</li>
-              <li>🔴 Operating under the influence of substances</li>
-              <li>🔴 Sharing customer personal information with unauthorized parties</li>
-              <li>🔴 Manipulating GPS location or delivery status</li>
-              <li>🔴 Failure to remit cash collections within 24 hours</li>
-              <li>🔴 Three or more unexcused late deliveries within a 7-day period</li>
-            </ul>
-          </section>
+          {/* Grounds for Suspension */}
+          <Section icon={<XCircle className="h-5 w-5" />} title="7. Grounds for Suspension or Termination">
+            <p className="text-muted-foreground text-sm mb-3">MaceyRunners reserves the right to temporarily suspend or permanently terminate a team member's engagement for:</p>
+            <div className="grid sm:grid-cols-2 gap-2">
+              {[
+                "Consistent failure to meet delivery time standards without communication",
+                "Customer rating consistently below 3.0 stars",
+                "Theft, fraud, or dishonest behaviour",
+                "Physical or verbal abuse toward customers, merchants, or staff",
+                "Operating under the influence of substances",
+                "Sharing customer personal information with unauthorised parties",
+                "Manipulating GPS location or delivery status",
+                "Failure to remit cash collections within 24 hours",
+                "Three or more unexcused late deliveries within a 7-day period",
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-2 text-xs text-muted-foreground bg-destructive/5 rounded-lg p-2.5">
+                  <span className="text-destructive mt-0.5 shrink-0">•</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </Section>
 
           {/* Confidentiality */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">8. Confidentiality & Data Protection</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              The Runner agrees to maintain strict confidentiality of all customer information including names, phone numbers, addresses, and order details. Customer data shall only be used for the purpose of completing active deliveries and must never be stored, shared, or used for personal gain. Violation of this clause constitutes grounds for immediate deactivation and may result in legal action.
+          <Section icon={<Lock className="h-5 w-5" />} title="8. Confidentiality & Data Protection">
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              The Team Member agrees to maintain strict confidentiality of all customer information including names, phone numbers, addresses, and order details. Customer data shall only be used for the purpose of completing active deliveries and must never be stored, shared, or used for personal gain. Violation of this clause constitutes grounds for immediate termination and may result in legal action.
             </p>
-          </section>
+          </Section>
 
           {/* Dispute Resolution */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">9. Dispute Resolution</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              Any disputes arising from this Agreement shall first be addressed through MaceyRunners' internal mediation process. The Runner may raise concerns with the Operations Manager within 48 hours of the incident. If unresolved, disputes shall be escalated to the Founder/CEO for final determination. Both parties agree to act in good faith to resolve issues amicably before pursuing external remedies.
+          <Section icon={<Scale className="h-5 w-5" />} title="9. Dispute Resolution">
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Any disputes arising from this Agreement shall first be addressed through MaceyRunners' internal mediation process. The Team Member may raise concerns with the Operations Manager within 48 hours of the incident. If unresolved, disputes shall be escalated to the Founder/CEO for final determination. Both parties agree to act in good faith to resolve issues amicably.
             </p>
-          </section>
+          </Section>
 
           {/* Termination */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">10. Termination</h2>
-            <ul className="space-y-2 text-muted-foreground">
-              <li>Either party may terminate this Agreement at any time with 7 days' written notice.</li>
-              <li>MaceyRunners may terminate immediately in cases of gross misconduct as outlined in Section 7.</li>
-              <li>Upon termination, the Runner must settle all outstanding cash collections within 48 hours.</li>
-              <li>The Runner shall immediately cease use of any MaceyRunners-branded materials upon termination.</li>
+          <Section icon={<XCircle className="h-5 w-5" />} title="10. Termination">
+            <ul className="space-y-2 text-muted-foreground text-sm">
+              <li>• Either party may end this Agreement at any time with 7 days' written notice.</li>
+              <li>• MaceyRunners may terminate immediately in cases of gross misconduct as outlined in Section 7.</li>
+              <li>• Upon termination, the Team Member must settle all outstanding cash collections within 48 hours.</li>
+              <li>• The Team Member shall immediately cease use of any MaceyRunners-branded materials upon termination.</li>
             </ul>
-          </section>
+          </Section>
 
           {/* Amendments */}
-          <section>
-            <h2 className="font-display text-2xl font-bold text-foreground border-l-4 border-primary pl-4">11. Amendments</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              MaceyRunners reserves the right to amend this Agreement with 14 days' notice to the Runner. Continued acceptance of deliveries after the notice period constitutes acceptance of the amended terms. Runners who do not accept amended terms may terminate this Agreement without penalty.
+          <Section icon={<PenTool className="h-5 w-5" />} title="11. Amendments">
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              MaceyRunners reserves the right to amend this Agreement with 14 days' notice. Continued acceptance of deliveries after the notice period constitutes acceptance of the amended terms. Team members who do not accept amended terms may end this Agreement without penalty.
             </p>
-          </section>
+          </Section>
 
           {/* Acknowledgment */}
-          <section className="bg-card border border-border/50 rounded-2xl p-8">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-4">Acknowledgment</h2>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              By accepting deliveries through the MaceyRunners platform, I acknowledge that I have read, understood, and agree to all terms and conditions outlined in this Agreement. I understand the 60/40 revenue split, the delivery time guarantee policy, and the grounds for deactivation.
-            </p>
-            <div className="grid grid-cols-2 gap-8 pt-6 border-t border-border">
-              <div>
-                <p className="text-sm text-muted-foreground mb-8">Runner Signature</p>
-                <div className="border-b border-foreground w-full mb-2" />
-                <p className="text-xs text-muted-foreground">Name & Date</p>
+          <Card className="border-primary/20 bg-gradient-to-br from-card to-muted/30">
+            <CardContent className="p-8">
+              <h2 className="font-display text-2xl font-bold text-foreground mb-4">Acknowledgment</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                By accepting deliveries through the MaceyRunners platform, I acknowledge that I have read, understood, and agree to all terms and conditions outlined in this Agreement. I understand the 60/40 revenue split, the delivery time guarantee policy, and the standards of professionalism expected of me as a MaceyRunners team member.
+              </p>
+              <div className="grid grid-cols-2 gap-8 pt-6 border-t border-border">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-10">Team Member Signature</p>
+                  <div className="border-b border-foreground/50 w-full mb-2" />
+                  <p className="text-xs text-muted-foreground">Full Name & Date</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-10">MaceyRunners Representative</p>
+                  <div className="border-b border-foreground/50 w-full mb-2" />
+                  <p className="text-xs text-muted-foreground">Name, Title & Date</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-8">MaceyRunners Representative</p>
-                <div className="border-b border-foreground w-full mb-2" />
-                <p className="text-xs text-muted-foreground">Name, Title & Date</p>
-              </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
           {/* Footer */}
-          <div className="border-t border-border pt-6 text-center text-muted-foreground text-sm">
+          <div className="border-t border-border pt-6 text-center text-muted-foreground text-sm space-y-1">
+            <p className="font-display font-semibold text-foreground">MaceyRunners — Delivering with Purpose 🏃</p>
             <p>© {new Date().getFullYear()} MaceyRunners. All rights reserved.</p>
-            <p>464 East Ruimveldt, Georgetown, Guyana | support@maceyrunners.org</p>
+            <p className="text-xs">464 East Ruimveldt, Georgetown, Guyana | support@maceyrunners.org</p>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+const Section = ({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) => (
+  <section>
+    <div className="flex items-center gap-3 mb-4">
+      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{icon}</div>
+      <h2 className="font-display text-xl font-bold text-foreground">{title}</h2>
+    </div>
+    {children}
+  </section>
+);
 
 export default RiderAgreement;

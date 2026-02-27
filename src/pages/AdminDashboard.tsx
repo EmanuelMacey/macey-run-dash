@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, BookOpen, ScrollText } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -18,6 +18,8 @@ import AdminInvoices from "@/components/admin/AdminInvoices";
 import AdminPromotions from "@/components/admin/AdminPromotions";
 import AdminLeadership from "@/components/admin/AdminLeadership";
 import ThemeToggle from "@/components/ThemeToggle";
+import BusinessPlan from "@/pages/BusinessPlan";
+import RiderAgreement from "@/pages/RiderAgreement";
 
 const AdminDashboard = () => {
   const { signOut } = useAuth();
@@ -81,6 +83,12 @@ const AdminDashboard = () => {
             <TabsTrigger value="leadership" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Crown className="h-4 w-4" /> <span className="hidden sm:inline">Team</span>
             </TabsTrigger>
+            <TabsTrigger value="business-plan" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <BookOpen className="h-4 w-4" /> <span className="hidden sm:inline">Plan</span>
+            </TabsTrigger>
+            <TabsTrigger value="rider-agreement" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <ScrollText className="h-4 w-4" /> <span className="hidden sm:inline">Agreement</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
@@ -94,6 +102,8 @@ const AdminDashboard = () => {
           <TabsContent value="testimonials"><AdminTestimonials /></TabsContent>
           <TabsContent value="promotions"><AdminPromotions /></TabsContent>
           <TabsContent value="leadership"><AdminLeadership /></TabsContent>
+          <TabsContent value="business-plan"><BusinessPlan /></TabsContent>
+          <TabsContent value="rider-agreement"><RiderAgreement /></TabsContent>
         </Tabs>
       </main>
     </div>

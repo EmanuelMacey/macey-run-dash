@@ -18,8 +18,8 @@ const QUICK_ACTIONS = [
   "What are your delivery fees?",
 ];
 
-// Only show chat widget on these routes
-const ALLOWED_ROUTES = ["/dashboard", "/driver", "/admin", "/support", "/marketplace"];
+// Show chat widget on these routes (including landing page "/")
+const ALLOWED_ROUTES = ["/", "/dashboard", "/driver", "/admin", "/support", "/marketplace"];
 
 /** Strip markdown formatting for clean chat display */
 const cleanMarkdown = (text: string): string => {
@@ -47,8 +47,10 @@ const SupportChatWidget = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Check if current route is allowed
-  const isAllowed = ALLOWED_ROUTES.some(route => location.pathname.startsWith(route));
+  // Check if current route is allowed (exact match for "/" to avoid matching all routes)
+  const isAllowed = ALLOWED_ROUTES.some(route => 
+    route === "/" ? location.pathname === "/" : location.pathname.startsWith(route)
+  );
 
   useEffect(() => {
     if (open) {

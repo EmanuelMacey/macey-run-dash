@@ -20,8 +20,6 @@ import StorePage from "./pages/StorePage";
 import NotFound from "./pages/NotFound";
 import AboutUs from "./pages/AboutUs";
 import Support from "./pages/Support";
-import BusinessPlan from "./pages/BusinessPlan";
-import RiderAgreement from "./pages/RiderAgreement";
 import OurValues from "./pages/OurValues";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
@@ -39,22 +37,6 @@ const App = () => (
               <Route path="/about" element={<AboutUs />} />
               <Route path="/support" element={<Support />} />
               <Route path="/our-values" element={<OurValues />} />
-              <Route
-                path="/business-plan"
-                element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
-                    <BusinessPlan />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/rider-agreement"
-                element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
-                    <RiderAgreement />
-                  </ProtectedRoute>
-                }
-              />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/store/:storeId" element={<StorePage />} />
               <Route path="/login" element={<Login />} />

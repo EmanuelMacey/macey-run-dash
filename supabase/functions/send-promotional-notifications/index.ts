@@ -20,7 +20,7 @@ const DAILY_TIPS = [
 
 function buildEmailHtml(title: string, message: string): string {
   return `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 0;">
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 0;">
       <div style="background: linear-gradient(135deg, #1e3a5f, #2563eb); padding: 24px 32px; text-align: center;">
         <h1 style="color: white; margin: 0; font-size: 24px;">🏃 MaceyRunners</h1>
       </div>
@@ -31,12 +31,23 @@ function buildEmailHtml(title: string, message: string): string {
           <a href="https://macey-run-dash.lovable.app/dashboard" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block;">Open MaceyRunners</a>
         </div>
       </div>
-      <div style="padding: 16px 32px; text-align: center; color: #94a3b8; font-size: 12px;">
-        <p>MaceyRunners — Delivering with Purpose 🏃</p>
-        <p>© ${new Date().getFullYear()} MaceyRunners. All rights reserved.</p>
+      <div style="padding: 16px 32px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0 0 8px;">MaceyRunners — Delivering with Purpose 🏃</p>
+        <p style="margin: 0 0 8px;">464 East Ruimveldt, Georgetown, Guyana</p>
+        <p style="margin: 0 0 8px;">© ${new Date().getFullYear()} MaceyRunners. All rights reserved.</p>
+        <p style="margin: 0;">
+          <a href="https://macey-run-dash.lovable.app/dashboard" style="color: #64748b; text-decoration: underline; font-size: 11px;">Manage notification preferences</a>
+          &nbsp;|&nbsp;
+          <a href="mailto:support@maceyrunners.org?subject=Unsubscribe&body=Please%20unsubscribe%20me%20from%20promotional%20emails." style="color: #64748b; text-decoration: underline; font-size: 11px;">Unsubscribe</a>
+        </p>
       </div>
     </div>
   `;
+}
+
+// Helper to delay execution
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 Deno.serve(async (req) => {
@@ -107,10 +118,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Send emails directly via Resend API
+    // Send emails via Resend with rate limiting (max 2/sec)
     let emailsSent = 0;
     if (RESEND_API_KEY) {
-      // Get all users to find emails
       const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       const userMap = new Map<string, string>();
       if (usersData?.users) {
@@ -121,14 +131,13 @@ Deno.serve(async (req) => {
 
       const emailHtml = buildEmailHtml(notifTitle, notifMessage);
 
-      // Send emails in parallel batches of 10
-      const emailPromises: Promise<void>[] = [];
-      for (const userId of userIds) {
-        const email = userMap.get(userId);
+      // Send emails sequentially with delay to avoid rate limiting (2 per second)
+      for (let i = 0; i < userIds.length; i++) {
+        const email = userMap.get(userIds[i]);
         if (!email) continue;
 
-        emailPromises.push(
-          fetch('https://api.resend.com/emails', {
+        try {
+          const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${RESEND_API_KEY}`,
@@ -139,21 +148,28 @@ Deno.serve(async (req) => {
               to: [email],
               subject: notifTitle,
               html: emailHtml,
+              headers: {
+                'List-Unsubscribe': '<mailto:support@maceyrunners.org?subject=Unsubscribe>',
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+              },
             }),
-          }).then(async (res) => {
-            if (res.ok) {
-              emailsSent++;
-            } else {
-              const errData = await res.json();
-              console.error('Resend error for', email, errData);
-            }
-          }).catch((err) => {
-            console.error('Email send error for', email, err);
-          })
-        );
-      }
+          });
 
-      await Promise.all(emailPromises);
+          if (res.ok) {
+            emailsSent++;
+          } else {
+            const errData = await res.json();
+            console.error('Resend error for', email, errData);
+          }
+        } catch (err) {
+          console.error('Email send error for', email, err);
+        }
+
+        // Rate limit: wait 600ms between sends (< 2 per second)
+        if (i < userIds.length - 1) {
+          await delay(600);
+        }
+      }
     } else {
       console.warn('RESEND_API_KEY not configured — skipping emails');
     }

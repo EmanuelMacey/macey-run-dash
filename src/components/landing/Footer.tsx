@@ -45,12 +45,17 @@ const Footer = () => {
             <div className="flex flex-col gap-3">
               <h4 className="font-display font-semibold text-sm text-secondary-foreground mb-1">{t('footer.legal')}</h4>
               <button onClick={() => setShowPolicies(true)} className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors text-left">{t('footer.policies')}</button>
+              <Link to="/business-plan" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Business Plan</Link>
+              <Link to="/rider-agreement" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Rider Agreement</Link>
               <Link to="/login" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('nav.login')}</Link>
               <Link to="/signup" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">{t('nav.getStarted')}</Link>
             </div>
           </div>
 
-          <div className="border-t border-secondary-foreground/10 pt-6">
+          <div className="border-t border-secondary-foreground/10 pt-6 space-y-2">
+            <p className="text-xs text-secondary-foreground/50 text-center">
+              464 East Ruimveldt, Georgetown, Guyana
+            </p>
             <p className="text-xs text-secondary-foreground/40 text-center">
               {t('footer.copyright', { year: new Date().getFullYear() })}
             </p>

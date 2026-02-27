@@ -39,6 +39,10 @@ Deno.serve(async (req) => {
           to: [to],
           subject,
           html,
+          headers: {
+            'List-Unsubscribe': '<mailto:support@maceyrunners.org?subject=Unsubscribe>',
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
         }),
       });
       const data = await res.json();
@@ -48,19 +52,23 @@ Deno.serve(async (req) => {
       return data;
     }
 
-    // Common email template wrapper
+    // Common email template wrapper with physical address + unsubscribe
     function emailTemplate(content: string) {
       return `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 0;">
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 0;">
           <div style="background: linear-gradient(135deg, #1e3a5f, #2563eb); padding: 24px 32px; text-align: center;">
             <h1 style="color: white; margin: 0; font-size: 24px;">🏃 MaceyRunners</h1>
           </div>
           <div style="padding: 32px; background: white;">
             ${content}
           </div>
-          <div style="padding: 16px 32px; text-align: center; color: #94a3b8; font-size: 12px;">
-            <p>MaceyRunners - Fast Delivery & Errands in Guyana</p>
-            <p>© ${new Date().getFullYear()} MaceyRunners. All rights reserved.</p>
+          <div style="padding: 16px 32px; text-align: center; color: #94a3b8; font-size: 12px; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0 0 8px;">MaceyRunners — Delivering with Purpose 🏃</p>
+            <p style="margin: 0 0 8px;">464 East Ruimveldt, Georgetown, Guyana</p>
+            <p style="margin: 0 0 8px;">© ${new Date().getFullYear()} MaceyRunners. All rights reserved.</p>
+            <p style="margin: 0;">
+              <a href="mailto:support@maceyrunners.org?subject=Unsubscribe&body=Please%20unsubscribe%20me%20from%20emails." style="color: #64748b; text-decoration: underline; font-size: 11px;">Unsubscribe</a>
+            </p>
           </div>
         </div>
       `;
@@ -75,11 +83,9 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get customer email
       const { data: customerAuth } = await supabase.auth.admin.getUserById(order.customer_id);
       const customerEmail = customerAuth?.user?.email;
 
-      // Get all admin user_ids
       const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
       const adminEmails: string[] = [];
       if (adminRoles) {
@@ -89,7 +95,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Get driver email if assigned
       let driverEmail: string | null = null;
       if (order.driver_id) {
         const { data: driverAuth } = await supabase.auth.admin.getUserById(order.driver_id);
@@ -109,19 +114,13 @@ Deno.serve(async (req) => {
           <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
         </div>
         <p style="color: #64748b; font-size: 13px;">You can track your order in the MaceyRunners app.</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="https://macey-run-dash.lovable.app/dashboard" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block;">Track Order</a>
+        </div>
       `);
 
-      // Send to customer
-      if (customerEmail) {
-        await sendEmail(customerEmail, `Order ${orderNum} - ${statusLabel}`, orderEmailHtml);
-      }
-
-      // Send to driver
-      if (driverEmail) {
-        await sendEmail(driverEmail, `Order ${orderNum} - ${statusLabel}`, orderEmailHtml);
-      }
-
-      // Send to admins
+      if (customerEmail) await sendEmail(customerEmail, `Order ${orderNum} - ${statusLabel}`, orderEmailHtml);
+      if (driverEmail) await sendEmail(driverEmail, `Order ${orderNum} - ${statusLabel}`, orderEmailHtml);
       for (const ae of adminEmails) {
         await sendEmail(ae, `[Admin] Order ${orderNum} - ${statusLabel}`, orderEmailHtml);
       }
@@ -142,7 +141,6 @@ Deno.serve(async (req) => {
 
       const orderNum = order.order_number ? `#${order.order_number}` : order.id.slice(0, 8);
 
-      // Get admin emails
       const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
       const adminEmails: string[] = [];
       if (adminRoles) {
@@ -152,7 +150,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Get online approved driver emails
       const { data: drivers } = await supabase.from('drivers').select('user_id').eq('is_online', true).eq('is_approved', true);
       const driverEmails: string[] = [];
       if (drivers) {

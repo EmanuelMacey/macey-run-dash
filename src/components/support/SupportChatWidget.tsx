@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { MessageCircle, X, Send, Loader2, Bot, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,9 @@ const QUICK_ACTIONS = [
   "What are your delivery fees?",
 ];
 
+// Only show chat widget on these routes
+const ALLOWED_ROUTES = ["/dashboard", "/driver", "/admin", "/support", "/marketplace"];
+
 /** Strip markdown formatting for clean chat display */
 const cleanMarkdown = (text: string): string => {
   return text
@@ -34,6 +38,7 @@ const cleanMarkdown = (text: string): string => {
 };
 
 const SupportChatWidget = () => {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -41,6 +46,9 @@ const SupportChatWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if current route is allowed
+  const isAllowed = ALLOWED_ROUTES.some(route => location.pathname.startsWith(route));
 
   useEffect(() => {
     if (open) {
@@ -139,6 +147,9 @@ const SupportChatWidget = () => {
     }
   }, [messages, isLoading]);
 
+  // Don't render on non-allowed pages
+  if (!isAllowed) return null;
+
   if (dismissed && !open) {
     return (
       <motion.div
@@ -176,7 +187,6 @@ const SupportChatWidget = () => {
               >
                 <MessageCircle className="h-6 w-6 text-primary-foreground" />
               </Button>
-              {/* X to dismiss */}
               <button
                 onClick={handleClose}
                 className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
@@ -207,7 +217,6 @@ const SupportChatWidget = () => {
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-3rem)] h-[540px] max-h-[calc(100vh-6rem)] bg-card border border-border/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="gradient-primary px-4 py-3.5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary-foreground/20 rounded-full flex items-center justify-center">
@@ -233,7 +242,6 @@ const SupportChatWidget = () => {
               </div>
             </div>
 
-            {/* Messages */}
             <ScrollArea className="flex-1 px-4 py-3">
               {messages.length === 0 && (
                 <div className="space-y-4 mb-3">
@@ -296,7 +304,6 @@ const SupportChatWidget = () => {
               </div>
             </ScrollArea>
 
-            {/* Input */}
             <form
               className="px-3 py-3 border-t border-border/50 flex items-center gap-2 shrink-0 bg-card"
               onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}

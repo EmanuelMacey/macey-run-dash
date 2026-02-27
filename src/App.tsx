@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/hooks/useCart";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import IOSInstallPrompt from "@/components/IOSInstallPrompt";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -19,6 +20,8 @@ import StorePage from "./pages/StorePage";
 import NotFound from "./pages/NotFound";
 import AboutUs from "./pages/AboutUs";
 import Support from "./pages/Support";
+import BusinessPlan from "./pages/BusinessPlan";
+import RiderAgreement from "./pages/RiderAgreement";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 
@@ -34,6 +37,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/support" element={<Support />} />
+              <Route path="/business-plan" element={<BusinessPlan />} />
+              <Route path="/rider-agreement" element={<RiderAgreement />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/store/:storeId" element={<StorePage />} />
               <Route path="/login" element={<Login />} />
@@ -67,6 +72,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />
+            <IOSInstallPrompt />
           </AuthProvider>
         </BrowserRouter>
       </CartProvider>

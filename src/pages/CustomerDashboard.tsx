@@ -28,8 +28,8 @@ const CustomerDashboard = () => {
       <div className="particle w-2 h-2 bg-accent/20 top-40 right-[15%]" style={{ animationDelay: '2s' }} />
       <div className="particle w-4 h-4 bg-primary/10 bottom-32 left-[20%]" style={{ animationDelay: '4s' }} />
 
-      <header className="bg-secondary dark:bg-secondary/95 backdrop-blur-xl border-b border-border/20 sticky top-0 z-50">
-        <div className="container mx-auto px-4 flex items-center justify-between h-16">
+      <header className="bg-secondary dark:bg-secondary/95 backdrop-blur-xl border-b border-border/20 sticky top-0 z-50 safe-top">
+        <div className="container mx-auto px-4 safe-x flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
             <span className="font-display font-bold text-lg text-secondary-foreground">MaceyRunners</span>

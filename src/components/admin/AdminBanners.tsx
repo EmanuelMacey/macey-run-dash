@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, Megaphone, Bell, ImagePlus, X } from "lucide-react";
+import { Plus, Trash2, Megaphone, Bell, ImagePlus, X, Eye, EyeOff, Calendar, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Banner {
   id: string;
@@ -117,65 +119,164 @@ const AdminBanners = () => {
     fetchBanners();
   };
 
+  const activeBanners = banners.filter(b => b.is_active).length;
+
   return (
     <div className="space-y-6">
-      <Card className="p-5 space-y-4">
-        <h3 className="font-display font-semibold flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-primary" /> Create Promotional Banner
-        </h3>
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
-          <Bell className="h-3 w-3" /> All customers will receive a push notification when you create a banner.
-        </p>
-        <Input placeholder="Banner title (e.g. KFC Featured Today!)" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <Textarea placeholder="Banner message..." value={message} onChange={(e) => setMessage(e.target.value)} className="resize-none" rows={2} />
-
-        {/* Image upload */}
-        <div>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-          {imagePreview ? (
-            <div className="relative rounded-xl overflow-hidden border border-border aspect-video max-w-xs">
-              <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-              <button
-                onClick={() => { setImageFile(null); setImagePreview(null); }}
-                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center"
-              >
-                <X className="h-3 w-3 text-white" />
-              </button>
-            </div>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-2">
-              <ImagePlus className="h-4 w-4" /> Add Featured Image
-            </Button>
-          )}
+      {/* Stats bar */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <span className="text-xs font-semibold text-primary">{activeBanners} Active</span>
         </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-full">
+          <span className="text-xs font-medium text-muted-foreground">{banners.length} Total</span>
+        </div>
+      </div>
 
-        <Button onClick={createBanner} disabled={loading || !title.trim() || !message.trim()} className="gap-2">
-          <Plus className="h-4 w-4" /> Create & Notify All
-        </Button>
+      {/* Create banner */}
+      <Card className="overflow-hidden border-primary/20">
+        <div className="gradient-primary px-5 py-3 flex items-center gap-2">
+          <Megaphone className="h-5 w-5 text-primary-foreground" />
+          <h3 className="font-display font-bold text-primary-foreground">Create Promotional Banner</h3>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-2 px-3 py-2 bg-accent/10 rounded-xl border border-accent/20">
+            <Bell className="h-3.5 w-3.5 text-accent" />
+            <p className="text-xs text-accent font-medium">All customers receive a push notification when you publish a banner.</p>
+          </div>
+
+          <div className="space-y-3">
+            <Input
+              placeholder="Banner title (e.g. 🍗 KFC Featured Today!)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="rounded-xl font-medium"
+            />
+            <Textarea
+              placeholder="Describe your promotion..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="resize-none rounded-xl"
+              rows={2}
+            />
+          </div>
+
+          {/* Image upload */}
+          <div>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+            <AnimatePresence mode="wait">
+              {imagePreview ? (
+                <motion.div
+                  key="preview"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="relative rounded-2xl overflow-hidden border-2 border-primary/20 aspect-video max-w-sm shadow-lg"
+                >
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <Badge className="absolute top-3 left-3 bg-primary/90 text-primary-foreground">Preview</Badge>
+                  <button
+                    onClick={() => { setImageFile(null); setImagePreview(null); }}
+                    className="absolute top-3 right-3 w-7 h-7 rounded-full bg-destructive/90 flex items-center justify-center hover:bg-destructive transition-colors shadow-lg"
+                  >
+                    <X className="h-3.5 w-3.5 text-destructive-foreground" />
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full max-w-sm border-2 border-dashed border-border hover:border-primary/50 rounded-2xl p-6 flex flex-col items-center gap-2 transition-colors group cursor-pointer"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                      <ImagePlus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">Add Featured Image</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <Button
+            onClick={createBanner}
+            disabled={loading || !title.trim() || !message.trim()}
+            className="gradient-primary text-primary-foreground rounded-full font-semibold px-6 gap-2 shadow-lg shadow-primary/20"
+          >
+            <Plus className="h-4 w-4" /> Create & Notify All Customers
+          </Button>
+        </div>
       </Card>
 
+      {/* Banner list */}
       <div className="space-y-3">
-        {banners.map((b) => (
-          <Card key={b.id} className="p-4 flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
-              {b.image_url && (
-                <img src={b.image_url} alt={b.title} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border" />
-              )}
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-card-foreground">{b.title}</h4>
-                <p className="text-sm text-muted-foreground mt-1">{b.message}</p>
-                <p className="text-xs text-muted-foreground mt-2">{new Date(b.created_at).toLocaleDateString()}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Switch checked={b.is_active} onCheckedChange={() => toggleBanner(b.id, b.is_active)} />
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteBanner(b.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+        <h3 className="font-display font-semibold text-foreground text-sm">All Banners</h3>
+        <AnimatePresence>
+          {banners.map((b, i) => (
+            <motion.div
+              key={b.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <Card className={`overflow-hidden transition-all ${b.is_active ? "border-primary/20 shadow-md shadow-primary/5" : "border-border/50 opacity-75"}`}>
+                <div className="flex">
+                  {/* Image thumbnail */}
+                  {b.image_url ? (
+                    <div className="w-28 shrink-0 relative">
+                      <img src={b.image_url} alt={b.title} className="w-full h-full object-cover min-h-[100px]" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/20" />
+                    </div>
+                  ) : (
+                    <div className="w-20 shrink-0 bg-muted flex items-center justify-center">
+                      <Megaphone className="h-6 w-6 text-muted-foreground/40" />
+                    </div>
+                  )}
+
+                  {/* Content */}
+                  <div className="flex-1 p-4 flex items-start justify-between gap-3 min-w-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-display font-bold text-sm text-foreground truncate">{b.title}</h4>
+                        <Badge
+                          variant={b.is_active ? "default" : "secondary"}
+                          className="text-[10px] shrink-0"
+                        >
+                          {b.is_active ? <><Eye className="h-2.5 w-2.5 mr-1" />Live</> : <><EyeOff className="h-2.5 w-2.5 mr-1" />Hidden</>}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{b.message}</p>
+                      <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(b.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Switch
+                        checked={b.is_active}
+                        onCheckedChange={() => toggleBanner(b.id, b.is_active)}
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => deleteBanner(b.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        {banners.length === 0 && (
+          <Card className="p-10 text-center border-dashed">
+            <Megaphone className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground font-medium">No banners yet</p>
+            <p className="text-xs text-muted-foreground mt-1">Create your first promotional banner above</p>
           </Card>
-        ))}
-        {banners.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No banners yet.</p>}
+        )}
       </div>
     </div>
   );

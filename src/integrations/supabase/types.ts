@@ -621,6 +621,8 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          linked_product_id: string | null
+          linked_store_id: string | null
           message: string
           title: string
         }
@@ -631,6 +633,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          linked_product_id?: string | null
+          linked_store_id?: string | null
           message: string
           title: string
         }
@@ -641,10 +645,27 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          linked_product_id?: string | null
+          linked_store_id?: string | null
           message?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "promotional_banners_linked_product_id_fkey"
+            columns: ["linked_product_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotional_banners_linked_store_id_fkey"
+            columns: ["linked_store_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       push_subscriptions: {
         Row: {

@@ -5,6 +5,8 @@ import { Receipt, Download, User, Phone, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
+const SERVICE_FEE = 100;
+
 interface OrderItem {
   id: string;
   product_name: string;
@@ -22,7 +24,8 @@ interface OrderReceiptProps {
 const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, children }: OrderReceiptProps) => {
   const [customerInfo, setCustomerInfo] = useState<{ full_name: string; phone: string | null; default_address: string | null } | null>(null);
   const itemsTotal = orderItems.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
-  const deliveryFee = orderItems.length > 0 ? order.price - itemsTotal : 0;
+  const hasItems = orderItems.length > 0;
+  const deliveryFee = hasItems ? order.price - itemsTotal - SERVICE_FEE : 0;
   const orderNum = (order as any).order_number ?? "—";
 
   useEffect(() => {
@@ -70,12 +73,13 @@ const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, 
         <div class="row"><span>To:</span><span>${displayAddress}</span></div>
         <div class="row"><span>Payment:</span><span style="text-transform:capitalize">${order.payment_method}</span></div>
         <div class="line"></div>
-        ${orderItems.length > 0 ? orderItems.map(i => 
+        ${hasItems ? orderItems.map(i => 
           `<div class="row"><span>${i.quantity}x ${i.product_name}</span><span>$${(i.unit_price * i.quantity).toLocaleString()}</span></div>`
         ).join("") + `
           <div class="line"></div>
           <div class="row"><span>Subtotal</span><span>$${itemsTotal.toLocaleString()}</span></div>
           <div class="row"><span>Delivery Fee</span><span>$${deliveryFee.toLocaleString()}</span></div>
+          <div class="row"><span>Service Fee</span><span>$${SERVICE_FEE.toLocaleString()}</span></div>
         ` : ""}
         <div class="line"></div>
         <div class="row bold" style="font-size:16px"><span>TOTAL</span><span>$${order.price.toLocaleString()} GYD</span></div>
@@ -152,7 +156,7 @@ const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, 
             </div>
           </div>
 
-          {orderItems.length > 0 && (
+          {hasItems && (
             <>
               <div className="border-t border-dashed border-border pt-2 space-y-1">
                 {orderItems.map((item) => (
@@ -170,6 +174,10 @@ const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, 
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Delivery Fee</span>
                   <span className="text-foreground">${deliveryFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Service Fee</span>
+                  <span className="text-foreground">${SERVICE_FEE.toLocaleString()}</span>
                 </div>
               </div>
             </>

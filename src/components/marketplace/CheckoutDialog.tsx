@@ -9,7 +9,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle, CalendarClock } from "lucide-react";
+import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle, CalendarClock, Info } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 
 interface CheckoutDialogProps {
@@ -33,7 +33,7 @@ const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 const geocode = async (address: string): Promise<{ lat: number; lon: number } | null> => {
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gy&limit=1`
     );
     const data = await res.json();
     if (data.length > 0) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
@@ -46,6 +46,7 @@ const BASE_FEE = 300;
 const PER_KM_RATE = 150;
 const MIN_FEE = 700;
 const MAX_FEE = 5000;
+const SERVICE_FEE = 100;
 
 const calculateDeliveryFee = (distanceKm: number) => {
   const fee = Math.round(BASE_FEE + distanceKm * PER_KM_RATE);
@@ -81,7 +82,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
       });
   }, [user]);
 
-  const grandTotal = total + (deliveryFee ?? 0);
+  const grandTotal = total + (deliveryFee ?? 0) + SERVICE_FEE;
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
 
   // Debounced distance calculation
@@ -95,7 +96,6 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
     const timer = setTimeout(async () => {
       setCalculatingFee(true);
       try {
-        // Geocode both store (by name + Guyana) and delivery address
         const [storeCoords, dropCoords] = await Promise.all([
           geocode(`${storeName}, Georgetown, Guyana`),
           geocode(`${deliveryAddress}, Guyana`),
@@ -106,7 +106,6 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           setDistanceKm(Math.round(dist * 10) / 10);
           setDeliveryFee(calculateDeliveryFee(dist));
         } else {
-          // Fallback if geocoding fails
           setDistanceKm(null);
           setDeliveryFee(MIN_FEE);
         }
@@ -168,7 +167,6 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
       if (itemsError) console.error("Failed to save order items:", itemsError);
 
-      // Save completed order for receipt display
       const savedItems = items.map((item) => ({
         id: item.id,
         product_name: item.name,
@@ -281,6 +279,12 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
                 <span className="font-medium text-foreground">
                   {deliveryFee !== null ? formatPrice(deliveryFee) : "—"}
                 </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-1">
+                  Service fee <Info className="h-3 w-3" />
+                </span>
+                <span className="font-medium text-foreground">{formatPrice(SERVICE_FEE)}</span>
               </div>
               <div className="flex justify-between text-base font-bold pt-1 border-t border-border">
                 <span>Total</span>

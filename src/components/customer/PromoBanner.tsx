@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Sparkles, Gift } from "lucide-react";
+import { X, Sparkles, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -9,9 +9,15 @@ interface Banner {
   title: string;
   message: string;
   image_url: string | null;
+  linked_product_id: string | null;
+  linked_store_id: string | null;
 }
 
-const PromoBanner = () => {
+interface PromoBannerProps {
+  onNavigateToStore?: (storeId: string) => void;
+}
+
+const PromoBanner = ({ onNavigateToStore }: PromoBannerProps) => {
   const [banner, setBanner] = useState<Banner | null>(null);
   const [dismissed, setDismissed] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
@@ -20,14 +26,13 @@ const PromoBanner = () => {
     const fetchBanner = async () => {
       const { data } = await supabase
         .from("promotional_banners")
-        .select("id, title, message, image_url")
+        .select("id, title, message, image_url, linked_product_id, linked_store_id")
         .eq("is_active", true)
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
       if (data) {
         setBanner(data as Banner);
-        // Use localStorage so X dismisses permanently
         const dismissedIds = JSON.parse(localStorage.getItem("dismissed-promos") || "[]");
         if (!dismissedIds.includes(data.id)) {
           setTimeout(() => setOpen(true), 800);
@@ -46,55 +51,77 @@ const PromoBanner = () => {
     setOpen(false);
   };
 
+  const handleShopNow = () => {
+    if (banner?.linked_store_id && onNavigateToStore) {
+      onNavigateToStore(banner.linked_store_id);
+    }
+    handleDismiss();
+  };
+
   if (!banner || dismissed.includes(banner.id)) return null;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleDismiss(); else setOpen(v); }}>
-      <DialogContent className="sm:max-w-sm p-0 overflow-hidden border-0 rounded-3xl shadow-2xl">
-        {/* Featured image */}
+      <DialogContent className="sm:max-w-sm p-0 overflow-hidden border-0 rounded-3xl shadow-2xl [&>button]:hidden">
+        {/* Featured image - full width, prominent display */}
         {banner.image_url && (
-          <div className="w-full aspect-video overflow-hidden">
+          <div className="relative w-full">
             <img
               src={banner.image_url}
               alt={banner.title}
-              className="w-full h-full object-cover"
+              className="w-full max-h-[50vh] object-contain bg-black/5"
             />
+            <button
+              onClick={handleDismiss}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition-colors z-10"
+            >
+              <X className="h-4 w-4 text-white" />
+            </button>
           </div>
         )}
 
-        {/* Top gradient banner */}
-        <div className="relative bg-gradient-to-br from-primary via-primary/90 to-accent p-5 pb-6 text-center overflow-hidden">
-          {/* Decorative circles */}
-          <div className="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/4 translate-y-1/4" />
-
-          <button
-            onClick={handleDismiss}
-            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-          >
-            <X className="h-3.5 w-3.5 text-white" />
-          </button>
-
-          <div className="relative z-10">
-            {!banner.image_url && (
-              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3">
-                <Gift className="h-7 w-7 text-white" />
-              </div>
+        {/* Content area */}
+        <div className="p-5 space-y-3">
+          {!banner.image_url && (
+            <button
+              onClick={handleDismiss}
+              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+            >
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          )}
+          
+          <h2 className="font-display font-bold text-xl text-foreground text-center leading-tight">{banner.title}</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed text-center">{banner.message}</p>
+          
+          <div className="flex gap-2">
+            {banner.linked_store_id && onNavigateToStore ? (
+              <>
+                <Button
+                  onClick={handleShopNow}
+                  className="flex-1 rounded-full h-11 font-bold text-sm gradient-primary text-primary-foreground"
+                >
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Order Now
+                </Button>
+                <Button
+                  onClick={handleDismiss}
+                  variant="outline"
+                  className="rounded-full h-11 text-sm px-4"
+                >
+                  Later
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={handleDismiss}
+                className="w-full rounded-full h-11 font-bold text-sm gradient-primary text-primary-foreground"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Got it!
+              </Button>
             )}
-            <h2 className="font-display font-bold text-xl text-white leading-tight">{banner.title}</h2>
           </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-5 text-center space-y-4">
-          <p className="text-sm text-muted-foreground leading-relaxed">{banner.message}</p>
-          <Button
-            onClick={handleDismiss}
-            className="w-full rounded-full h-11 font-bold text-sm gradient-primary text-primary-foreground"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Got it!
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

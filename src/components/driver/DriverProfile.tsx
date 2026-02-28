@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Camera, Save, Loader2, Car, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Camera, Save, Loader2, Car, User, ChevronDown, ChevronUp, IdCard } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const DriverProfile = () => {
   const { user } = useAuth();
@@ -15,6 +17,7 @@ const DriverProfile = () => {
   const [licensePlate, setLicensePlate] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -82,72 +85,136 @@ const DriverProfile = () => {
   };
 
   return (
-    <div className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-5 mb-6 space-y-5">
-      <h2 className="font-display text-lg font-bold text-foreground">My Driver Profile</h2>
-
-      {/* Avatar */}
-      <div className="flex items-center gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15 }}
+      className="bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden"
+    >
+      {/* Collapsed summary bar */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors"
+      >
         <div className="relative">
-          <Avatar className="h-20 w-20 border-2 border-primary/30">
+          <Avatar className="h-14 w-14 border-2 border-primary/30 shadow-lg shadow-primary/10">
             {avatarUrl ? (
               <AvatarImage src={avatarUrl} alt="Driver avatar" />
             ) : null}
-            <AvatarFallback className="bg-muted text-muted-foreground text-2xl">
-              <User className="h-8 w-8" />
+            <AvatarFallback className="bg-primary/10 text-primary text-lg font-bold">
+              <User className="h-6 w-6" />
             </AvatarFallback>
           </Avatar>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full gradient-primary flex items-center justify-center shadow-lg border-2 border-card hover:scale-110 transition-transform"
-          >
-            {uploading ? (
-              <Loader2 className="h-3.5 w-3.5 text-primary-foreground animate-spin" />
-            ) : (
-              <Camera className="h-3.5 w-3.5 text-primary-foreground" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-success border-2 border-card" />
+        </div>
+        <div className="flex-1 text-left">
+          <h2 className="font-display text-base font-bold text-foreground">My Profile</h2>
+          <div className="flex items-center gap-2 mt-0.5">
+            {vehicleType && (
+              <Badge variant="secondary" className="text-[10px] px-2 py-0 h-5 rounded-lg gap-1">
+                <Car className="h-2.5 w-2.5" />
+                {vehicleType}
+              </Badge>
             )}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarUpload}
-          />
+            {licensePlate && (
+              <Badge variant="outline" className="text-[10px] px-2 py-0 h-5 rounded-lg font-mono tracking-wider">
+                {licensePlate}
+              </Badge>
+            )}
+            {!vehicleType && !licensePlate && (
+              <span className="text-xs text-muted-foreground">Tap to set up your profile</span>
+            )}
+          </div>
         </div>
-        <div>
-          <p className="font-semibold text-foreground">Profile Photo</p>
-          <p className="text-xs text-muted-foreground">Customers will see this when you accept their order</p>
+        <div className="text-muted-foreground">
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>
-      </div>
+      </button>
 
-      {/* Vehicle info */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs"><Car className="h-3.5 w-3.5" /> Vehicle Type</Label>
-          <Input
-            value={vehicleType}
-            onChange={(e) => setVehicleType(e.target.value)}
-            placeholder="e.g. Motorcycle, Car"
-            className="rounded-xl text-sm"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="flex items-center gap-1.5 text-xs">🔢 License Plate</Label>
-          <Input
-            value={licensePlate}
-            onChange={(e) => setLicensePlate(e.target.value)}
-            placeholder="e.g. ABC 1234"
-            className="rounded-xl text-sm"
-          />
-        </div>
-      </div>
+      {/* Expandable edit section */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-5 pt-1 space-y-5 border-t border-border/30">
+              {/* Avatar upload */}
+              <div className="flex items-center gap-4 pt-3">
+                <div className="relative">
+                  <Avatar className="h-20 w-20 border-2 border-primary/30 shadow-xl">
+                    {avatarUrl ? (
+                      <AvatarImage src={avatarUrl} alt="Driver avatar" />
+                    ) : null}
+                    <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                      <User className="h-8 w-8" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full gradient-primary flex items-center justify-center shadow-lg border-2 border-card hover:scale-110 transition-transform"
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-3.5 w-3.5 text-primary-foreground animate-spin" />
+                    ) : (
+                      <Camera className="h-3.5 w-3.5 text-primary-foreground" />
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                  />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-sm">Profile Photo</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Customers will see this when you accept their order
+                  </p>
+                </div>
+              </div>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full rounded-full gradient-primary text-primary-foreground font-semibold">
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-        Save Vehicle Info
-      </Button>
-    </div>
+              {/* Vehicle info */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Car className="h-3.5 w-3.5" /> Vehicle Type
+                  </Label>
+                  <Input
+                    value={vehicleType}
+                    onChange={(e) => setVehicleType(e.target.value)}
+                    placeholder="e.g. Motorcycle"
+                    className="rounded-xl text-sm h-10 bg-muted/50 border-border/50 focus:bg-card"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <IdCard className="h-3.5 w-3.5" /> License Plate
+                  </Label>
+                  <Input
+                    value={licensePlate}
+                    onChange={(e) => setLicensePlate(e.target.value)}
+                    placeholder="e.g. ABC 1234"
+                    className="rounded-xl text-sm h-10 bg-muted/50 border-border/50 focus:bg-card font-mono tracking-wider"
+                  />
+                </div>
+              </div>
+
+              <Button onClick={handleSave} disabled={saving} className="w-full rounded-full gradient-primary text-primary-foreground font-semibold h-11">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                Save Changes
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

@@ -89,6 +89,7 @@ export type Database = {
       }
       drivers: {
         Row: {
+          avatar_url: string | null
           created_at: string
           current_lat: number | null
           current_lng: number | null
@@ -101,6 +102,7 @@ export type Database = {
           vehicle_type: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           current_lat?: number | null
           current_lng?: number | null
@@ -113,6 +115,7 @@ export type Database = {
           vehicle_type?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           current_lat?: number | null
           current_lng?: number | null

@@ -8,6 +8,7 @@ import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import DriverOrderFeed from "@/components/driver/DriverOrderFeed";
 import DriverEarnings from "@/components/driver/DriverEarnings";
+import DriverProfile from "@/components/driver/DriverProfile";
 import NotificationBell from "@/components/customer/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -121,6 +122,7 @@ const DriverDashboard = () => {
           </div>
         )}
 
+        <DriverProfile />
         <DriverEarnings />
         <DriverOrderFeed isOnline={isOnline} />
       </main>

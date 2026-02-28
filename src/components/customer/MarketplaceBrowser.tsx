@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,12 @@ const storeImageMap: Record<string, string> = {
   "White Castle Fish Shop": whiteCastleImg,
 };
 
-const MarketplaceBrowser = () => {
+interface MarketplaceBrowserProps {
+  initialStoreId?: string | null;
+  onStoreOpened?: () => void;
+}
+
+const MarketplaceBrowser = ({ initialStoreId, onStoreOpened }: MarketplaceBrowserProps) => {
   const [search, setSearch] = useState("");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const { addItem, items, updateQuantity, itemCount, total } = useCart();
@@ -46,6 +51,17 @@ const MarketplaceBrowser = () => {
       return data;
     },
   });
+
+  // Handle initial store navigation from promo banner
+  useEffect(() => {
+    if (initialStoreId && stores.length > 0) {
+      const storeExists = stores.find(s => s.id === initialStoreId);
+      if (storeExists) {
+        setSelectedStoreId(initialStoreId);
+        onStoreOpened?.();
+      }
+    }
+  }, [initialStoreId, stores, onStoreOpened]);
 
   const selectedStore = stores.find((s) => s.id === selectedStoreId);
 

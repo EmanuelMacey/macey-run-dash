@@ -1,68 +1,17 @@
 /**
- * Notification utilities: Pleasant chime sound, vibration, and browser notifications.
- * Uses HTMLAudioElement with a pre-generated WAV for reliable playback.
+ * Notification utilities: Uber-style loud notification sound, vibration, and browser notifications.
+ * Uses AudioContext for reliable, loud playback.
  */
 
 let audioUnlocked = false;
+let audioCtx: AudioContext | null = null;
 
-// Generate a pleasant 3-note ascending chime (C6 → E6 → G6) as a WAV data URI
-const NOTIFICATION_CHIME_URI = (() => {
-  const sampleRate = 44100;
-  const totalDuration = 0.9;
-  const numSamples = Math.floor(sampleRate * totalDuration);
-  const buffer = new ArrayBuffer(44 + numSamples * 2);
-  const view = new DataView(buffer);
-
-  const writeStr = (offset: number, str: string) => {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-  };
-  writeStr(0, "RIFF");
-  view.setUint32(4, 36 + numSamples * 2, true);
-  writeStr(8, "WAVE");
-  writeStr(12, "fmt ");
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, 1, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true);
-  view.setUint16(32, 2, true);
-  view.setUint16(34, 16, true);
-  writeStr(36, "data");
-  view.setUint32(40, numSamples * 2, true);
-
-  // Pleasant ascending triad: C6 → E6 → G6 with soft bell-like harmonics
-  const tones = [
-    { freq: 1046.50, start: 0,    dur: 0.45 }, // C6
-    { freq: 1318.51, start: 0.15, dur: 0.45 }, // E6
-    { freq: 1567.98, start: 0.30, dur: 0.55 }, // G6
-  ];
-
-  for (let i = 0; i < numSamples; i++) {
-    const t = i / sampleRate;
-    let sample = 0;
-    for (const tone of tones) {
-      const tLocal = t - tone.start;
-      if (tLocal >= 0 && tLocal < tone.dur) {
-        // Soft attack with bell-like exponential decay
-        const attack = Math.min(1, tLocal / 0.005);
-        const decay = Math.exp(-tLocal * 5.5);
-        const env = attack * decay * 0.35;
-        // Fundamental + soft 2nd and 3rd harmonics for richness
-        sample +=
-          Math.sin(2 * Math.PI * tone.freq * tLocal) * 0.75 * env +
-          Math.sin(2 * Math.PI * tone.freq * 2 * tLocal) * 0.18 * env +
-          Math.sin(2 * Math.PI * tone.freq * 3 * tLocal) * 0.07 * env;
-      }
-    }
-    sample = Math.max(-1, Math.min(1, sample));
-    view.setInt16(44 + i * 2, sample * 32767, true);
+const getAudioContext = (): AudioContext => {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
-
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return "data:audio/wav;base64," + btoa(binary);
-})();
+  return audioCtx;
+};
 
 /**
  * Unlock audio on user gesture.
@@ -70,48 +19,90 @@ const NOTIFICATION_CHIME_URI = (() => {
 export const unlockAudio = () => {
   if (audioUnlocked) return;
   try {
-    const a = new Audio(NOTIFICATION_CHIME_URI);
-    a.volume = 0.01;
-    const p = a.play();
-    if (p) {
-      p.then(() => {
-        setTimeout(() => { a.pause(); a.currentTime = 0; }, 50);
-        audioUnlocked = true;
-        console.log("[Notifications] Audio unlocked via user gesture");
-      }).catch(() => {
-        console.log("[Notifications] Audio unlock attempt failed");
-      });
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") {
+      ctx.resume();
     }
+    // Play a silent buffer to unlock
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+    audioUnlocked = true;
+    console.log("[Notifications] Audio unlocked via user gesture");
   } catch (e) {
     console.log("[Notifications] Audio unlock error:", e);
   }
 };
 
 /**
- * Play the notification chime at full volume.
+ * Play a loud Uber-style notification sound using AudioContext.
+ * Two-tone ascending "ding-dong" that's unmistakable.
  */
 export const playNotificationSound = () => {
   try {
-    const audio = new Audio(NOTIFICATION_CHIME_URI);
-    audio.volume = 1.0;
-    const p = audio.play();
-    if (p) {
-      p.then(() => {
-        console.log("[Notifications] Chime played successfully");
-      }).catch((e) => {
-        console.warn("[Notifications] Sound play failed:", e.message);
-      });
-    }
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+
+    const now = ctx.currentTime;
+    
+    // Master gain - LOUD
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.9, now);
+    masterGain.connect(ctx.destination);
+
+    // Tone 1: Strong "ding" - E5
+    const playTone = (freq: number, startTime: number, duration: number, volume: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + startTime);
+      
+      // Sharp attack, sustained, then decay
+      gain.gain.setValueAtTime(0, now + startTime);
+      gain.gain.linearRampToValueAtTime(volume, now + startTime + 0.01);
+      gain.gain.setValueAtTime(volume, now + startTime + duration * 0.6);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + startTime + duration);
+      
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(now + startTime);
+      osc.stop(now + startTime + duration);
+      
+      // Add harmonic for richness
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(freq * 2, now + startTime);
+      gain2.gain.setValueAtTime(0, now + startTime);
+      gain2.gain.linearRampToValueAtTime(volume * 0.3, now + startTime + 0.01);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + startTime + duration * 0.7);
+      osc2.connect(gain2);
+      gain2.connect(masterGain);
+      osc2.start(now + startTime);
+      osc2.stop(now + startTime + duration);
+    };
+
+    // Uber-style two-tone ascending pattern, played twice for urgency
+    // First pair
+    playTone(659.25, 0, 0.25, 0.8);      // E5
+    playTone(880.00, 0.2, 0.35, 0.9);     // A5
+    // Second pair (repeat for emphasis) 
+    playTone(659.25, 0.7, 0.25, 0.8);     // E5
+    playTone(880.00, 0.9, 0.35, 0.9);     // A5
+
+    console.log("[Notifications] Uber-style sound played");
   } catch (e) {
     console.warn("[Notifications] Could not play sound:", e);
   }
 };
 
-// Vibrate the device if supported
+// Vibrate the device if supported - strong pattern like Uber
 export const vibrateDevice = () => {
   try {
     if ("vibrate" in navigator) {
-      navigator.vibrate([200, 100, 200, 100, 200]);
+      navigator.vibrate([300, 150, 300, 150, 400]);
     }
   } catch (e) {
     // silent
@@ -142,7 +133,7 @@ export const showBrowserNotification = (title: string, body: string) => {
       requireInteraction: true,
       silent: false,
     });
-    setTimeout(() => notification.close(), 10000);
+    setTimeout(() => notification.close(), 15000);
     console.log("[Notifications] OS notification shown:", title);
   } catch (e) {
     console.warn("[Notifications] Browser notification failed:", e);

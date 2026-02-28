@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -33,8 +33,34 @@ const orderSchema = z.object({
 
 type OrderFormValues = z.infer<typeof orderSchema>;
 
-const BASE_PRICES = { delivery: 700, errand: 1000 };
-const PRICE_PER_KM = 150;
+// Pricing constants
+const BASE_FEE = 300;
+const PER_KM_RATE = 150;
+const MIN_PRICES = { delivery: 700, errand: 1000 };
+const MAX_FEE = 5000;
+const SERVICE_FEE = 100;
+
+// Haversine distance in km
+const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+const geocode = async (address: string): Promise<{ lat: number; lon: number } | null> => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gy&limit=1`
+    );
+    const data = await res.json();
+    if (data.length > 0) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+  } catch {}
+  return null;
+};
 
 interface NewOrderDialogProps {
   onOrderCreated: () => void;
@@ -48,6 +74,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const [discount, setDiscount] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+  const [calculatingFee, setCalculatingFee] = useState(false);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
@@ -64,8 +93,50 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   });
 
   const orderType = form.watch("order_type");
-  const basePrice = BASE_PRICES[orderType];
-  const finalPrice = Math.max(0, basePrice - discount);
+  const pickupAddress = form.watch("pickup_address");
+  const dropoffAddress = form.watch("dropoff_address");
+  const minPrice = MIN_PRICES[orderType];
+
+  // Calculate price based on distance
+  useEffect(() => {
+    if (!pickupAddress?.trim() || !dropoffAddress?.trim()) {
+      setCalculatedPrice(null);
+      setDistanceKm(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setCalculatingFee(true);
+      try {
+        const [pickupCoords, dropCoords] = await Promise.all([
+          geocode(`${pickupAddress}, Guyana`),
+          geocode(`${dropoffAddress}, Guyana`),
+        ]);
+
+        if (pickupCoords && dropCoords) {
+          const dist = haversineKm(pickupCoords.lat, pickupCoords.lon, dropCoords.lat, dropCoords.lon);
+          setDistanceKm(Math.round(dist * 10) / 10);
+          const fee = Math.round(BASE_FEE + dist * PER_KM_RATE);
+          const clampedFee = Math.max(minPrice, Math.min(MAX_FEE, fee));
+          setCalculatedPrice(clampedFee);
+        } else {
+          setDistanceKm(null);
+          setCalculatedPrice(minPrice);
+        }
+      } catch {
+        setCalculatedPrice(minPrice);
+        setDistanceKm(null);
+      } finally {
+        setCalculatingFee(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [pickupAddress, dropoffAddress, minPrice]);
+
+  const deliveryPrice = calculatedPrice ?? minPrice;
+  const totalBeforeDiscount = deliveryPrice + SERVICE_FEE;
+  const finalPrice = Math.max(0, totalBeforeDiscount - discount);
 
   const applyPromo = async () => {
     const code = form.getValues("promo_code")?.trim();
@@ -96,7 +167,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
 
     const discountAmt = data.discount_amount > 0
       ? data.discount_amount
-      : Math.round(basePrice * (data.discount_percent / 100));
+      : Math.round(deliveryPrice * (data.discount_percent / 100));
 
     setDiscount(discountAmt);
     setPromoApplied(true);
@@ -123,7 +194,6 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
     setSubmitting(true);
 
     try {
-      // Build scheduled_for timestamp
       let scheduledFor: string | null = null;
       if (values.scheduled_date && values.scheduled_time) {
         scheduledFor = new Date(`${values.scheduled_date}T${values.scheduled_time}`).toISOString();
@@ -144,7 +214,6 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
 
       if (error) throw error;
 
-      // Upload attachment if errand type
       if (attachedFile && orderData) {
         const imageUrl = await uploadAttachment(orderData.id);
         if (imageUrl) {
@@ -157,6 +226,8 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
       setDiscount(0);
       setPromoApplied(false);
       setAttachedFile(null);
+      setCalculatedPrice(null);
+      setDistanceKm(null);
       setOpen(false);
       onOrderCreated();
     } catch (err: any) {
@@ -227,7 +298,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                 <FormItem>
                   <FormLabel>Pickup Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. 123 Main St, Georgetown" {...field} />
+                    <Input placeholder="e.g. Agricola, East Bank Demerara" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -241,12 +312,24 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                 <FormItem>
                   <FormLabel>Dropoff Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. 456 Camp St, Georgetown" {...field} />
+                    <Input placeholder="e.g. Giftland Mall, Turkeyen" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* Distance & fee info */}
+            {calculatingFee && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Calculating distance...
+              </p>
+            )}
+            {distanceKm !== null && !calculatingFee && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Navigation className="h-3 w-3" /> ~{distanceKm} km estimated distance
+              </p>
+            )}
 
             {/* Description */}
             <FormField
@@ -375,8 +458,17 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
             {/* Price Summary */}
             <div className="bg-muted/50 rounded-xl p-4 space-y-1">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Base price</span>
-                <span>${basePrice.toLocaleString()} GYD</span>
+                <span className="text-muted-foreground">
+                  {orderType === "delivery" ? "Delivery" : "Errand"} fee
+                  {distanceKm !== null ? ` (${distanceKm} km)` : ""}
+                </span>
+                <span>${deliveryPrice.toLocaleString()} GYD</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-1">
+                  Service fee <Info className="h-3 w-3" />
+                </span>
+                <span>${SERVICE_FEE.toLocaleString()} GYD</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
@@ -392,7 +484,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
 
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Place Order
+              Place Order — ${finalPrice.toLocaleString()} GYD
             </Button>
           </form>
         </Form>

@@ -616,6 +616,7 @@ export type Database = {
           created_by: string
           expires_at: string | null
           id: string
+          image_url: string | null
           is_active: boolean
           message: string
           title: string
@@ -625,6 +626,7 @@ export type Database = {
           created_by: string
           expires_at?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           message: string
           title: string
@@ -634,6 +636,7 @@ export type Database = {
           created_by?: string
           expires_at?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           message?: string
           title?: string

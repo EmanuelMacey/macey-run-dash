@@ -40,7 +40,7 @@ const cleanMarkdown = (text: string): string => {
 const SupportChatWidget = () => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem("support-chat-dismissed") === "true");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +62,7 @@ const SupportChatWidget = () => {
   const handleClose = () => {
     setOpen(false);
     setDismissed(true);
+    sessionStorage.setItem("support-chat-dismissed", "true");
   };
 
   const sendMessage = useCallback(async (text: string) => {
@@ -153,21 +154,7 @@ const SupportChatWidget = () => {
   if (!isAllowed) return null;
 
   if (dismissed && !open) {
-    return (
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        className="fixed bottom-6 right-6 z-50"
-      >
-        <Button
-          onClick={() => { setDismissed(false); setOpen(true); }}
-          className="h-12 w-12 rounded-full gradient-primary shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all hover:scale-105"
-          size="icon"
-        >
-          <MessageCircle className="h-5 w-5 text-primary-foreground" />
-        </Button>
-      </motion.div>
-    );
+    return null;
   }
 
   return (

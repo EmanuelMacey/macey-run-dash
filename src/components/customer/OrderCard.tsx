@@ -1,13 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer, ShoppingBag, ChevronDown, ChevronUp, Navigation, Phone, User } from "lucide-react";
+import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer, ShoppingBag, ChevronDown, ChevronUp, Navigation, Phone, User, Car } from "lucide-react";
 import DriverMap from "./DriverMap";
 import OrderChat from "@/components/chat/OrderChat";
 import RatingDialog from "./RatingDialog";
 import OrderReceipt from "./OrderReceipt";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import {
   AlertDialog,
@@ -45,6 +46,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
   const [cancelling, setCancelling] = useState(false);
   const [eta, setEta] = useState<number | null>(null);
   const [orderItems, setOrderItems] = useState<{ id: string; product_name: string; quantity: number; unit_price: number }[]>([]);
+  const [driverInfo, setDriverInfo] = useState<{ avatar_url: string | null; vehicle_type: string | null; license_plate: string | null; full_name: string } | null>(null);
   const [showTracking, setShowTracking] = useState(false);
   const status = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
   const canCancel = order.status === "pending";
@@ -63,6 +65,25 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
     };
     fetchItems();
   }, [order.id]);
+
+  useEffect(() => {
+    if (!order.driver_id) return;
+    const fetchDriver = async () => {
+      const [{ data: driver }, { data: profile }] = await Promise.all([
+        supabase.from("drivers").select("avatar_url, vehicle_type, license_plate").eq("user_id", order.driver_id!).single(),
+        supabase.from("profiles").select("full_name").eq("user_id", order.driver_id!).single(),
+      ]);
+      if (driver || profile) {
+        setDriverInfo({
+          avatar_url: driver?.avatar_url || null,
+          vehicle_type: driver?.vehicle_type || null,
+          license_plate: driver?.license_plate || null,
+          full_name: profile?.full_name || "Your Driver",
+        });
+      }
+    };
+    fetchDriver();
+  }, [order.driver_id]);
 
   const handleCancel = async () => {
     setCancelling(true);
@@ -171,7 +192,36 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
           </div>
         </div>
 
-        {/* Order items */}
+        {/* Driver info - Uber style */}
+        {driverInfo && order.driver_id && isActive && (
+          <div className="flex items-center gap-3 px-3 py-3 bg-muted/50 rounded-xl border border-border/30">
+            <Avatar className="h-12 w-12 border-2 border-primary/30">
+              {driverInfo.avatar_url ? (
+                <AvatarImage src={driverInfo.avatar_url} alt={driverInfo.full_name} />
+              ) : null}
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                {driverInfo.full_name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-bold text-sm text-foreground">{driverInfo.full_name}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                {driverInfo.vehicle_type && (
+                  <span className="flex items-center gap-1">
+                    <Car className="h-3 w-3" /> {driverInfo.vehicle_type}
+                  </span>
+                )}
+                {driverInfo.license_plate && (
+                  <span className="bg-foreground/10 text-foreground font-mono font-bold text-[11px] px-2 py-0.5 rounded">
+                    {driverInfo.license_plate}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+
         {orderItems.length > 0 && (
           <div className="bg-muted/30 rounded-xl p-3 space-y-1.5">
             <div className="flex items-center gap-1.5 mb-1">

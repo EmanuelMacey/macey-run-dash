@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, User } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Driver = Tables<"drivers"> & { profile?: { full_name: string; phone: string | null } };
@@ -50,9 +51,14 @@ const AdminDrivers = () => {
           <Card key={driver.id} className="p-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                  <User className="h-5 w-5 text-muted-foreground" />
-                </div>
+                <Avatar className="h-10 w-10">
+                  {driver.avatar_url ? (
+                    <AvatarImage src={driver.avatar_url} alt={driver.profile?.full_name || "Driver"} />
+                  ) : null}
+                  <AvatarFallback className="bg-muted">
+                    <User className="h-5 w-5 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="font-medium text-foreground">{driver.profile?.full_name || "Unknown"}</p>
                   <p className="text-xs text-muted-foreground">

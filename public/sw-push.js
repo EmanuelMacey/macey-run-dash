@@ -3,6 +3,16 @@
 
 /// <reference lib="webworker" />
 
+// Play notification sound using service worker audio
+const playNotificationChime = () => {
+  // Service workers can't use AudioContext, but we can post to clients
+  self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+    for (const client of clients) {
+      client.postMessage({ type: "PLAY_NOTIFICATION_SOUND" });
+    }
+  });
+};
+
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
@@ -15,17 +25,22 @@ self.addEventListener("push", (event) => {
       badge: "/pwa-icon-192.png",
       tag: data.data?.order_id || "general-" + Date.now(),
       data: data.data || {},
-      vibrate: [300, 150, 300, 150, 300],
+      vibrate: [300, 150, 300, 150, 400, 200, 300],
       requireInteraction: true,
       silent: false,
       renotify: true,
       actions: [
-        { action: "open", title: "View Order" },
+        { action: "open", title: "View Now" },
         { action: "dismiss", title: "Dismiss" },
       ],
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(
+      self.registration.showNotification(title, options).then(() => {
+        // Trigger sound in any open client windows
+        playNotificationChime();
+      })
+    );
   } catch (e) {
     console.error("Push event error:", e);
   }

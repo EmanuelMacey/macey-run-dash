@@ -35,12 +35,14 @@ const storeImageMap: Record<string, string> = {
 
 interface MarketplaceBrowserProps {
   initialStoreId?: string | null;
+  initialProductId?: string | null;
   onStoreOpened?: () => void;
 }
 
-const MarketplaceBrowser = ({ initialStoreId, onStoreOpened }: MarketplaceBrowserProps) => {
+const MarketplaceBrowser = ({ initialStoreId, initialProductId, onStoreOpened }: MarketplaceBrowserProps) => {
   const [search, setSearch] = useState("");
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [highlightProductId, setHighlightProductId] = useState<string | null>(null);
   const { addItem, items, updateQuantity, itemCount, total } = useCart();
 
   const { data: stores = [], isLoading } = useQuery({
@@ -52,16 +54,37 @@ const MarketplaceBrowser = ({ initialStoreId, onStoreOpened }: MarketplaceBrowse
     },
   });
 
-  // Handle initial store navigation from promo banner
+  // Handle initial store/product navigation from promo banner
   useEffect(() => {
     if (initialStoreId && stores.length > 0) {
       const storeExists = stores.find(s => s.id === initialStoreId);
       if (storeExists) {
         setSelectedStoreId(initialStoreId);
+        if (initialProductId) {
+          setHighlightProductId(initialProductId);
+        }
         onStoreOpened?.();
       }
     }
-  }, [initialStoreId, stores, onStoreOpened]);
+  }, [initialStoreId, initialProductId, stores, onStoreOpened]);
+
+  // Scroll to highlighted product
+  useEffect(() => {
+    if (highlightProductId) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`product-${highlightProductId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          el.classList.add("ring-2", "ring-primary", "ring-offset-2");
+          setTimeout(() => {
+            el.classList.remove("ring-2", "ring-primary", "ring-offset-2");
+            setHighlightProductId(null);
+          }, 3000);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightProductId]);
 
   const selectedStore = stores.find((s) => s.id === selectedStoreId);
 
@@ -90,7 +113,7 @@ const MarketplaceBrowser = ({ initialStoreId, onStoreOpened }: MarketplaceBrowse
     return (
       <div className="pb-20">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => setSelectedStoreId(null)} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm font-medium">
+          <button onClick={() => { setSelectedStoreId(null); setHighlightProductId(null); }} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm font-medium">
             <ArrowLeft className="h-4 w-4" /> All Stores
           </button>
           <CartSheet>
@@ -144,7 +167,7 @@ const MarketplaceBrowser = ({ initialStoreId, onStoreOpened }: MarketplaceBrowse
               {products.filter((p) => (p.category || "Other") === cat).map((product) => {
                 const qty = getCartQuantity(product.id);
                 return (
-                  <div key={product.id} className="flex items-center justify-between bg-card border border-border rounded-2xl p-3 hover:border-primary/20 hover:shadow-sm transition-all">
+                  <div key={product.id} id={`product-${product.id}`} className="flex items-center justify-between bg-card border border-border rounded-2xl p-3 hover:border-primary/20 hover:shadow-sm transition-all">
                     <div className="flex-1 min-w-0 mr-3">
                       <h4 className="font-medium text-card-foreground text-sm truncate">{product.name}</h4>
                       <p className="text-primary font-display font-bold text-sm mt-0.5">

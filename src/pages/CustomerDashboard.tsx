@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed, Truck, Info } from "lucide-react";
+import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
@@ -21,9 +21,11 @@ const CustomerDashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState("order");
   const [targetStoreId, setTargetStoreId] = useState<string | null>(null);
+  const [targetProductId, setTargetProductId] = useState<string | null>(null);
 
-  const handlePromoNavigate = (storeId: string) => {
+  const handlePromoNavigate = (storeId: string, productId?: string) => {
     setTargetStoreId(storeId);
+    setTargetProductId(productId || null);
     setActiveTab("marketplace");
   };
 
@@ -71,33 +73,6 @@ const CustomerDashboard = () => {
             <PromoBanner onNavigateToStore={handlePromoNavigate} />
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">Welcome back! 👋</h1>
             <p className="text-muted-foreground mb-6">What do you need delivered today?</p>
-
-            {/* Pricing Info Card */}
-            <div className="bg-card/90 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-border/50">
-              <div className="flex items-center gap-2 mb-3">
-                <Info className="h-4 w-4 text-primary" />
-                <h3 className="font-display text-sm font-bold text-foreground">Current Pricing</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-muted/50 rounded-xl p-3">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Truck className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-xs font-semibold text-foreground">Delivery</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">From <span className="font-bold text-primary">$700</span> GYD</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">$300 base + $150/km</p>
-                </div>
-                <div className="bg-muted/50 rounded-xl p-3">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <MapPin className="h-3.5 w-3.5 text-accent" />
-                    <span className="text-xs font-semibold text-foreground">Errand</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">From <span className="font-bold text-accent">$1,000</span> GYD</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">$300 base + $150/km</p>
-                </div>
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-2 text-center">+ $100 GYD service fee on all orders • Max delivery cap: $5,000 GYD</p>
-            </div>
 
             {/* Food Section Card */}
             <motion.button
@@ -151,7 +126,7 @@ const CustomerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="marketplace" className="animate-fade-in">
-            <MarketplaceBrowser initialStoreId={targetStoreId} onStoreOpened={() => setTargetStoreId(null)} />
+            <MarketplaceBrowser initialStoreId={targetStoreId} initialProductId={targetProductId} onStoreOpened={() => { setTargetStoreId(null); setTargetProductId(null); }} />
           </TabsContent>
 
           <TabsContent value="invoices" className="animate-fade-in">

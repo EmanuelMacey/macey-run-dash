@@ -60,6 +60,17 @@ const NotificationBell = () => {
     if (user && isPushSupported()) {
       subscribeToPush(user.id);
     }
+
+    // Listen for service worker messages to play sound when push arrives in background
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data?.type === "PLAY_NOTIFICATION_SOUND") {
+        triggerNotificationAlert("", "");
+      }
+    };
+    navigator.serviceWorker?.addEventListener("message", handleSWMessage);
+    return () => {
+      navigator.serviceWorker?.removeEventListener("message", handleSWMessage);
+    };
   }, [user]);
 
   useEffect(() => {

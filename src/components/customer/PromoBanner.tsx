@@ -14,7 +14,7 @@ interface Banner {
 }
 
 interface PromoBannerProps {
-  onNavigateToStore?: (storeId: string) => void;
+  onNavigateToStore?: (storeId: string, productId?: string) => void;
 }
 
 const PromoBanner = ({ onNavigateToStore }: PromoBannerProps) => {
@@ -51,8 +51,23 @@ const PromoBanner = ({ onNavigateToStore }: PromoBannerProps) => {
     setOpen(false);
   };
 
-  const handleShopNow = () => {
-    if (banner?.linked_store_id && onNavigateToStore) {
+  const handleShopNow = async () => {
+    if (!banner || !onNavigateToStore) {
+      handleDismiss();
+      return;
+    }
+
+    // If linked to a product, find the store for that product and navigate
+    if (banner.linked_product_id) {
+      const { data: product } = await supabase
+        .from("marketplace_products")
+        .select("store_id")
+        .eq("id", banner.linked_product_id)
+        .single();
+      if (product?.store_id) {
+        onNavigateToStore(product.store_id, banner.linked_product_id);
+      }
+    } else if (banner.linked_store_id) {
       onNavigateToStore(banner.linked_store_id);
     }
     handleDismiss();
@@ -60,16 +75,18 @@ const PromoBanner = ({ onNavigateToStore }: PromoBannerProps) => {
 
   if (!banner || dismissed.includes(banner.id)) return null;
 
+  const hasLink = banner.linked_store_id || banner.linked_product_id;
+
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleDismiss(); else setOpen(v); }}>
       <DialogContent className="sm:max-w-sm p-0 overflow-hidden border-0 rounded-3xl shadow-2xl [&>button]:hidden">
-        {/* Featured image - full width, prominent display */}
+        {/* Featured image */}
         {banner.image_url && (
-          <div className="relative w-full">
+          <div className="relative w-full bg-muted">
             <img
               src={banner.image_url}
               alt={banner.title}
-              className="w-full max-h-[50vh] object-contain bg-black/5"
+              className="w-full max-h-[55vh] object-contain"
             />
             <button
               onClick={handleDismiss}
@@ -95,7 +112,7 @@ const PromoBanner = ({ onNavigateToStore }: PromoBannerProps) => {
           <p className="text-sm text-muted-foreground leading-relaxed text-center">{banner.message}</p>
           
           <div className="flex gap-2">
-            {banner.linked_store_id && onNavigateToStore ? (
+            {hasLink && onNavigateToStore ? (
               <>
                 <Button
                   onClick={handleShopNow}

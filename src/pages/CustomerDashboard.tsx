@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,11 +18,26 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
 
 const CustomerDashboard = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState("order");
   const [targetStoreId, setTargetStoreId] = useState<string | null>(null);
   const [targetProductId, setTargetProductId] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.full_name) {
+          setCustomerName(data.full_name.split(" ")[0]);
+        }
+      });
+  }, [user]);
 
   const handlePromoNavigate = (storeId: string, productId?: string) => {
     setTargetStoreId(storeId);
@@ -71,7 +87,9 @@ const CustomerDashboard = () => {
 
           <TabsContent value="order" className="animate-fade-in">
             <PromoBanner onNavigateToStore={handlePromoNavigate} />
-            <h1 className="font-display text-3xl font-bold text-foreground mb-2">Welcome back! 👋</h1>
+            <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+              Welcome back{customerName ? `, ${customerName}` : ""}! 👋
+            </h1>
             <p className="text-muted-foreground mb-6">What do you need delivered today?</p>
 
             {/* Food Section Card */}

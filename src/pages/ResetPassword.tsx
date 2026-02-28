@@ -52,7 +52,7 @@ const ResetPassword = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       setSuccess(true);
-      setTimeout(() => navigate("/login"), 3000);
+      setTimeout(() => navigate("/dashboard"), 2000);
     }
     setSubmitting(false);
   };
@@ -119,7 +119,7 @@ const ResetPassword = () => {
               <CheckCircle2 className="h-8 w-8 text-success-foreground" />
             </div>
             <h2 className="font-display text-xl font-bold text-foreground mb-2">Password Updated!</h2>
-            <p className="text-muted-foreground mb-6">Redirecting you to login...</p>
+            <p className="text-muted-foreground mb-6">Redirecting you to your dashboard...</p>
           </motion.div>
         ) : (
           <form onSubmit={handleSubmit} className="bg-card/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-border/50 space-y-5">

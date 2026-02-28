@@ -83,8 +83,8 @@ const DriverDashboard = () => {
       <div className="particle w-3 h-3 bg-success/20 top-24 left-[8%]" style={{ animationDelay: '0s' }} />
       <div className="particle w-2 h-2 bg-accent/15 top-48 right-[12%]" style={{ animationDelay: '3s' }} />
 
-      <header className="bg-navy dark:bg-secondary/95 backdrop-blur-xl border-b border-navy/20 dark:border-white/10 sticky top-0 z-50">
-        <div className="container mx-auto px-4 flex items-center justify-between h-16">
+      <header className="bg-navy dark:bg-secondary/95 backdrop-blur-xl border-b border-navy/20 dark:border-white/10 sticky top-0 z-50 safe-top">
+        <div className="container mx-auto px-4 safe-x flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="h-8 w-auto" />
             <span className="font-display font-bold text-lg text-navy-foreground dark:text-white">Driver</span>

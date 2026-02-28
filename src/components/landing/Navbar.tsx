@@ -12,8 +12,8 @@ const Navbar = () => {
   const { t } = useTranslation();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-navy/70 dark:bg-secondary/70 backdrop-blur-2xl border-b border-navy/10 dark:border-white/10">
-      <div className="container mx-auto px-4">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-navy/70 dark:bg-secondary/70 backdrop-blur-2xl border-b border-navy/10 dark:border-white/10 safe-top">
+      <div className="container mx-auto px-4 safe-x">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="MaceyRunners" className="w-9 h-9 rounded-xl object-cover shadow-sm ring-1 ring-primary/20" />

@@ -3,8 +3,10 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "app.lovable.c56d468ac7f5423b91600144e6f3eb31",
-      "sha256_cert_fingerprints": []
+      "package_name": "com.maceyrunners.app",
+      "sha256_cert_fingerprints": [
+        "90:C4:B5:9A:3B:D7:B1:D1:9A:53:3E:5B:B3:AE:F2:83:02:5A:30:A6:A3:5B:42:8C:45:DC:6B:2D:C9:CC:FE:17"
+      ]
     }
   }
 ]

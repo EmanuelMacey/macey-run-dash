@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
       },
     });
     return { error };

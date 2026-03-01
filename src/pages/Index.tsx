@@ -11,7 +11,7 @@ import PricingSection from "@/components/landing/PricingSection";
 import ContactSection from "@/components/landing/ContactSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
-import CookieConsent from "@/components/landing/CookieConsent";
+
 
 const Index = () => {
   const { user, role, loading } = useAuth();
@@ -34,7 +34,7 @@ const Index = () => {
       <ContactSection />
       <CTASection />
       <Footer />
-      <CookieConsent />
+      
     </div>
   );
 };

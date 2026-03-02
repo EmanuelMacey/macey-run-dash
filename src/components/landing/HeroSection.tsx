@@ -21,8 +21,8 @@ const HeroSection = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="text-center lg:text-left">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="text-center md:text-left">
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-8 backdrop-blur-sm">
                 <Zap size={14} className="text-accent fill-accent" />
@@ -30,7 +30,7 @@ const HeroSection = () => {
               </div>
             </motion.div>
 
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] mb-6 text-foreground">
+            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="font-display font-extrabold text-4xl sm:text-5xl md:text-4xl lg:text-6xl xl:text-7xl leading-[1.1] mb-6 text-foreground">
               {t('hero.title1')}<br />{t('hero.title2')}{" "}
               <span className="gradient-text relative">
                 {t('hero.title3')}
@@ -38,11 +38,11 @@ const HeroSection = () => {
               </span>
             </motion.h1>
 
-            <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-lg md:text-xl mb-10 max-w-lg mx-auto lg:mx-0 text-muted-foreground leading-relaxed">
+            <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }} className="text-lg md:text-xl mb-10 max-w-lg mx-auto md:mx-0 text-muted-foreground leading-relaxed">
               {t('hero.subtitle')}
             </motion.p>
 
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }} className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Link to="/signup">
                 <Button size="lg" className="gradient-primary text-primary-foreground rounded-full px-10 text-base h-14 w-full sm:w-auto shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 hover:scale-105 transition-all font-semibold">
                   {t('hero.placeOrder')} <ArrowRight size={18} className="ml-2" />
@@ -55,7 +55,7 @@ const HeroSection = () => {
               </Link>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.65 }} className="flex items-center gap-6 mt-12 justify-center lg:justify-start">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.65 }} className="flex items-center gap-4 md:gap-6 mt-12 justify-center md:justify-start flex-wrap">
               {[
                 { icon: Clock, text: t('hero.avgDelivery') },
                 { icon: Shield, text: t('hero.safe') },
@@ -69,10 +69,10 @@ const HeroSection = () => {
             </motion.div>
           </div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.9, x: 40 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="relative hidden lg:flex justify-center items-center">
+          <motion.div initial={{ opacity: 0, scale: 0.9, x: 40 }} animate={{ opacity: 1, scale: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="relative hidden md:flex justify-center items-center">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent rounded-full blur-[100px]" />
             <div className="relative z-10">
-              <motion.img src={deliveryRider} alt="MaceyRunners Delivery" animate={{ y: [0, -10, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="w-[340px] h-auto object-contain drop-shadow-2xl" style={{ filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.15))" }} />
+              <motion.img src={deliveryRider} alt="MaceyRunners Delivery" animate={{ y: [0, -10, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="w-[260px] lg:w-[340px] h-auto object-contain drop-shadow-2xl" style={{ filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.15))" }} />
               <motion.div animate={{ opacity: [0.15, 0.35, 0.15], x: [-8, 8, -8], scaleX: [1, 1.15, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[70%] h-8 bg-gradient-to-r from-transparent via-muted-foreground/15 to-transparent rounded-full blur-xl" />
               <motion.div animate={{ opacity: [0.1, 0.25, 0.1], x: [5, -5, 5] }} transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} className="absolute bottom-6 left-[30%] w-[40%] h-6 bg-gradient-to-r from-transparent via-accent/10 to-transparent rounded-full blur-lg" />
             </div>
@@ -98,7 +98,7 @@ const HeroSection = () => {
           </motion.div>
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.8 }} className="grid grid-cols-3 gap-6 mt-16 max-w-sm mx-auto lg:hidden">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.8 }} className="grid grid-cols-3 gap-6 mt-16 max-w-sm mx-auto md:hidden">
           {[
             { value: "15min", label: t('hero.avgLabel') },
             { value: "500+", label: t('hero.deliveries') },

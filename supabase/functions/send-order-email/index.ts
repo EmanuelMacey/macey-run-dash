@@ -216,6 +216,17 @@ Deno.serve(async (req) => {
 
       const invoiceNum = `INV-${String(invoice.invoice_number).padStart(4, '0')}`;
       const orderNum = order?.order_number ? `#${order.order_number}` : '';
+      const customerName = profile?.full_name || 'Customer';
+      const customerPhone = profile?.phone || '';
+      const customerAddress = order?.dropoff_address || profile?.default_address || '';
+
+      // Calculate fee breakdown
+      const SERVICE_FEE = 100;
+      let itemsTotal = 0;
+      if (items && items.length > 0) {
+        itemsTotal = items.reduce((sum: number, i: any) => sum + i.unit_price * i.quantity, 0);
+      }
+      const deliveryFee = items && items.length > 0 ? Math.max(0, invoice.total_amount - itemsTotal - SERVICE_FEE) : 0;
 
       let itemsHtml = '';
       if (items && items.length > 0) {
@@ -229,7 +240,7 @@ Deno.serve(async (req) => {
               </tr>
             </thead>
             <tbody>
-              ${items.map(i => `
+              ${items.map((i: any) => `
                 <tr style="border-bottom: 1px solid #f1f5f9;">
                   <td style="padding: 8px; font-size: 14px;">${i.product_name}</td>
                   <td style="padding: 8px; text-align: center; font-size: 14px;">${i.quantity}</td>
@@ -243,43 +254,54 @@ Deno.serve(async (req) => {
 
       const invoiceHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">Invoice ${invoiceNum}</h2>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-          <div>
-            <p style="margin: 0; font-size: 13px; color: #64748b;">Bill To:</p>
-            <p style="margin: 4px 0 0; font-size: 14px; font-weight: 600;">${profile?.full_name || 'Customer'}</p>
-            ${profile?.phone ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">${profile.phone}</p>` : ''}
-            ${profile?.default_address ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">${profile.default_address}</p>` : ''}
-          </div>
-          <div style="text-align: right;">
-            <p style="margin: 0; font-size: 13px; color: #64748b;">Invoice ${invoiceNum}</p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;">Order ${orderNum}</p>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;">${new Date(invoice.created_at).toLocaleDateString()}</p>
-          </div>
-        </div>
+        <table style="width: 100%; margin-bottom: 16px;">
+          <tr>
+            <td style="vertical-align: top;">
+              <p style="margin: 0; font-size: 13px; color: #64748b;">Bill To:</p>
+              <p style="margin: 4px 0 0; font-size: 14px; font-weight: 600;">${customerName}</p>
+              ${customerPhone ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">📞 ${customerPhone}</p>` : ''}
+              ${customerAddress ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">📍 ${customerAddress}</p>` : ''}
+            </td>
+            <td style="vertical-align: top; text-align: right;">
+              <p style="margin: 0; font-size: 13px; color: #64748b;">Invoice ${invoiceNum}</p>
+              <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;">Order ${orderNum}</p>
+              <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;">${new Date(invoice.created_at).toLocaleDateString()}</p>
+            </td>
+          </tr>
+        </table>
 
         ${order ? `
           <div style="background: #f1f5f9; border-radius: 12px; padding: 16px; margin: 16px 0;">
             <p style="margin: 0 0 4px; font-size: 14px;"><strong>Service:</strong> ${order.order_type}</p>
             <p style="margin: 0 0 4px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
-            <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
+            <p style="margin: 0 0 4px; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
+            <p style="margin: 0; font-size: 14px;"><strong>Payment:</strong> ${order.payment_method}</p>
           </div>
         ` : ''}
 
         ${itemsHtml}
 
         <div style="border-top: 2px solid #1e3a5f; padding-top: 16px; margin-top: 16px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="font-size: 14px; color: #64748b;">Subtotal</span>
-            <span style="font-size: 14px;">$${invoice.amount.toLocaleString()} GYD</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-            <span style="font-size: 14px; color: #64748b;">Tax</span>
-            <span style="font-size: 14px;">$${invoice.tax_amount.toLocaleString()} GYD</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #e2e8f0;">
-            <span style="font-size: 18px; font-weight: 700; color: #1e3a5f;">Total</span>
-            <span style="font-size: 18px; font-weight: 700; color: #2563eb;">$${invoice.total_amount.toLocaleString()} GYD</span>
-          </div>
+          ${items && items.length > 0 ? `
+            <table style="width: 100%;">
+              <tr><td style="font-size: 14px; color: #64748b; padding: 4px 0;">Items Subtotal</td><td style="font-size: 14px; text-align: right; padding: 4px 0;">$${itemsTotal.toLocaleString()} GYD</td></tr>
+              <tr><td style="font-size: 14px; color: #64748b; padding: 4px 0;">Delivery Fee</td><td style="font-size: 14px; text-align: right; padding: 4px 0;">$${deliveryFee.toLocaleString()} GYD</td></tr>
+              <tr><td style="font-size: 14px; color: #64748b; padding: 4px 0;">Service Fee</td><td style="font-size: 14px; text-align: right; padding: 4px 0;">$${SERVICE_FEE.toLocaleString()} GYD</td></tr>
+            </table>
+          ` : `
+            <table style="width: 100%;">
+              <tr><td style="font-size: 14px; color: #64748b; padding: 4px 0;">Subtotal</td><td style="font-size: 14px; text-align: right; padding: 4px 0;">$${invoice.amount.toLocaleString()} GYD</td></tr>
+            </table>
+          `}
+          <table style="width: 100%;">
+            <tr><td style="font-size: 14px; color: #64748b; padding: 4px 0;">Tax</td><td style="font-size: 14px; text-align: right; padding: 4px 0;">$${invoice.tax_amount.toLocaleString()} GYD</td></tr>
+          </table>
+          <table style="width: 100%; border-top: 1px solid #e2e8f0;">
+            <tr>
+              <td style="font-size: 18px; font-weight: 700; color: #1e3a5f; padding-top: 8px;">Total</td>
+              <td style="font-size: 18px; font-weight: 700; color: #2563eb; text-align: right; padding-top: 8px;">$${invoice.total_amount.toLocaleString()} GYD</td>
+            </tr>
+          </table>
         </div>
 
         <p style="color: #64748b; font-size: 12px; margin-top: 24px; text-align: center;">Thank you for using MaceyRunners! 🏃</p>

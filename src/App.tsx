@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/hooks/useCart";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import IOSInstallPrompt from "@/components/IOSInstallPrompt";
+
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -88,7 +88,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />
-            <IOSInstallPrompt />
+            
           </AuthProvider>
         </BrowserRouter>
       </CartProvider>

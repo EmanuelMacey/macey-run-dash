@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { User, Package, MapPin, Clock, CheckCircle2, Navigation } from "lucide-react";
+import { User, Package, MapPin, Clock, Truck } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
@@ -16,6 +16,15 @@ interface CustomerInfo {
   full_name: string;
   phone: string | null;
   default_address: string | null;
+}
+
+interface DriverInfo {
+  user_id: string;
+  full_name: string;
+  vehicle_type: string | null;
+  license_plate: string | null;
+  is_online: boolean;
+  is_approved: boolean;
 }
 
 const STATUS_STEPS = [
@@ -41,8 +50,32 @@ const AdminOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItemsMap, setOrderItemsMap] = useState<Record<string, any[]>>({});
   const [customerMap, setCustomerMap] = useState<Record<string, CustomerInfo>>({});
+  const [drivers, setDrivers] = useState<DriverInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  const fetchDrivers = async () => {
+    const { data: driverRecords } = await supabase
+      .from("drivers")
+      .select("user_id, vehicle_type, license_plate, is_online, is_approved")
+      .eq("is_approved", true);
+    
+    if (driverRecords && driverRecords.length > 0) {
+      const driverUserIds = driverRecords.map(d => d.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", driverUserIds);
+      
+      const profileMap: Record<string, string> = {};
+      profiles?.forEach(p => { profileMap[p.user_id] = p.full_name; });
+
+      setDrivers(driverRecords.map(d => ({
+        ...d,
+        full_name: profileMap[d.user_id] || "Unknown Driver",
+      })));
+    }
+  };
 
   const fetchOrders = async () => {
     let query = supabase.from("orders").select("*").order("created_at", { ascending: false });
@@ -84,6 +117,7 @@ const AdminOrders = () => {
 
   useEffect(() => {
     fetchOrders();
+    fetchDrivers();
   }, [filterStatus]);
 
   const updateStatus = async (orderId: string, newStatus: Enums<"order_status">) => {
@@ -92,6 +126,24 @@ const AdminOrders = () => {
       toast.error("Failed to update status");
     } else {
       toast.success(`Order updated to ${newStatus.replace("_", " ")}`);
+      fetchOrders();
+    }
+  };
+
+  const assignDriver = async (orderId: string, driverUserId: string) => {
+    const currentOrder = orders.find(o => o.id === orderId);
+    const newStatus = currentOrder?.status === "pending" ? "accepted" : currentOrder?.status;
+    
+    const { error } = await supabase
+      .from("orders")
+      .update({ driver_id: driverUserId, status: newStatus })
+      .eq("id", orderId);
+    
+    if (error) {
+      toast.error("Failed to assign driver");
+    } else {
+      const driver = drivers.find(d => d.user_id === driverUserId);
+      toast.success(`Assigned to ${driver?.full_name || "driver"}`);
       fetchOrders();
     }
   };
@@ -129,6 +181,7 @@ const AdminOrders = () => {
         <div className="space-y-3">
           {orders.map((order) => {
             const customer = customerMap[order.customer_id];
+            const assignedDriver = drivers.find(d => d.user_id === order.driver_id);
             const isActive = ["accepted", "picked_up", "on_the_way"].includes(order.status);
             const stepIndex = getStepIndex(order.status);
 
@@ -201,6 +254,38 @@ const AdminOrders = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Driver assignment */}
+                  <div className="flex items-center gap-3 px-3 py-2.5 bg-muted/50 rounded-xl border border-border/30">
+                    <div className="w-8 h-8 rounded-full bg-accent/15 flex items-center justify-center">
+                      <Truck className="h-4 w-4 text-accent-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Assign Driver</p>
+                      <Select
+                        value={order.driver_id || "unassigned"}
+                        onValueChange={(val) => {
+                          if (val !== "unassigned") assignDriver(order.id, val);
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Select a driver" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned" disabled>Unassigned</SelectItem>
+                          {drivers.map((d) => (
+                            <SelectItem key={d.user_id} value={d.user_id} className="text-xs">
+                              <span className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${d.is_online ? "bg-green-500" : "bg-muted-foreground/30"}`} />
+                                {d.full_name}
+                                {d.vehicle_type && <span className="text-muted-foreground">• {d.vehicle_type}</span>}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
                   {/* Route */}
                   <div className="relative pl-6 space-y-3">

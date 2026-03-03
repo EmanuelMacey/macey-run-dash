@@ -148,6 +148,20 @@ const AdminOrders = () => {
     }
   };
 
+  const unassignDriver = async (orderId: string) => {
+    const { error } = await supabase
+      .from("orders")
+      .update({ driver_id: null, status: "pending" as Enums<"order_status"> })
+      .eq("id", orderId);
+    
+    if (error) {
+      toast.error("Failed to unassign driver");
+    } else {
+      toast.success("Driver unassigned, order set back to pending");
+      fetchOrders();
+    }
+  };
+
   if (loading) return <div className="p-8 text-muted-foreground">Loading orders...</div>;
 
   const getStepIndex = (status: string) => STATUS_STEPS.findIndex(s => s.key === status);
@@ -265,7 +279,8 @@ const AdminOrders = () => {
                       <Select
                         value={order.driver_id || "unassigned"}
                         onValueChange={(val) => {
-                          if (val !== "unassigned") assignDriver(order.id, val);
+                          if (val === "unassign") unassignDriver(order.id);
+                          else if (val !== "unassigned") assignDriver(order.id, val);
                         }}
                       >
                         <SelectTrigger className="h-8 text-xs">
@@ -273,6 +288,9 @@ const AdminOrders = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="unassigned" disabled>Unassigned</SelectItem>
+                          {order.driver_id && (
+                            <SelectItem value="unassign" className="text-xs text-destructive">✕ Unassign Driver</SelectItem>
+                          )}
                           {drivers.map((d) => (
                             <SelectItem key={d.user_id} value={d.user_id} className="text-xs">
                               <span className="flex items-center gap-2">

@@ -345,6 +345,54 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- DRIVER ASSIGNED EMAIL ----
+    if (type === 'driver_assigned' && order_id) {
+      const { data: order } = await supabase.from('orders').select('*').eq('id', order_id).single();
+      if (!order) {
+        return new Response(JSON.stringify({ error: 'Order not found' }), {
+          status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const driverId = body.driver_id || order.driver_id;
+      if (!driverId) {
+        return new Response(JSON.stringify({ error: 'No driver' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: driverAuth } = await supabase.auth.admin.getUserById(driverId);
+      const driverEmail = driverAuth?.user?.email;
+      if (!driverEmail) {
+        return new Response(JSON.stringify({ error: 'Driver email not found' }), {
+          status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const orderNum = order.order_number ? `#${order.order_number}` : order.id.slice(0, 8);
+
+      const assignedHtml = emailTemplate(`
+        <h2 style="color: #1e3a5f; margin-top: 0;">🚀 Order Assigned to You!</h2>
+        <p style="font-size: 15px; color: #334155;">You have been assigned order <strong>${orderNum}</strong>. Please check your dashboard.</p>
+        <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${order.order_type}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Amount:</strong> $${order.price.toLocaleString()} GYD</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
+          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${order.description}</p>` : ''}
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="https://macey-run-dash.lovable.app/driver" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block;">Open Dashboard</a>
+        </div>
+      `);
+
+      await sendEmail(driverEmail, `Order ${orderNum} Assigned to You — $${order.price.toLocaleString()} GYD`, assignedHtml);
+
+      return new Response(JSON.stringify({ sent: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown email type' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

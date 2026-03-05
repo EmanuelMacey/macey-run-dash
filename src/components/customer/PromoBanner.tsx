@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { X, Sparkles, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 interface Banner {
   id: string;
@@ -79,7 +80,8 @@ const PromoBanner = ({ onNavigateToStore }: PromoBannerProps) => {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleDismiss(); else setOpen(v); }}>
-      <DialogContent className="sm:max-w-sm p-0 overflow-hidden border-0 rounded-3xl shadow-2xl [&>button]:hidden">
+      <DialogContent className="sm:max-w-sm p-0 overflow-hidden border-0 rounded-3xl shadow-2xl [&>button]:hidden" aria-describedby={undefined}>
+        <VisuallyHidden.Root><DialogTitle>{banner?.title || "Promotion"}</DialogTitle></VisuallyHidden.Root>
         {/* Featured image */}
         {banner.image_url && (
           <div className="relative w-full bg-muted">

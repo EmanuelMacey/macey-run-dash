@@ -23,6 +23,7 @@ import Support from "./pages/Support";
 import OurValues from "./pages/OurValues";
 import BusinessPlan from "./pages/BusinessPlan";
 import RiderAgreement from "./pages/RiderAgreement";
+import Portfolio from "./pages/Portfolio";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
                 }
               />
               <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/portfolio" element={<Portfolio />} />
               <Route path="/store/:storeId" element={<StorePage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />

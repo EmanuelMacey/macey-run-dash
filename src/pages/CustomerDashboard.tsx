@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed } from "lucide-react";
+import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed, Gift, Copy, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unlockAudio } from "@/lib/notifications";
+import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import NewOrderDialog from "@/components/customer/NewOrderDialog";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -24,17 +25,21 @@ const CustomerDashboard = () => {
   const [targetStoreId, setTargetStoreId] = useState<string | null>(null);
   const [targetProductId, setTargetProductId] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("full_name")
+      .select("full_name, referral_code")
       .eq("user_id", user.id)
       .single()
       .then(({ data }) => {
         if (data?.full_name) {
           setCustomerName(data.full_name.split(" ")[0]);
+        }
+        if (data?.referral_code) {
+          setReferralCode(data.referral_code);
         }
       });
   }, [user]);
@@ -137,6 +142,41 @@ const CustomerDashboard = () => {
               </NewOrderDialog>
             </div>
             <LoyaltyCard />
+
+            {/* Referral Quick Card */}
+            {referralCode && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-4 border border-primary/20"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                    <Gift className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-bold text-sm text-foreground">Refer & Earn $500 GYD</p>
+                    <p className="text-xs text-muted-foreground truncate">Code: <span className="font-mono font-bold text-primary">{referralCode}</span></p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full text-xs shrink-0 border-primary/30 hover:bg-primary/10"
+                    onClick={() => {
+                      const url = `${window.location.origin}/signup?ref=${referralCode}`;
+                      if (navigator.share) {
+                        navigator.share({ title: "Join MaceyRunners!", text: `Use my referral code ${referralCode} to sign up!`, url });
+                      } else {
+                        navigator.clipboard.writeText(url);
+                        toast.success("Referral link copied!");
+                      }
+                    }}
+                  >
+                    <Users className="h-3.5 w-3.5 mr-1" /> Share
+                  </Button>
+                </div>
+              </motion.div>
+            )}
 
             <div className="mt-6">
               <OrdersList refreshKey={refreshKey} />

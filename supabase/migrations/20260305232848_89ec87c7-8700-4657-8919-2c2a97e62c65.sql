@@ -1,0 +1,2 @@
+ALTER TABLE public.invoices DROP CONSTRAINT invoices_order_id_fkey;
+ALTER TABLE public.invoices ADD CONSTRAINT invoices_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE SET NULL;

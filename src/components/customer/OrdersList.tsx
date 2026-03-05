@@ -142,8 +142,8 @@ const OrdersList = ({ refreshKey }: OrdersListProps) => {
             {pastOrders.length === 0 ? "No past orders yet." : "No orders match your filters."}
           </div>
         ) : (
-          filteredPastOrders.map((order) => (
-            <OrderCard key={order.id} order={order} onUpdated={fetchOrders} />
+          filteredPastOrders.map((order, index) => (
+            <OrderCard key={order.id} order={order} onUpdated={fetchOrders} autoPromptRating={index === 0 && order.status === "delivered"} />
           ))
         )}
       </TabsContent>

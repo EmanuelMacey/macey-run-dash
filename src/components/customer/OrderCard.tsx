@@ -40,9 +40,10 @@ const STATUS_LABELS = ["Placed", "Accepted", "Picked Up", "On The Way", "Deliver
 interface OrderCardProps {
   order: Order;
   onUpdated: () => void;
+  autoPromptRating?: boolean;
 }
 
-const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
+const OrderCard = ({ order, onUpdated, autoPromptRating = false }: OrderCardProps) => {
   const [cancelling, setCancelling] = useState(false);
   const [eta, setEta] = useState<number | null>(null);
   const [orderItems, setOrderItems] = useState<{ id: string; product_name: string; quantity: number; unit_price: number }[]>([]);
@@ -268,7 +269,7 @@ const OrderCard = ({ order, onUpdated }: OrderCardProps) => {
         )}
 
         {order.status === "delivered" && order.driver_id && (
-          <RatingDialog orderId={order.id} driverId={order.driver_id} />
+          <RatingDialog orderId={order.id} driverId={order.driver_id} autoOpen={autoPromptRating} />
         )}
 
         {/* Footer */}

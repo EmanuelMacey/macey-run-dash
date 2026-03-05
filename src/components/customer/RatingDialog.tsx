@@ -19,9 +19,10 @@ import { cn } from "@/lib/utils";
 interface RatingDialogProps {
   orderId: string;
   driverId: string;
+  autoOpen?: boolean;
 }
 
-const RatingDialog = ({ orderId, driverId }: RatingDialogProps) => {
+const RatingDialog = ({ orderId, driverId, autoOpen = false }: RatingDialogProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
@@ -37,10 +38,15 @@ const RatingDialog = ({ orderId, driverId }: RatingDialogProps) => {
         .select("rating")
         .eq("order_id", orderId)
         .maybeSingle();
-      if (data) setExistingRating(data.rating);
+      if (data) {
+        setExistingRating(data.rating);
+      } else if (autoOpen) {
+        // Auto-open the dialog for unrated delivered orders
+        setTimeout(() => setOpen(true), 1000);
+      }
     };
     checkExisting();
-  }, [orderId]);
+  }, [orderId, autoOpen]);
 
   const handleSubmit = async () => {
     if (!user || rating === 0) return;

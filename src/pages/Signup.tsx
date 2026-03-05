@@ -30,12 +30,70 @@ const Signup = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Disposable/temporary email domain blocklist
+  const BLOCKED_DOMAINS = [
+    "tempmail.com", "throwaway.email", "guerrillamail.com", "mailinator.com",
+    "yopmail.com", "sharklasers.com", "guerrillamailblock.com", "grr.la",
+    "dispostable.com", "trashmail.com", "fakeinbox.com", "temp-mail.org",
+    "getnada.com", "maildrop.cc", "10minutemail.com", "minutemail.com",
+    "emailondeck.com", "tempr.email", "discard.email", "tmpmail.net",
+    "tmpmail.org", "bupmail.com", "mailnesia.com", "mohmal.com",
+  ];
+
+  const validateInputs = (): boolean => {
+    const trimmedName = fullName.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPhone = phone.trim();
+
+    // Name validation: at least first + last name, letters/spaces/hyphens only, min 3 chars
+    if (trimmedName.length < 3) {
+      toast({ title: "Invalid name", description: "Please enter your full name (at least 3 characters).", variant: "destructive" });
+      return false;
+    }
+    if (!/^[a-zA-ZÀ-ÿ' -]{2,}\s+[a-zA-ZÀ-ÿ' -]{2,}/.test(trimmedName)) {
+      toast({ title: "Full name required", description: "Please enter your first and last name (e.g. John Doe).", variant: "destructive" });
+      return false;
+    }
+    if (/(.)\1{4,}/.test(trimmedName) || /^(test|fake|asdf|qwer|user|name|abc)/i.test(trimmedName)) {
+      toast({ title: "Invalid name", description: "Please enter your real full name.", variant: "destructive" });
+      return false;
+    }
+
+    // Email validation: reject disposable domains
+    const emailDomain = trimmedEmail.split("@")[1];
+    if (!emailDomain || BLOCKED_DOMAINS.includes(emailDomain)) {
+      toast({ title: "Invalid email", description: "Please use a real email address. Temporary/disposable emails are not allowed.", variant: "destructive" });
+      return false;
+    }
+    // Reject emails that look fake (e.g. test@test.com, a@b.com)
+    const localPart = trimmedEmail.split("@")[0];
+    if (localPart.length < 3 || /^(test|fake|asdf|qwer|noreply|nobody|abc)$/i.test(localPart)) {
+      toast({ title: "Invalid email", description: "Please use a real email address.", variant: "destructive" });
+      return false;
+    }
+
+    // Phone validation: mandatory, must be at least 7 digits
+    if (!trimmedPhone) {
+      toast({ title: "Phone required", description: "A phone number is required to sign up.", variant: "destructive" });
+      return false;
+    }
+    const digitsOnly = trimmedPhone.replace(/\D/g, "");
+    if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+      toast({ title: "Invalid phone", description: "Please enter a valid phone number (7–15 digits).", variant: "destructive" });
+      return false;
+    }
+
+    if (password.length < 6) {
+      toast({ title: "Password too short", description: "Must be at least 6 characters.", variant: "destructive" });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast({ title: "Password too short", description: "Must be at least 6 characters", variant: "destructive" });
-      return;
-    }
+    if (!validateInputs()) return;
     setSubmitting(true);
     const { error } = await signUp(email, password, fullName);
     if (error) {
@@ -159,7 +217,7 @@ const Signup = () => {
             <Label htmlFor="phone">Phone Number</Label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input id="phone" type="tel" placeholder="+592 600 0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 rounded-xl h-11" />
+              <Input id="phone" type="tel" placeholder="+592 600 0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10 rounded-xl h-11" required />
             </div>
           </div>
 

@@ -5,16 +5,45 @@ const corsHeaders = {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 
+function escapeHtml(str: string | null | undefined): string {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+    // Authorize: require service-role key (internal trigger calls) or valid user JWT
+    const authHeader = req.headers.get('Authorization');
+    let isAuthorized = false;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '');
+      if (token === serviceRoleKey) {
+        isAuthorized = true;
+      } else {
+        const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+          global: { headers: { Authorization: authHeader } },
+        });
+        const { data, error } = await supabaseAuth.auth.getUser();
+        if (!error && data?.user) isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     if (!RESEND_API_KEY) {
       return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured' }), {
         status: 500,
@@ -166,7 +195,7 @@ Deno.serve(async (req) => {
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Amount:</strong> $${order.price.toLocaleString()} GYD</p>
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
           <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
-          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${order.description}</p>` : ''}
+          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${escapeHtml(order.description)}</p>` : ''}
         </div>
         <p style="color: #64748b; font-size: 13px;">Open the MaceyRunners app to accept this order.</p>
       `);
@@ -330,8 +359,8 @@ Deno.serve(async (req) => {
       const signupHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">👤 New Account Created</h2>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Name:</strong> ${user_name || 'Not provided'}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${user_email || 'Unknown'}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Name:</strong> ${escapeHtml(user_name) || 'Not provided'}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${escapeHtml(user_email) || 'Unknown'}</p>
         </div>
         <p style="color: #64748b; font-size: 13px;">A new customer has signed up on MaceyRunners. Check the admin dashboard for more details.</p>
       `);
@@ -379,7 +408,7 @@ Deno.serve(async (req) => {
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Amount:</strong> $${order.price.toLocaleString()} GYD</p>
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
           <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
-          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${order.description}</p>` : ''}
+          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${escapeHtml(order.description)}</p>` : ''}
         </div>
         <div style="text-align: center; margin-top: 20px;">
           <a href="https://macey-run-dash.lovable.app/driver" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block;">Open Dashboard</a>
@@ -399,7 +428,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error('Email error:', e);
-    return new Response(JSON.stringify({ error: e.message }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

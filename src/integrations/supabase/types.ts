@@ -797,6 +797,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      internal_edge_headers: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "customer" | "driver" | "admin"

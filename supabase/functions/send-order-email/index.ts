@@ -45,8 +45,9 @@ Deno.serve(async (req) => {
 
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     if (!RESEND_API_KEY) {
-      return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured' }), {
-        status: 500,
+      console.error('RESEND_API_KEY not configured');
+      return new Response(JSON.stringify({ error: 'Email service unavailable' }), {
+        status: 503,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

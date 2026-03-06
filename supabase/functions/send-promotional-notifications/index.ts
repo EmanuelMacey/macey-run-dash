@@ -58,7 +58,52 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+
+    // --- Admin authorization check ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if caller is the service role (internal trigger call)
+    const token = authHeader.replace('Bearer ', '');
+    const isServiceRole = token === serviceRoleKey;
+
+    if (!isServiceRole) {
+      // Validate as a user JWT and check admin role
+      const supabaseAuth = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims?.sub) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+      const { data: roleData } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', claimsData.claims.sub)
+        .eq('role', 'admin')
+        .single();
+
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+    // --- End auth check ---
+
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();

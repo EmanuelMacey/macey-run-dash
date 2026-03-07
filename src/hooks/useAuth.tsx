@@ -72,9 +72,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
+    // Re-validate session when tab becomes visible again (handles long background periods)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        supabase.auth.getSession().then(({ data: { session: refreshedSession } }) => {
+          if (!mounted) return;
+          if (refreshedSession) {
+            setSession(refreshedSession);
+            setUser(refreshedSession.user);
+          }
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

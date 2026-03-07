@@ -24,14 +24,14 @@ import whiteCastleImg from "@/assets/stores/white-castle.jpg";
 const storeImageMap: Record<string, string> = {
   "Church's Chicken": churchsImg,
   "Exclusive Eggball": eggballImg,
-  "Fireside Grill & Chill": firesideImg,
+  "Fireside Grill and Chill": firesideImg,
   "Gangbao": gangbaoImg,
   "Golden Pagoda": goldenPagodaImg,
   "KFC": kfcImg,
   "Pizza Hut": pizzahutImg,
   "Popeyes": popeyesImg,
   "Starbucks": starbucksImg,
-  "White Castle Fish Shop": whiteCastleImg,
+  "White Castle": whiteCastleImg,
 };
 
 const Marketplace = () => {

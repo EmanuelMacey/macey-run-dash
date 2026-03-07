@@ -20,6 +20,7 @@ import pizzahutImg from "@/assets/stores/pizzahut.png";
 import popeyesImg from "@/assets/stores/popeyes.jpg";
 import starbucksImg from "@/assets/stores/starbucks.jpg";
 import whiteCastleImg from "@/assets/stores/white-castle.jpg";
+import kamboatImg from "@/assets/stores/kamboat.png";
 
 const storeImageMap: Record<string, string> = {
   "Church's Chicken": churchsImg,
@@ -28,6 +29,7 @@ const storeImageMap: Record<string, string> = {
   "Gangbao": gangbaoImg,
   "Golden Pagoda": goldenPagodaImg,
   "KFC": kfcImg,
+  "Kamboat Restaurant": kamboatImg,
   "Pizza Hut": pizzahutImg,
   "Popeyes": popeyesImg,
   "Starbucks": starbucksImg,

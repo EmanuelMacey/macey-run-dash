@@ -29,6 +29,7 @@ const storeImageMap: Record<string, string> = {
   "Gangbao": gangbaoImg,
   "Golden Pagoda": goldenPagodaImg,
   "KFC": kfcImg,
+  "Kamboat Restaurant": kamboatImg,
   "Pizza Hut": pizzahutImg,
   "Popeyes": popeyesImg,
   "Starbucks": starbucksImg,

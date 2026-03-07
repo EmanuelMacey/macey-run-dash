@@ -15,6 +15,7 @@ import firesideImg from "@/assets/stores/fireside-grill.jpg";
 import gangbaoImg from "@/assets/stores/gangbao.jpg";
 import goldenPagodaImg from "@/assets/stores/golden-pagoda.png";
 import kfcImg from "@/assets/stores/kfc.jpg";
+import kamboatImg from "@/assets/stores/kamboat.png";
 import pizzahutImg from "@/assets/stores/pizzahut.png";
 import popeyesImg from "@/assets/stores/popeyes.jpg";
 import starbucksImg from "@/assets/stores/starbucks.jpg";
@@ -23,14 +24,15 @@ import whiteCastleImg from "@/assets/stores/white-castle.jpg";
 const storeImageMap: Record<string, string> = {
   "Church's Chicken": churchsImg,
   "Exclusive Eggball": eggballImg,
-  "Fireside Grill & Chill": firesideImg,
+  "Fireside Grill and Chill": firesideImg,
   "Gangbao": gangbaoImg,
   "Golden Pagoda": goldenPagodaImg,
   "KFC": kfcImg,
+  "Kamboat Restaurant": kamboatImg,
   "Pizza Hut": pizzahutImg,
   "Popeyes": popeyesImg,
   "Starbucks": starbucksImg,
-  "White Castle Fish Shop": whiteCastleImg,
+  "White Castle": whiteCastleImg,
 };
 
 interface MarketplaceBrowserProps {

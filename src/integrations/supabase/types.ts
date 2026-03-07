@@ -798,6 +798,10 @@ export type Database = {
         Returns: boolean
       }
       internal_edge_headers: { Args: never; Returns: Json }
+      redeem_loyalty_points: {
+        Args: { p_discount_amount: number; p_tier_points: number }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "customer" | "driver" | "admin"

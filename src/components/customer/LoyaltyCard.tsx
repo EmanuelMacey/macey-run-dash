@@ -68,21 +68,13 @@ const LoyaltyCard = () => {
     if (!user || points < tier.points) return;
     setRedeeming(true);
     try {
-      const { error } = await supabase
-        .from("loyalty_points")
-        .update({ points: points - tier.points, total_redeemed: totalEarned - (points - tier.points) })
-        .eq("user_id", user.id);
+      const { data, error } = await supabase.rpc("redeem_loyalty_points", {
+        p_tier_points: tier.points,
+        p_discount_amount: tier.discount,
+      });
       if (error) throw error;
 
-      await supabase.from("loyalty_transactions").insert({
-        user_id: user.id, points: -tier.points, type: "redeem", description: `Redeemed for ${tier.label}`,
-      });
-
-      const code = `LOYAL${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      await supabase.from("promo_codes").insert({
-        code, discount_amount: tier.discount, is_active: true, max_uses: 1, current_uses: 0,
-      });
-
+      const code = data as string;
       toast.success(`${tier.emoji} Redeemed! Use promo code: ${code}`, { duration: 10000 });
       fetchLoyalty();
       if (showHistory) fetchTransactions();

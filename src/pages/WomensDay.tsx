@@ -35,31 +35,35 @@ const WomensDay = () => {
         // Message text
         ctx.textAlign = "center";
         ctx.fillStyle = "#ffd700";
-        ctx.font = "bold 28px 'Plus Jakarta Sans', sans-serif";
-        ctx.fillText("Happy International Women's Day!", size / 2, size * 0.68);
+        ctx.font = "bold 36px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText("Happy International Women's Day!", size / 2, size * 0.72);
 
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "20px 'Plus Jakarta Sans', sans-serif";
-        const lines = [
-          "To every woman who inspires, leads, and empowers —",
-          "we celebrate you today and every day.",
-          "",
-          "From all of us at MaceyRunners Delivery Service 💜",
-        ];
-        lines.forEach((line, i) => {
-          ctx.fillText(line, size / 2, size * 0.73 + i * 30);
-        });
-
-        // Draw logo
+        // Draw logo with soft glow blend
         const logoImg = new Image();
         logoImg.crossOrigin = "anonymous";
         logoImg.onload = () => {
-          const logoSize = 80;
-          ctx.drawImage(logoImg, size / 2 - logoSize / 2, size * 0.88, logoSize, logoSize);
+          const logoSize = 100;
+          const logoX = size / 2 - logoSize / 2;
+          const logoY = size * 0.78;
+
+          // Soft radial glow behind logo
+          ctx.save();
+          const glow = ctx.createRadialGradient(size / 2, logoY + logoSize / 2, logoSize * 0.3, size / 2, logoY + logoSize / 2, logoSize * 1.2);
+          glow.addColorStop(0, "rgba(255, 215, 0, 0.25)");
+          glow.addColorStop(0.5, "rgba(128, 0, 128, 0.15)");
+          glow.addColorStop(1, "rgba(48, 0, 60, 0)");
+          ctx.fillStyle = glow;
+          ctx.fillRect(logoX - logoSize, logoY - logoSize * 0.5, logoSize * 4, logoSize * 3);
+          ctx.restore();
+
+          // Draw logo with slight transparency to blend
+          ctx.globalAlpha = 0.92;
+          ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+          ctx.globalAlpha = 1.0;
 
           ctx.fillStyle = "#ffd700";
-          ctx.font = "bold 16px 'Plus Jakarta Sans', sans-serif";
-          ctx.fillText("MaceyRunners", size / 2, size * 0.97);
+          ctx.font = "bold 18px 'Plus Jakarta Sans', sans-serif";
+          ctx.fillText("MaceyRunners Delivery Service", size / 2, logoY + logoSize + 28);
 
           resolve(canvas);
         };
@@ -121,19 +125,15 @@ const WomensDay = () => {
           {/* Text overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-end"
             style={{ background: "linear-gradient(to bottom, transparent 55%, rgba(48,0,60,0.75) 70%, rgba(48,0,60,0.92) 100%)" }}>
-            <div className="text-center px-6 pb-6 space-y-2">
-              <p className="text-yellow-400 font-bold text-lg sm:text-xl" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <div className="text-center px-6 pb-6 space-y-3">
+              <p className="text-yellow-400 font-bold text-xl sm:text-2xl drop-shadow-lg" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                 Happy International Women's Day!
               </p>
-              <p className="text-white/90 text-xs sm:text-sm leading-relaxed">
-                To every woman who inspires, leads, and empowers —<br />
-                we celebrate you today and every day.
-              </p>
-              <p className="text-white/80 text-xs sm:text-sm">
-                From all of us at MaceyRunners Delivery Service 💜
-              </p>
-              <img src={logo} alt="MaceyRunners Logo" className="h-12 w-auto mx-auto mt-3" />
-              <p className="text-yellow-400 font-bold text-xs tracking-wider">MaceyRunners</p>
+              <div className="relative flex flex-col items-center">
+                <div className="absolute inset-0 bg-gradient-radial from-yellow-400/20 via-purple-600/10 to-transparent blur-xl rounded-full scale-150" />
+                <img src={logo} alt="MaceyRunners Logo" className="h-14 w-auto relative z-10 drop-shadow-lg opacity-90" />
+                <p className="text-yellow-400 font-bold text-xs tracking-widest mt-2 relative z-10">MaceyRunners Delivery Service</p>
+              </div>
             </div>
           </div>
         </div>

@@ -239,6 +239,7 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const unsubSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET') || 'fallback-key';
     const body = await req.json();
     const { type, title, message, target } = body;
 
@@ -329,6 +330,8 @@ Deno.serve(async (req) => {
         if (RESEND_API_KEY) {
           const email = userEmailMap.get(userId);
           if (email) {
+            const unsubToken = encodeUnsubToken(userId, unsubSecret);
+            const unsubUrl = `${supabaseUrl}/functions/v1/unsubscribe?token=${unsubToken}`;
             try {
               const res = await fetch('https://api.resend.com/emails', {
                 method: 'POST',
@@ -337,12 +340,12 @@ Deno.serve(async (req) => {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  from: 'MaceyRunners <noreply@maceyrunners.com>',
+                  from: 'MaceyRunners <noreply@notify.maceyrunners.com>',
                   to: [email],
                   subject: notif.title,
-                  html: buildEmailHtml(notif.title, notif.message),
+                  html: buildEmailHtml(notif.title, notif.message, unsubUrl),
                   headers: {
-                    'List-Unsubscribe': '<mailto:support@maceyrunners.org?subject=Unsubscribe>',
+                    'List-Unsubscribe': `<${unsubUrl}>`,
                     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
                   },
                 }),
@@ -407,12 +410,14 @@ Deno.serve(async (req) => {
         else sent += batch.length;
       }
 
-      // Send emails
+      // Send emails (per-user for unique unsubscribe links)
       if (RESEND_API_KEY) {
-        const emailHtml = buildEmailHtml(notifTitle, notifMessage);
         for (let i = 0; i < userIds.length; i++) {
           const email = userEmailMap.get(userIds[i]);
           if (!email) continue;
+          const unsubToken = encodeUnsubToken(userIds[i], unsubSecret);
+          const unsubUrl = `${supabaseUrl}/functions/v1/unsubscribe?token=${unsubToken}`;
+          const emailHtml = buildEmailHtml(notifTitle, notifMessage, unsubUrl);
           try {
             const res = await fetch('https://api.resend.com/emails', {
               method: 'POST',
@@ -421,12 +426,12 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                from: 'MaceyRunners <noreply@maceyrunners.com>',
+                from: 'MaceyRunners <noreply@notify.maceyrunners.com>',
                 to: [email],
                 subject: notifTitle,
                 html: emailHtml,
                 headers: {
-                  'List-Unsubscribe': '<mailto:support@maceyrunners.org?subject=Unsubscribe>',
+                  'List-Unsubscribe': `<${unsubUrl}>`,
                   'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
                 },
               }),

@@ -48,9 +48,10 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
   const token = url.searchParams.get('token');
+  const action = url.searchParams.get('action') || 'unsubscribe'; // 'unsubscribe' or 'resubscribe'
 
   if (!token) {
-    return new Response(renderPage('Missing token', 'The unsubscribe link is invalid.', false), {
+    return new Response(renderPage('Missing token', 'The link is invalid.', 'error', ''), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
     });
@@ -60,11 +61,13 @@ Deno.serve(async (req) => {
   const userId = decodeToken(token, secret);
 
   if (!userId) {
-    return new Response(renderPage('Invalid Link', 'This unsubscribe link is invalid or has expired.', false), {
+    return new Response(renderPage('Invalid Link', 'This link is invalid or has expired.', 'error', ''), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
     });
   }
+
+  const optIn = action === 'resubscribe';
 
   try {
     const supabase = createClient(
@@ -72,29 +75,47 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Upsert the email preference to opted-out
     const { error } = await supabase
       .from('email_preferences')
       .upsert(
-        { user_id: userId, promotional_emails: false, updated_at: new Date().toISOString() },
+        { user_id: userId, promotional_emails: optIn, updated_at: new Date().toISOString() },
         { onConflict: 'user_id' }
       );
 
     if (error) {
-      console.error('Unsubscribe error:', error);
-      return new Response(renderPage('Error', 'Something went wrong. Please try again later.', false), {
+      console.error('Preference update error:', error);
+      return new Response(renderPage('Error', 'Something went wrong. Please try again later.', 'error', ''), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
       });
     }
 
-    return new Response(renderPage('Unsubscribed Successfully', "You've been unsubscribed from promotional emails. You can re-subscribe anytime from your profile settings.", true), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
-    });
+    const baseUrl = url.origin + url.pathname;
+
+    if (optIn) {
+      return new Response(renderPage(
+        'Re-subscribed Successfully! 🎉',
+        "You're back on the list! You'll receive our latest deals and updates.",
+        'resubscribed',
+        `${baseUrl}?token=${token}&action=unsubscribe`
+      ), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    } else {
+      return new Response(renderPage(
+        'Unsubscribed Successfully',
+        "You've been unsubscribed from promotional emails. Changed your mind?",
+        'unsubscribed',
+        `${baseUrl}?token=${token}&action=resubscribe`
+      ), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
   } catch (e) {
-    console.error('Unsubscribe error:', e);
-    return new Response(renderPage('Error', 'Something went wrong. Please try again later.', false), {
+    console.error('Preference update error:', e);
+    return new Response(renderPage('Error', 'Something went wrong. Please try again later.', 'error', ''), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
     });

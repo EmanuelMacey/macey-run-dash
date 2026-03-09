@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Save, Loader2, User, Phone, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { MapPin, Save, Loader2, User, Phone, Trash2, Mail } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,8 @@ const CustomerProfile = () => {
   const [lng, setLng] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [promoEmails, setPromoEmails] = useState(true);
+  const [savingPrefs, setSavingPrefs] = useState(false);
   const [loading, setLoading] = useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -59,6 +62,17 @@ const CustomerProfile = () => {
         setLat(data.default_lat);
         setLng(data.default_lng);
       }
+
+      // Fetch email preferences
+      const { data: prefs } = await supabase
+        .from("email_preferences")
+        .select("promotional_emails")
+        .eq("user_id", user.id)
+        .single();
+      if (prefs) {
+        setPromoEmails(prefs.promotional_emails);
+      }
+
       setLoading(false);
     };
     fetchProfile();
@@ -185,6 +199,43 @@ const CustomerProfile = () => {
         {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
         Save Profile
       </Button>
+
+      {/* Email Preferences */}
+      <div className="border-t border-border/50 pt-6">
+        <h3 className="font-display font-semibold text-foreground mb-1 flex items-center gap-2">
+          <Mail className="h-4 w-4 text-primary" /> Email Preferences
+        </h3>
+        <p className="text-muted-foreground text-sm mb-4">
+          Control which emails you receive from MaceyRunners.
+        </p>
+        <div className="flex items-center justify-between bg-card border border-border/50 rounded-xl p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">Promotional Emails</p>
+            <p className="text-xs text-muted-foreground">Flash sales, seasonal offers, tips & recommendations</p>
+          </div>
+          <Switch
+            checked={promoEmails}
+            disabled={savingPrefs}
+            onCheckedChange={async (checked) => {
+              if (!user) return;
+              setSavingPrefs(true);
+              setPromoEmails(checked);
+              try {
+                const { error } = await supabase
+                  .from("email_preferences" as any)
+                  .upsert({ user_id: user.id, promotional_emails: checked, updated_at: new Date().toISOString() } as any, { onConflict: "user_id" });
+                if (error) throw error;
+                toast.success(checked ? "You'll receive promotional emails" : "Unsubscribed from promotional emails");
+              } catch (err: any) {
+                setPromoEmails(!checked);
+                toast.error("Failed to update preference");
+              } finally {
+                setSavingPrefs(false);
+              }
+            }}
+          />
+        </div>
+      </div>
 
       <div className="border-t border-border/50 pt-6">
         <ReferralSection />

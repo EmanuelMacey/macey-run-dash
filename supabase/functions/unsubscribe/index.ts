@@ -125,9 +125,15 @@ Deno.serve(async (req) => {
 // Export for use by email builder
 export { encodeToken };
 
-function renderPage(title: string, message: string, success: boolean): string {
-  const icon = success ? '✅' : '⚠️';
-  const color = success ? '#16a34a' : '#dc2626';
+function renderPage(title: string, message: string, state: 'unsubscribed' | 'resubscribed' | 'error', toggleUrl: string): string {
+  const icon = state === 'error' ? '⚠️' : state === 'resubscribed' ? '🎉' : '✅';
+  const color = state === 'error' ? '#dc2626' : state === 'resubscribed' ? '#2563eb' : '#16a34a';
+  const badge = state === 'error' ? 'Error' : state === 'resubscribed' ? 'Subscribed' : 'Unsubscribed';
+  const toggleBtn = state === 'unsubscribed'
+    ? `<a class="toggle-btn" href="${toggleUrl}">Re-subscribe</a>`
+    : state === 'resubscribed'
+    ? `<a class="toggle-btn outline" href="${toggleUrl}">Unsubscribe again</a>`
+    : '';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -141,7 +147,11 @@ function renderPage(title: string, message: string, success: boolean): string {
     h1 { color: #1e3a5f; font-size: 22px; margin: 0 0 12px; }
     p { color: #64748b; font-size: 15px; line-height: 1.6; margin: 0 0 24px; }
     .status { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: white; background: ${color}; }
-    a.btn { display: inline-block; margin-top: 16px; padding: 10px 24px; background: #1e3a5f; color: white; text-decoration: none; border-radius: 24px; font-weight: 600; font-size: 14px; }
+    .toggle-btn { display: inline-block; margin-top: 20px; padding: 10px 24px; background: #1e3a5f; color: white; text-decoration: none; border-radius: 24px; font-weight: 600; font-size: 14px; transition: opacity .2s; }
+    .toggle-btn:hover { opacity: .85; }
+    .toggle-btn.outline { background: transparent; color: #64748b; border: 1px solid #cbd5e1; }
+    .toggle-btn.outline:hover { background: #f8fafc; }
+    a.home { display: inline-block; margin-top: 12px; padding: 10px 24px; color: #1e3a5f; text-decoration: none; font-size: 14px; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -149,9 +159,11 @@ function renderPage(title: string, message: string, success: boolean): string {
     <div class="icon">${icon}</div>
     <h1>${title}</h1>
     <p>${message}</p>
-    <span class="status">${success ? 'Unsubscribed' : 'Error'}</span>
+    <span class="status">${badge}</span>
     <br>
-    <a class="btn" href="https://macey-run-dash.lovable.app/">Go to MaceyRunners</a>
+    ${toggleBtn}
+    <br>
+    <a class="home" href="https://macey-run-dash.lovable.app/">Go to MaceyRunners</a>
   </div>
 </body>
 </html>`;

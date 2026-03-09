@@ -260,13 +260,32 @@ Deno.serve(async (req) => {
     let sent = 0;
     let emailsSent = 0;
 
-    // Get user emails upfront for email sending
+    // Get user emails upfront for email sending AND filter by email preferences
     let userEmailMap = new Map<string, string>();
+    const unsubscribedUserIds = new Set<string>();
+
+    // Check email preferences - users who opted out of promotional emails
+    const { data: prefsData } = await supabase
+      .from('email_preferences')
+      .select('user_id, promotional_emails')
+      .in('user_id', userIds);
+    
+    if (prefsData) {
+      for (const pref of prefsData) {
+        if (!pref.promotional_emails) {
+          unsubscribedUserIds.add(pref.user_id);
+        }
+      }
+    }
+
     if (RESEND_API_KEY) {
       const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       if (usersData?.users) {
         for (const u of usersData.users) {
-          if (u.email) userEmailMap.set(u.id, u.email);
+          // Only add email if user hasn't unsubscribed
+          if (u.email && !unsubscribedUserIds.has(u.id)) {
+            userEmailMap.set(u.id, u.email);
+          }
         }
       }
     }

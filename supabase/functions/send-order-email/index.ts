@@ -22,10 +22,12 @@ Deno.serve(async (req) => {
     // Authorize: require service-role key (internal trigger calls) or valid user JWT
     const authHeader = req.headers.get('Authorization');
     let isAuthorized = false;
+    const internalWebhookSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
 
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '');
-      if (token === serviceRoleKey) {
+      // Accept service role key, internal webhook secret, or valid user JWT
+      if (token === serviceRoleKey || (internalWebhookSecret && token === internalWebhookSecret)) {
         isAuthorized = true;
       } else {
         const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {

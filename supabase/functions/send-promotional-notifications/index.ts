@@ -70,11 +70,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if caller is the service role (internal trigger call)
+    // Check if caller is the service role, internal webhook secret, or cron trigger
     const token = authHeader.replace('Bearer ', '');
+    const internalWebhookSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
     const isServiceRole = token === serviceRoleKey;
+    const isInternalCall = internalWebhookSecret && token === internalWebhookSecret;
 
-    if (!isServiceRole) {
+    if (!isServiceRole && !isInternalCall) {
       // Validate as a user JWT and check admin role
       const supabaseAuth = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },

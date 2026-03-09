@@ -22,12 +22,17 @@ Deno.serve(async (req) => {
     // Authorize: require service-role key (internal trigger calls) or valid user JWT
     const authHeader = req.headers.get('Authorization');
     let isAuthorized = false;
+    const internalWebhookSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
 
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '');
+      // Accept service role key, internal webhook secret, or valid user JWT
       if (token === serviceRoleKey) {
         isAuthorized = true;
+      } else if (internalWebhookSecret && token === internalWebhookSecret) {
+        isAuthorized = true;
       } else {
+        // Try validating as user JWT
         const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
           global: { headers: { Authorization: authHeader } },
         });
@@ -37,6 +42,7 @@ Deno.serve(async (req) => {
     }
 
     if (!isAuthorized) {
+      console.error('Auth failed', { hasToken: !!authHeader, hasInternalSecret: !!internalWebhookSecret, tokenPrefix: authHeader?.substring(0, 20) });
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

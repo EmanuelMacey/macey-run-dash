@@ -10,6 +10,32 @@ import { useCart } from "@/hooks/useCart";
 import CartSheet from "@/components/marketplace/CartSheet";
 import logo from "@/assets/logo.png";
 
+import churchsImg from "@/assets/stores/churches-chicken.png";
+import eggballImg from "@/assets/stores/exclusive-eggball.jpeg";
+import firesideImg from "@/assets/stores/fireside-grill.jpg";
+import gangbaoImg from "@/assets/stores/gangbao.jpg";
+import goldenPagodaImg from "@/assets/stores/golden-pagoda.png";
+import kfcImg from "@/assets/stores/kfc.jpg";
+import kamboatImg from "@/assets/stores/kamboat.png";
+import pizzahutImg from "@/assets/stores/pizzahut.png";
+import popeyesImg from "@/assets/stores/popeyes.jpg";
+import starbucksImg from "@/assets/stores/starbucks.jpg";
+import whiteCastleImg from "@/assets/stores/white-castle.jpg";
+
+const storeImageMap: Record<string, string> = {
+  "Church's Chicken": churchsImg,
+  "Exclusive Eggball": eggballImg,
+  "Fireside Grill and Chill": firesideImg,
+  "Gangbao": gangbaoImg,
+  "Golden Pagoda": goldenPagodaImg,
+  "KFC": kfcImg,
+  "Kamboat Restaurant": kamboatImg,
+  "Pizza Hut": pizzahutImg,
+  "Popeyes": popeyesImg,
+  "Starbucks": starbucksImg,
+  "White Castle": whiteCastleImg,
+};
+
 const StorePage = () => {
   const { storeId } = useParams<{ storeId: string }>();
   const { addItem, items, updateQuantity, itemCount, total } = useCart();
@@ -17,11 +43,7 @@ const StorePage = () => {
   const { data: store, isLoading: storeLoading } = useQuery({
     queryKey: ["marketplace-store", storeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("marketplace_stores")
-        .select("*")
-        .eq("id", storeId!)
-        .single();
+      const { data, error } = await supabase.from("marketplace_stores").select("*").eq("id", storeId!).single();
       if (error) throw error;
       return data;
     },
@@ -31,30 +53,17 @@ const StorePage = () => {
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ["marketplace-products", storeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("marketplace_products")
-        .select("*")
-        .eq("store_id", storeId!)
-        .eq("is_available", true)
-        .order("category")
-        .order("name");
+      const { data, error } = await supabase.from("marketplace_products").select("*").eq("store_id", storeId!).eq("is_available", true).order("category").order("name");
       if (error) throw error;
       return data;
     },
     enabled: !!storeId,
   });
 
-  const categories = useMemo(() => {
-    const cats = [...new Set(products.map((p) => p.category || "Other"))];
-    return cats;
-  }, [products]);
-
-  const getCartQuantity = (productId: string) => {
-    const item = items.find((i) => i.id === productId);
-    return item?.quantity || 0;
-  };
-
+  const categories = useMemo(() => [...new Set(products.map((p) => p.category || "Other"))], [products]);
+  const getCartQuantity = (productId: string) => items.find((i) => i.id === productId)?.quantity || 0;
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
+  const getStoreImage = (name: string, imageUrl?: string | null) => imageUrl || storeImageMap[name] || null;
 
   if (storeLoading) {
     return (
@@ -69,20 +78,16 @@ const StorePage = () => {
       <div className="min-h-screen mesh-bg flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Store not found</p>
-          <Link to="/marketplace">
-            <Button className="rounded-full">Back to Marketplace</Button>
-          </Link>
+          <Link to="/marketplace"><Button className="rounded-full">Back to Marketplace</Button></Link>
         </div>
       </div>
     );
   }
 
+  const bannerImage = getStoreImage(store.name, store.image_url);
+
   return (
     <div className="min-h-screen mesh-bg pb-24 relative overflow-hidden">
-      {/* Particles */}
-      <div className="particle w-3 h-3 bg-primary/15 top-28 left-[8%]" style={{ animationDelay: '0s' }} />
-      <div className="particle w-2 h-2 bg-accent/10 top-60 right-[10%]" style={{ animationDelay: '2s' }} />
-
       {/* Header */}
       <header className="sticky top-0 z-50 bg-navy/70 dark:bg-secondary/70 backdrop-blur-2xl border-b border-navy/10 dark:border-white/10">
         <div className="container mx-auto px-4 flex items-center justify-between h-14">
@@ -107,46 +112,35 @@ const StorePage = () => {
         </div>
       </header>
 
-      {/* Store Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="py-10 md:py-16 relative"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 flex items-center justify-center text-3xl md:text-4xl shadow-xl">
-              {store.category === "Fast Food" ? "🍗" :
-               store.category === "Pizza" ? "🍕" :
-               store.category === "Coffee & Cafe" ? "☕" :
-               store.category === "Chinese Restaurant" ? "🥡" :
-               store.category === "Grill & Seafood" ? "🔥" : "🍽️"}
-            </div>
-            <div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">{store.name}</h1>
-              <p className="text-muted-foreground text-sm mt-1">{store.description}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant={store.is_open ? "default" : "secondary"} className="rounded-full">
-                  {store.is_open ? "Open Now" : "Closed"}
-                </Badge>
-                <span className="text-xs text-muted-foreground">{store.category}</span>
-              </div>
-            </div>
+      {/* Store Banner with image */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative">
+        {bannerImage ? (
+          <div className="h-48 md:h-64 overflow-hidden">
+            <img src={bannerImage} alt={store.name} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          </div>
+        ) : (
+          <div className="h-32 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
+        )}
+        <div className="container mx-auto px-4 relative z-10 -mt-12">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">{store.name}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{store.description}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant={store.is_open ? "default" : "secondary"} className="rounded-full">
+              {store.is_open ? "Open Now" : "Closed"}
+            </Badge>
+            <span className="text-xs text-muted-foreground">{store.category}</span>
           </div>
         </div>
       </motion.div>
 
       {/* Category nav */}
-      <div className="sticky top-14 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      <div className="sticky top-14 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 mt-4">
         <div className="container mx-auto px-4">
           <div className="flex gap-1 overflow-x-auto py-3 scrollbar-hide">
             {categories.map((cat) => (
-              <a
-                key={cat}
-                href={`#cat-${cat.replace(/\s+/g, "-")}`}
-                className="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium bg-card/80 backdrop-blur-sm border border-border/50 text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
-              >
+              <a key={cat} href={`#cat-${cat.replace(/\s+/g, "-")}`}
+                className="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium bg-card/80 border border-border/50 text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent transition-colors">
                 {cat}
               </a>
             ))}
@@ -154,12 +148,18 @@ const StorePage = () => {
         </div>
       </div>
 
-      {/* Products */}
+      {/* Products - visual grid */}
       <main className="container mx-auto px-4 py-6 relative z-10">
         {productsLoading ? (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-20 bg-card/80 rounded-xl animate-pulse border border-border/50" />
+              <div key={i} className="bg-card/80 rounded-2xl overflow-hidden animate-pulse border border-border/50">
+                <div className="h-32 bg-muted" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-muted rounded w-2/3" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -168,55 +168,49 @@ const StorePage = () => {
               <h2 className="font-display text-lg font-bold text-foreground mb-4 sticky top-[7.5rem] bg-background/80 backdrop-blur-xl py-2 z-30">
                 {cat}
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {products
-                  .filter((p) => (p.category || "Other") === cat)
-                  .map((product) => {
-                    const qty = getCartQuantity(product.id);
-                    return (
-                      <div
-                        key={product.id}
-                        className="flex items-center justify-between bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-4 hover:border-primary/20 hover:shadow-lg transition-all duration-300"
-                      >
-                        <div className="flex-1 min-w-0 mr-3">
-                          <h3 className="font-medium text-card-foreground text-sm truncate">{product.name}</h3>
-                          <p className="text-primary font-display font-bold text-sm mt-1">
-                            {formatPrice(product.price)} <span className="text-xs font-normal text-muted-foreground">GYD</span>
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1">
+              <div className="grid grid-cols-2 gap-3">
+                {products.filter((p) => (p.category || "Other") === cat).map((product) => {
+                  const qty = getCartQuantity(product.id);
+                  return (
+                    <div key={product.id} className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden hover:border-primary/20 hover:shadow-lg transition-all duration-300">
+                      {/* Product image */}
+                      <div className="relative h-32 bg-gradient-to-br from-muted/30 to-muted/10 flex items-center justify-center overflow-hidden">
+                        {product.image_url ? (
+                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-4xl opacity-30">🍽️</span>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{cat}</p>
+                        <h3 className="font-display font-bold text-sm text-card-foreground mt-0.5">{product.name}</h3>
+                        {product.description && (
+                          <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{product.description}</p>
+                        )}
+                        <p className="text-accent font-display font-bold text-sm mt-2">
+                          GYD{formatPrice(product.price)}
+                        </p>
+                        <div className="flex items-center justify-end mt-2">
                           {qty > 0 ? (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8 rounded-full"
-                                onClick={() => updateQuantity(product.id, qty - 1)}
-                              >
+                            <div className="flex items-center gap-1">
+                              <Button variant="outline" size="icon" className="h-7 w-7 rounded-full" onClick={() => updateQuantity(product.id, qty - 1)}>
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="w-8 text-center font-bold text-sm text-foreground">{qty}</span>
-                              <Button
-                                size="icon"
-                                className="h-8 w-8 rounded-full gradient-primary"
-                                onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: store.id, store_name: store.name })}
-                              >
+                              <span className="w-6 text-center font-bold text-xs text-foreground">{qty}</span>
+                              <Button size="icon" className="h-7 w-7 rounded-full gradient-primary" onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: store.id, store_name: store.name })}>
                                 <Plus className="h-3 w-3 text-primary-foreground" />
                               </Button>
-                            </>
+                            </div>
                           ) : (
-                            <Button
-                              size="icon"
-                              className="h-8 w-8 rounded-full gradient-primary"
-                              onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: store.id, store_name: store.name })}
-                            >
+                            <Button size="icon" className="h-8 w-8 rounded-full gradient-primary" onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: store.id, store_name: store.name })}>
                               <Plus className="h-3 w-3 text-primary-foreground" />
                             </Button>
                           )}
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           ))
@@ -228,7 +222,7 @@ const StorePage = () => {
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border/50 p-4">
           <div className="container mx-auto max-w-2xl">
             <CartSheet>
-              <Button className="w-full h-12 rounded-full text-base font-bold gradient-primary text-primary-foreground shadow-lg shadow-primary/20">
+              <Button className="w-full h-12 rounded-full text-base font-bold bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/20">
                 <ShoppingBag className="h-5 w-5 mr-2" />
                 View Cart ({itemCount}) — {formatPrice(total)} GYD
               </Button>

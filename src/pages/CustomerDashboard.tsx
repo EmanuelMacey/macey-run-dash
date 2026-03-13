@@ -36,10 +36,10 @@ const BIBLE_VERSES = [
 ];
 
 const ERRAND_SERVICES = [
-  { icon: ShoppingCart, title: "Supermarket Shopping", subtitle: "Massy, Bounty, DSL & more", color: "bg-accent/10 text-accent" },
-  { icon: Pill, title: "Pharmacy Errands", subtitle: "Mike's, Medicine Chest & more", color: "bg-destructive/10 text-destructive" },
-  { icon: FileCheck, title: "Government Services", subtitle: "GRA, Documents & more", color: "bg-primary/10 text-primary" },
-  { icon: Package, title: "Package Delivery", subtitle: "Send parcels anywhere in GT", color: "bg-green-500/10 text-green-600" },
+  { icon: ShoppingCart, title: "Supermarket Shopping", subtitle: "Massy, Bounty, DSL & more", color: "bg-accent/10 text-accent", id: "supermarket" },
+  { icon: Pill, title: "Pharmacy Errands", subtitle: "Mike's, Medicine Chest & more", color: "bg-destructive/10 text-destructive", id: "pharmacy" },
+  { icon: Landmark, title: "Government Services", subtitle: "GRA, NIS, GRO & more", color: "bg-primary/10 text-primary", id: "government" },
+  { icon: Package, title: "Package Delivery", subtitle: "Send parcels anywhere in GT", color: "bg-green-500/10 text-green-600", id: "package" },
 ];
 
 const CustomerDashboard = () => {

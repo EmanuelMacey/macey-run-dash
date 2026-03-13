@@ -44,6 +44,7 @@ const ERRAND_SERVICES = [
 
 const CustomerDashboard = () => {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState("order");
   const [targetStoreId, setTargetStoreId] = useState<string | null>(null);

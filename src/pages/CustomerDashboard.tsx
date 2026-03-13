@@ -187,24 +187,26 @@ const CustomerDashboard = () => {
             >
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-lg font-bold text-foreground">Errand Services</h2>
-                <button onClick={() => setShowAllErrands(!showAllErrands)} className="text-accent text-xs font-semibold">
-                  {showAllErrands ? "Show less" : "See all"}
+                <button onClick={() => navigate("/errands")} className="text-accent text-xs font-semibold">
+                  See all →
                 </button>
               </div>
               <div className="space-y-2">
                 {(showAllErrands ? ERRAND_SERVICES : ERRAND_SERVICES.slice(0, 3)).map((service, i) => (
-                  <NewOrderDialog key={i} onOrderCreated={() => setRefreshKey((k) => k + 1)}>
-                    <button className="w-full flex items-center gap-4 bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-4 hover:border-accent/30 hover:shadow-lg transition-all text-left group">
-                      <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center shrink-0`}>
-                        <service.icon className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-display font-bold text-sm text-card-foreground group-hover:text-accent transition-colors">{service.title}</h3>
-                        <p className="text-xs text-muted-foreground">{service.subtitle}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                    </button>
-                  </NewOrderDialog>
+                  <button
+                    key={i}
+                    onClick={() => navigate(`/errands/${service.id}`)}
+                    className="w-full flex items-center gap-4 bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-4 hover:border-accent/30 hover:shadow-lg transition-all text-left group"
+                  >
+                    <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center shrink-0`}>
+                      <service.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-bold text-sm text-card-foreground group-hover:text-accent transition-colors">{service.title}</h3>
+                      <p className="text-xs text-muted-foreground">{service.subtitle}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
                 ))}
               </div>
             </motion.div>

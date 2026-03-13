@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed, Gift, Users, Zap, TrendingUp, Clock, Star, ShoppingCart, Pill, FileCheck, ChevronRight, Search } from "lucide-react";
+import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed, Gift, Users, Zap, TrendingUp, Clock, Star, ShoppingCart, Pill, FileCheck, ChevronRight, Search, Landmark } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { unlockAudio } from "@/lib/notifications";
@@ -35,14 +36,15 @@ const BIBLE_VERSES = [
 ];
 
 const ERRAND_SERVICES = [
-  { icon: ShoppingCart, title: "Supermarket Shopping", subtitle: "Massy, Bounty, DSL & more", color: "bg-accent/10 text-accent" },
-  { icon: Pill, title: "Pharmacy Errands", subtitle: "Mike's, Medicine Chest & more", color: "bg-destructive/10 text-destructive" },
-  { icon: FileCheck, title: "Government Services", subtitle: "GRA, Documents & more", color: "bg-primary/10 text-primary" },
-  { icon: Package, title: "Package Delivery", subtitle: "Send parcels anywhere in GT", color: "bg-green-500/10 text-green-600" },
+  { icon: ShoppingCart, title: "Supermarket Shopping", subtitle: "Massy, Bounty, DSL & more", color: "bg-accent/10 text-accent", id: "supermarket" },
+  { icon: Pill, title: "Pharmacy Errands", subtitle: "Mike's, Medicine Chest & more", color: "bg-destructive/10 text-destructive", id: "pharmacy" },
+  { icon: Landmark, title: "Government Services", subtitle: "GRA, NIS, GRO & more", color: "bg-primary/10 text-primary", id: "government" },
+  { icon: Package, title: "Package Delivery", subtitle: "Send parcels anywhere in GT", color: "bg-green-500/10 text-green-600", id: "package" },
 ];
 
 const CustomerDashboard = () => {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState("order");
   const [targetStoreId, setTargetStoreId] = useState<string | null>(null);
@@ -172,7 +174,7 @@ const CustomerDashboard = () => {
               <button onClick={() => setActiveTab("marketplace")} className="px-4 py-2 rounded-full bg-card border border-border/50 text-muted-foreground text-xs font-semibold whitespace-nowrap flex items-center gap-1">
                 🍔 Restaurants
               </button>
-              <button className="px-4 py-2 rounded-full bg-card border border-border/50 text-muted-foreground text-xs font-semibold whitespace-nowrap flex items-center gap-1">
+              <button onClick={() => navigate("/errands")} className="px-4 py-2 rounded-full bg-card border border-border/50 text-muted-foreground text-xs font-semibold whitespace-nowrap flex items-center gap-1">
                 🏃 Errands
               </button>
             </div>
@@ -185,24 +187,26 @@ const CustomerDashboard = () => {
             >
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-lg font-bold text-foreground">Errand Services</h2>
-                <button onClick={() => setShowAllErrands(!showAllErrands)} className="text-accent text-xs font-semibold">
-                  {showAllErrands ? "Show less" : "See all"}
+                <button onClick={() => navigate("/errands")} className="text-accent text-xs font-semibold">
+                  See all →
                 </button>
               </div>
               <div className="space-y-2">
                 {(showAllErrands ? ERRAND_SERVICES : ERRAND_SERVICES.slice(0, 3)).map((service, i) => (
-                  <NewOrderDialog key={i} onOrderCreated={() => setRefreshKey((k) => k + 1)}>
-                    <button className="w-full flex items-center gap-4 bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-4 hover:border-accent/30 hover:shadow-lg transition-all text-left group">
-                      <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center shrink-0`}>
-                        <service.icon className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-display font-bold text-sm text-card-foreground group-hover:text-accent transition-colors">{service.title}</h3>
-                        <p className="text-xs text-muted-foreground">{service.subtitle}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                    </button>
-                  </NewOrderDialog>
+                  <button
+                    key={i}
+                    onClick={() => navigate(`/errands/${service.id}`)}
+                    className="w-full flex items-center gap-4 bg-card/90 backdrop-blur-sm border border-border/50 rounded-2xl p-4 hover:border-accent/30 hover:shadow-lg transition-all text-left group"
+                  >
+                    <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center shrink-0`}>
+                      <service.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-bold text-sm text-card-foreground group-hover:text-accent transition-colors">{service.title}</h3>
+                      <p className="text-xs text-muted-foreground">{service.subtitle}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  </button>
                 ))}
               </div>
             </motion.div>

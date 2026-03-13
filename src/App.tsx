@@ -25,6 +25,8 @@ import BusinessPlan from "./pages/BusinessPlan";
 import RiderAgreement from "./pages/RiderAgreement";
 import Portfolio from "./pages/Portfolio";
 import WomensDay from "./pages/WomensDay";
+import ErrandServices from "./pages/ErrandServices";
+import ErrandCategory from "./pages/ErrandCategory";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 

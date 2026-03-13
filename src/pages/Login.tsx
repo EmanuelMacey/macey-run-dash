@@ -153,18 +153,6 @@ const Login = () => {
               {submitting ? "Signing in..." : "Sign In"}
             </Button>
 
-            {/* Demo Login */}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setEmail("demo@maceyrunners.com");
-                setPassword("Demo123!");
-              }}
-              className="w-full rounded-full h-11 gap-2 border-accent/30 text-accent hover:bg-accent/5 font-semibold"
-            >
-              🚀 Try Demo Account
-            </Button>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>

@@ -63,6 +63,8 @@ const App = () => (
               <Route path="/portfolio" element={<Portfolio />} />
               <Route path="/womens-day" element={<WomensDay />} />
               <Route path="/store/:storeId" element={<StorePage />} />
+              <Route path="/errands" element={<ProtectedRoute allowedRoles={["customer"]}><ErrandServices /></ProtectedRoute>} />
+              <Route path="/errands/:categoryId" element={<ProtectedRoute allowedRoles={["customer"]}><ErrandCategory /></ProtectedRoute>} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

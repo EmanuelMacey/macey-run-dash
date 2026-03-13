@@ -174,7 +174,7 @@ const CustomerDashboard = () => {
               <button onClick={() => setActiveTab("marketplace")} className="px-4 py-2 rounded-full bg-card border border-border/50 text-muted-foreground text-xs font-semibold whitespace-nowrap flex items-center gap-1">
                 🍔 Restaurants
               </button>
-              <button className="px-4 py-2 rounded-full bg-card border border-border/50 text-muted-foreground text-xs font-semibold whitespace-nowrap flex items-center gap-1">
+              <button onClick={() => navigate("/errands")} className="px-4 py-2 rounded-full bg-card border border-border/50 text-muted-foreground text-xs font-semibold whitespace-nowrap flex items-center gap-1">
                 🏃 Errands
               </button>
             </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Navigation, Loader2, Paperclip, X, CheckCircle2, CreditCard, Phone } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Loader2, Paperclip, X, CheckCircle2, CreditCard, Phone, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,7 +54,6 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
       } else {
         setDropoffCoords({ lat: latitude, lng: longitude });
       }
-      // Reverse geocode
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
       const data = await res.json();
       const addr = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
@@ -67,17 +66,34 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
     }
   };
 
+  // Step labels for the new flow:
+  // 1: Errand Details (instructions)
+  // 2: Delivery Address (where should the result/receipt be delivered)
+  // 3: Schedule
+  // 4: Documents
+  // 5: Payment Method
+  // 6: Confirm
+
   const canNext = () => {
     switch (step) {
       case 1: return instructions.trim().length >= 3;
       case 2: return pickupAddress.trim().length >= 3 && dropoffAddress.trim().length >= 3;
       case 3: return schedule === "asap" || (scheduledDate && scheduledTime);
-      case 4: return true; // documents optional
-      case 5: return true; // payment selected
+      case 4: return true;
+      case 5: return true;
       case 6: return true;
       default: return false;
     }
   };
+
+  const STEP_LABELS = [
+    "Details",
+    "Locations",
+    "Schedule",
+    "Documents",
+    "Payment",
+    "Confirm",
+  ];
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -107,7 +123,6 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
 
       if (error) throw error;
 
-      // Upload documents
       if (documents.length > 0 && orderData) {
         for (const file of documents) {
           const ext = file.name.split(".").pop();
@@ -137,6 +152,7 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
         return (
           <div className="space-y-5">
             <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">📝 Errand Details</h3>
+            <p className="text-sm text-muted-foreground">Tell us what you need done for your <span className="font-semibold text-accent">{service.name}</span> errand.</p>
             <div>
               <Label className="font-semibold">Instructions <span className="text-destructive">*</span></Label>
               <Textarea
@@ -161,46 +177,62 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
       case 2:
         return (
           <div className="space-y-5">
-            <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">📍 Pickup & Drop-off Locations</h3>
-            <div className="space-y-3">
-              <div>
-                <Label className="font-semibold">Pickup Address <span className="text-destructive">*</span></Label>
-                <p className="text-xs text-muted-foreground">Delivery Location</p>
+            <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">📍 Pickup & Delivery Locations</h3>
+            <div className="space-y-4">
+              {/* Pickup: where the errand takes place */}
+              <div className="bg-card rounded-2xl border border-border/50 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <MapPin className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <Label className="font-semibold">Errand Location <span className="text-destructive">*</span></Label>
+                    <p className="text-xs text-muted-foreground">Where should the runner go to complete the errand?</p>
+                  </div>
+                </div>
                 <Input
                   value={pickupAddress}
                   onChange={e => setPickupAddress(e.target.value)}
-                  placeholder="Georgetown, Demerara-Mahaica, Guyana"
-                  className="mt-2 rounded-2xl bg-muted/30 border-border/50"
+                  placeholder="e.g. Massy Stores, Vlissengen Rd, Georgetown"
+                  className="rounded-2xl bg-muted/30 border-border/50"
                 />
                 {pickupCoords && (
-                  <div className="mt-2 p-2 rounded-xl bg-muted/30 text-xs text-muted-foreground">
-                    📍 Coordinates: <span className="text-accent font-mono">{pickupCoords.lat.toFixed(6)}, {pickupCoords.lng.toFixed(6)}</span>
+                  <div className="p-2 rounded-xl bg-muted/30 text-xs text-muted-foreground">
+                    📍 <span className="text-accent font-mono">{pickupCoords.lat.toFixed(6)}, {pickupCoords.lng.toFixed(6)}</span>
                   </div>
                 )}
                 <Button
                   type="button"
                   onClick={() => useCurrentLocation("pickup")}
                   disabled={locatingPickup}
-                  className="w-full mt-2 rounded-2xl bg-accent hover:bg-accent/90 text-accent-foreground font-bold"
+                  variant="outline"
+                  className="w-full rounded-2xl border-primary/30 text-primary font-semibold"
                 >
                   {locatingPickup ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Navigation className="h-4 w-4 mr-2" />}
-                  📍 Use Current Location
+                  Use Current Location
                 </Button>
-                <p className="text-xs text-muted-foreground mt-2">💡 Tip: Pin your exact location for accurate delivery</p>
               </div>
 
-              <div className="pt-3">
-                <Label className="font-semibold">Drop-off Address <span className="text-destructive">*</span></Label>
-                <p className="text-xs text-muted-foreground">Delivery Location</p>
+              {/* Dropoff: where items/receipts should be delivered */}
+              <div className="bg-card rounded-2xl border border-border/50 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
+                    <Navigation className="h-4 w-4 text-accent" />
+                  </div>
+                  <div>
+                    <Label className="font-semibold">Delivery Address <span className="text-destructive">*</span></Label>
+                    <p className="text-xs text-muted-foreground">Where should the items or receipt be delivered to you?</p>
+                  </div>
+                </div>
                 <Input
                   value={dropoffAddress}
                   onChange={e => setDropoffAddress(e.target.value)}
-                  placeholder="Enter drop-off address"
-                  className="mt-2 rounded-2xl bg-muted/30 border-border/50"
+                  placeholder="Your home or office address"
+                  className="rounded-2xl bg-muted/30 border-border/50"
                 />
                 {dropoffCoords && (
-                  <div className="mt-2 p-2 rounded-xl bg-muted/30 text-xs text-muted-foreground">
-                    📍 Coordinates: <span className="text-accent font-mono">{dropoffCoords.lat.toFixed(6)}, {dropoffCoords.lng.toFixed(6)}</span>
+                  <div className="p-2 rounded-xl bg-muted/30 text-xs text-muted-foreground">
+                    📍 <span className="text-accent font-mono">{dropoffCoords.lat.toFixed(6)}, {dropoffCoords.lng.toFixed(6)}</span>
                   </div>
                 )}
                 <Button
@@ -208,10 +240,10 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                   onClick={() => useCurrentLocation("dropoff")}
                   disabled={locatingDropoff}
                   variant="outline"
-                  className="w-full mt-2 rounded-2xl border-accent/30 text-accent font-bold"
+                  className="w-full rounded-2xl border-accent/30 text-accent font-semibold"
                 >
                   {locatingDropoff ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Navigation className="h-4 w-4 mr-2" />}
-                  📍 Use Current Location
+                  Use Current Location
                 </Button>
               </div>
             </div>
@@ -221,7 +253,10 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
       case 3:
         return (
           <div className="space-y-5">
-            <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">⏰ Schedule</h3>
+            <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+              <CalendarClock className="h-5 w-5 text-accent" /> Schedule
+            </h3>
+            <p className="text-sm text-muted-foreground">When would you like this errand to be completed?</p>
             <div className="space-y-3">
               <button
                 onClick={() => setSchedule("asap")}
@@ -236,7 +271,7 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                     {schedule === "asap" && <div className="w-2.5 h-2.5 rounded-full bg-accent" />}
                   </div>
                   <div>
-                    <p className="font-display font-bold text-foreground">ASAP</p>
+                    <p className="font-display font-bold text-foreground">ASAP ⚡</p>
                     <p className="text-muted-foreground text-sm">Start this errand as soon as possible</p>
                   </div>
                 </div>
@@ -255,7 +290,7 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                     {schedule === "later" && <div className="w-2.5 h-2.5 rounded-full bg-accent" />}
                   </div>
                   <div>
-                    <p className="font-display font-bold text-foreground">Schedule for Later</p>
+                    <p className="font-display font-bold text-foreground">Schedule for Later 📅</p>
                     <p className="text-muted-foreground text-sm">Choose a specific date and time</p>
                   </div>
                 </div>
@@ -279,7 +314,7 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
         return (
           <div className="space-y-5">
             <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">📎 Documents (Optional)</h3>
-            <p className="text-muted-foreground text-sm">Upload any relevant documents (PDF, images, Word). Max 10MB per file.</p>
+            <p className="text-muted-foreground text-sm">Upload any relevant documents — receipts, forms, prescriptions, etc. Max 10MB per file.</p>
 
             <label className="flex items-center justify-center border-2 border-dashed border-accent/40 rounded-2xl p-6 cursor-pointer hover:border-accent transition-colors">
               <span className="text-accent font-semibold">+ Add Document</span>
@@ -367,12 +402,14 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
               </div>
             )}
 
-            <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-start gap-3">
-              <span className="text-lg">ℹ️</span>
-              <p className="text-muted-foreground text-sm">
-                Please have the exact amount ready for the driver. Additional payment methods will be available soon.
-              </p>
-            </div>
+            {paymentMethod === "mmg" && (
+              <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-start gap-3">
+                <span className="text-lg">ℹ️</span>
+                <p className="text-muted-foreground text-sm">
+                  After confirming your order, you'll be shown MMG payment instructions and a form to submit your Transaction ID.
+                </p>
+              </div>
+            )}
           </div>
         );
 
@@ -385,9 +422,9 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
               <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
                 <span className="text-muted-foreground font-medium italic">Service:</span>
                 <span className="text-foreground font-semibold">{service.name}</span>
-                <span className="text-muted-foreground font-medium italic">Pickup:</span>
+                <span className="text-muted-foreground font-medium italic">Errand Location:</span>
                 <span className="text-foreground">{pickupAddress}</span>
-                <span className="text-muted-foreground font-medium italic">Drop-off:</span>
+                <span className="text-muted-foreground font-medium italic">Deliver To:</span>
                 <span className="text-foreground">{dropoffAddress}</span>
                 <span className="text-muted-foreground font-medium italic">Schedule:</span>
                 <span className="text-foreground">{schedule === "asap" ? "ASAP" : `${scheduledDate} ${scheduledTime}`}</span>
@@ -401,16 +438,8 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
             <div className="bg-card rounded-2xl border-2 border-accent/30 p-5 space-y-2">
               <h4 className="font-display font-bold text-foreground">Price Breakdown</h4>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Base Price:</span>
+                <span className="text-muted-foreground">Errand Fee (Fixed):</span>
                 <span className="text-foreground">GYD ${service.price.toLocaleString()}.00</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Service Fee:</span>
-                <span className="text-foreground">GYD $0.00</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Distance Fee:</span>
-                <span className="text-foreground">GYD $0.00</span>
               </div>
               <div className="border-t border-border/50 pt-2 mt-2 flex justify-between">
                 <span className="font-display font-bold text-foreground">Total:</span>
@@ -449,7 +478,6 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top bar */}
       <header className="bg-card border-b border-border/50 safe-top">
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
           <button onClick={step === 1 ? onBack : () => setStep(s => s - 1)} className="text-accent font-semibold text-sm flex items-center gap-1">
@@ -457,18 +485,17 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
           </button>
           <h2 className="font-display font-bold text-foreground text-base truncate flex-1">{service.name}</h2>
         </div>
-        {/* Progress */}
+        {/* Progress with labels */}
         <div className="container mx-auto px-4 pb-3">
-          <p className="text-accent text-xs font-semibold text-center mb-2">Step {step} of {TOTAL_STEPS}</p>
+          <p className="text-accent text-xs font-semibold text-center mb-2">Step {step}: {STEP_LABELS[step - 1]}</p>
           <div className="flex gap-1.5">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < step ? "bg-accent" : "bg-border"}`} />
+              <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < step ? "bg-accent" : "bg-border"}`} />
             ))}
           </div>
         </div>
       </header>
 
-      {/* Content */}
       <main className="flex-1 container mx-auto px-4 py-6 max-w-2xl overflow-y-auto">
         <AnimatePresence mode="wait">
           <motion.div
@@ -483,7 +510,6 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
         </AnimatePresence>
       </main>
 
-      {/* Bottom buttons */}
       <footer className="bg-card border-t border-border/50 safe-bottom">
         <div className="container mx-auto px-4 py-3 max-w-2xl flex gap-3">
           <Button
@@ -499,7 +525,7 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
               disabled={!canNext()}
               className="flex-1 h-12 rounded-2xl font-bold text-base bg-accent hover:bg-accent/90 text-accent-foreground"
             >
-              Next
+              Next →
             </Button>
           ) : (
             <Button

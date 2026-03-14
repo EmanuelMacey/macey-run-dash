@@ -28,11 +28,26 @@ const GREETINGS = () => {
 };
 
 const BIBLE_VERSES = [
-  "Be still, and know that I am God. - Psalm 46:10",
-  "The Lord is my shepherd; I shall not want. - Psalm 23:1",
-  "I can do all things through Christ. - Philippians 4:13",
-  "Trust in the Lord with all your heart. - Proverbs 3:5",
-  "For God so loved the world. - John 3:16",
+  "Be still, and know that I am God. — Psalm 46:10",
+  "The Lord is my shepherd; I shall not want. — Psalm 23:1",
+  "I can do all things through Christ who strengthens me. — Philippians 4:13",
+  "Trust in the Lord with all your heart. — Proverbs 3:5",
+  "For God so loved the world that He gave His only Son. — John 3:16",
+  "The joy of the Lord is your strength. — Nehemiah 8:10",
+  "Cast all your anxiety on Him because He cares for you. — 1 Peter 5:7",
+  "But those who hope in the Lord will renew their strength. — Isaiah 40:31",
+  "Do not be anxious about anything, but in every situation, by prayer present your requests to God. — Philippians 4:6",
+  "He has made everything beautiful in its time. — Ecclesiastes 3:11",
+  "God is our refuge and strength, an ever-present help in trouble. — Psalm 46:1",
+  "Commit to the Lord whatever you do, and He will establish your plans. — Proverbs 16:3",
+  "The Lord will fight for you; you need only to be still. — Exodus 14:14",
+  "Every good and perfect gift is from above. — James 1:17",
+  "With God all things are possible. — Matthew 19:26",
+  "Weeping may stay for the night, but rejoicing comes in the morning. — Psalm 30:5",
+  "You are fearfully and wonderfully made. — Psalm 139:14",
+  "Start where you are. Use what you have. Do what you can. — Arthur Ashe",
+  "Believe you can and you're halfway there. — Theodore Roosevelt",
+  "Your hustle today is your success tomorrow. Keep pushing! 💪",
 ];
 
 const ERRAND_SERVICES = [

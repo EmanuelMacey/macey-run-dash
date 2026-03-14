@@ -186,9 +186,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
         setCreatedOrderId(orderData.id);
         setCreatedOrderPrice(grandTotal);
         setMmgStep(true);
-        clearCart();
-        // Don't call onOrderPlaced here — it closes the sheet which dismisses this dialog.
-        // It will be called when MMG payment completes or user closes the MMG dialog.
+        // Don't clearCart or call onOrderPlaced here — defer to MMG completion
       } else {
         const savedItems = items.map((item) => ({
           id: item.id,

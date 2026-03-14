@@ -215,7 +215,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   // MMG Payment Step
   if (mmgStep && createdOrderId) {
     return (
-      <Dialog open={open} onOpenChange={(v) => { if (!v) { resetState(); onOrderPlaced?.(); } onOpenChange(v); }}>
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { resetState(); clearCart(); onOrderPlaced?.(); } onOpenChange(v); }}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Complete MMG Payment</DialogTitle>
@@ -223,8 +223,8 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           <MMGPaymentPage
             orderId={createdOrderId}
             amount={createdOrderPrice}
-            onComplete={() => { resetState(); onOrderPlaced?.(); onOpenChange(false); }}
-            onCancel={() => { resetState(); onOrderPlaced?.(); onOpenChange(false); }}
+            onComplete={() => { resetState(); clearCart(); onOrderPlaced?.(); onOpenChange(false); }}
+            onCancel={() => { resetState(); clearCart(); onOrderPlaced?.(); onOpenChange(false); }}
           />
         </DialogContent>
       </Dialog>

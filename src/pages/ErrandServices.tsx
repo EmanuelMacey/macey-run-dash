@@ -14,7 +14,8 @@ const ERRAND_CATEGORIES = [
     title: "Supermarket Shopping",
     subtitle: "We'll shop for you at any supermarket",
     locations: "Massy Stores • Bounty • DSL • Survival • Nigel's • Chow's • Little Asia & more",
-    rate: 2000,
+    rate: 1200,
+    tier: "standard",
     color: "from-accent to-accent/80",
   },
   {
@@ -24,7 +25,8 @@ const ERRAND_CATEGORIES = [
     title: "Pharmacy Errands",
     subtitle: "Pick up prescriptions & pharmacy items",
     locations: "Mike's Pharmacy • Medicine Chest • Smart Aid 24hr • Dave's • Essential Care & more",
-    rate: 2000,
+    rate: 1200,
+    tier: "standard",
     color: "from-destructive/80 to-destructive/60",
   },
   {
@@ -35,6 +37,7 @@ const ERRAND_CATEGORIES = [
     subtitle: "GRA, NIS, GRO, Police services",
     locations: "GRA • NIS • GRO • Police Stations • Courts & more",
     rate: 1500,
+    tier: "premium",
     color: "from-primary to-primary/80",
   },
   {
@@ -44,7 +47,8 @@ const ERRAND_CATEGORIES = [
     title: "Business Errands",
     subtitle: "Invoice payments, document delivery, corporate tasks",
     locations: "Banks • Offices • Business centres & more",
-    rate: 2000,
+    rate: 1500,
+    tier: "premium",
     color: "from-secondary to-secondary/80",
   },
   {
@@ -54,7 +58,8 @@ const ERRAND_CATEGORIES = [
     title: "Financial / Transactions",
     subtitle: "Bill payments, bank errands, MMG transactions",
     locations: "Banks • GPL • GWI • Bill pay centres & more",
-    rate: 1500,
+    rate: 1200,
+    tier: "standard",
     color: "from-accent to-warning",
   },
   {
@@ -64,7 +69,8 @@ const ERRAND_CATEGORIES = [
     title: "Mail / Post Office",
     subtitle: "DHL, FedEx, Post Office, Bond clearance",
     locations: "DHL • FedEx • Post Office • Customs & more",
-    rate: 2000,
+    rate: 1500,
+    tier: "premium",
     color: "from-primary/80 to-accent/80",
   },
   {
@@ -74,7 +80,8 @@ const ERRAND_CATEGORIES = [
     title: "Medical Errands",
     subtitle: "Prescription pickup, pharmacy delivery, lab results",
     locations: "Hospitals • Clinics • Labs • Pharmacies & more",
-    rate: 2000,
+    rate: 1500,
+    tier: "premium",
     color: "from-success to-success/80",
   },
   {
@@ -84,7 +91,8 @@ const ERRAND_CATEGORIES = [
     title: "Shopping Errands",
     subtitle: "Custom purchases, grocery pickup, market runs",
     locations: "Markets • Stores • Shops & more",
-    rate: 2000,
+    rate: 1200,
+    tier: "standard",
     color: "from-accent/90 to-accent/60",
   },
   {
@@ -94,7 +102,8 @@ const ERRAND_CATEGORIES = [
     title: "Package Delivery",
     subtitle: "Send parcels anywhere in Georgetown",
     locations: "Door to door delivery across GT",
-    rate: 1000,
+    rate: 1200,
+    tier: "standard",
     color: "from-primary/70 to-accent/70",
   },
   {
@@ -105,10 +114,10 @@ const ERRAND_CATEGORIES = [
     subtitle: "Describe your custom errand request",
     locations: "Anything you need, we'll handle it",
     rate: 1500,
+    tier: "premium",
     color: "from-accent to-primary",
   },
 ];
-
 const ErrandServices = () => {
   const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);

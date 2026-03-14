@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 import deliveryRider from "@/assets/delivery-rider.png";
 import { Zap, Smartphone, Store, ShoppingBag, MapPin, Truck, ArrowRight, CheckCircle2 } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   const { user, role, loading } = useAuth();
@@ -50,6 +51,7 @@ const Index = () => {
           <span className="font-display font-bold text-xl text-foreground tracking-tight">MaceyRunners</span>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link to="/login">
             <Button variant="ghost" className="rounded-full text-sm font-semibold text-muted-foreground hover:text-foreground">
               Login

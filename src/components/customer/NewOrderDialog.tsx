@@ -34,11 +34,13 @@ const orderSchema = z.object({
 type OrderFormValues = z.infer<typeof orderSchema>;
 
 // Pricing constants
-const BASE_FEE = 300;
-const PER_KM_RATE = 150;
-const MIN_PRICES = { delivery: 700, errand: 1000 };
+const BASE_FEE = 500;
+const PER_KM_RATE = 250;
+const MIN_DELIVERY_PRICE = 700;
 const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
+const STANDARD_ERRAND_PRICE = 1200;
+const PREMIUM_ERRAND_PRICE = 1500;
 
 // Haversine distance in km
 const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -95,10 +97,17 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const orderType = form.watch("order_type");
   const pickupAddress = form.watch("pickup_address");
   const dropoffAddress = form.watch("dropoff_address");
-  const minPrice = MIN_PRICES[orderType];
+  const isErrand = orderType === "errand";
+  const minPrice = isErrand ? STANDARD_ERRAND_PRICE : MIN_DELIVERY_PRICE;
 
-  // Calculate price based on distance
+  // Calculate price based on distance (delivery only); errands are fixed
   useEffect(() => {
+    if (isErrand) {
+      setCalculatedPrice(STANDARD_ERRAND_PRICE);
+      setDistanceKm(null);
+      return;
+    }
+
     if (!pickupAddress?.trim() || !dropoffAddress?.trim()) {
       setCalculatedPrice(null);
       setDistanceKm(null);
@@ -117,14 +126,14 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
           const dist = haversineKm(pickupCoords.lat, pickupCoords.lon, dropCoords.lat, dropCoords.lon);
           setDistanceKm(Math.round(dist * 10) / 10);
           const fee = Math.round(BASE_FEE + dist * PER_KM_RATE);
-          const clampedFee = Math.max(minPrice, Math.min(MAX_FEE, fee));
+          const clampedFee = Math.max(MIN_DELIVERY_PRICE, Math.min(MAX_FEE, fee));
           setCalculatedPrice(clampedFee);
         } else {
           setDistanceKm(null);
-          setCalculatedPrice(minPrice);
+          setCalculatedPrice(MIN_DELIVERY_PRICE);
         }
       } catch {
-        setCalculatedPrice(minPrice);
+        setCalculatedPrice(MIN_DELIVERY_PRICE);
         setDistanceKm(null);
       } finally {
         setCalculatingFee(false);
@@ -132,7 +141,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [pickupAddress, dropoffAddress, minPrice]);
+  }, [pickupAddress, dropoffAddress, isErrand]);
 
   const deliveryPrice = calculatedPrice ?? minPrice;
   const totalBeforeDiscount = deliveryPrice + SERVICE_FEE;

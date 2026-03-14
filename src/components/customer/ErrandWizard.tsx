@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Navigation, Loader2, Paperclip, X, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Loader2, Paperclip, X, CheckCircle2, CreditCard, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import MMGPaymentPage from "./MMGPaymentPage";
 
 const TOTAL_STEPS = 6;
 
@@ -36,7 +37,9 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [documents, setDocuments] = useState<File[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<"cash">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "mmg">("mmg");
+  const [mmgStep, setMmgStep] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   const useCurrentLocation = async (target: "pickup" | "dropoff") => {
     const setLocating = target === "pickup" ? setLocatingPickup : setLocatingDropoff;
@@ -87,18 +90,20 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
 
       const description = `[${category.title}] ${service.name}\n\nInstructions: ${instructions}${notes ? `\n\nNotes: ${notes}` : ""}`;
 
+      const isMMG = paymentMethod === "mmg";
+
       const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: "errand" as const,
         pickup_address: pickupAddress,
         dropoff_address: dropoffAddress,
         description,
-        payment_method: paymentMethod,
+        payment_method: isMMG ? "mmg" : paymentMethod,
         price: service.price,
         status: "pending" as const,
         payment_status: "pending" as const,
         scheduled_for: scheduledFor,
-      }).select("id").single();
+      } as any).select("id").single();
 
       if (error) throw error;
 
@@ -111,8 +116,14 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
         }
       }
 
-      toast.success("Errand submitted successfully! 🎉");
-      onComplete();
+      if (isMMG && orderData) {
+        setCreatedOrderId(orderData.id);
+        setMmgStep(true);
+        toast.success("Errand created! Please complete MMG payment.");
+      } else {
+        toast.success("Errand submitted successfully! 🎉");
+        onComplete();
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to submit errand");
     } finally {
@@ -309,6 +320,24 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
             <p className="text-muted-foreground text-sm">Select how you'd like to pay for this errand</p>
 
             <button
+              onClick={() => setPaymentMethod("mmg")}
+              className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
+                paymentMethod === "mmg" ? "border-accent bg-accent/5" : "border-border/50 bg-card"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-display font-bold text-foreground">MMG Pre-Payment</p>
+                  <p className="text-muted-foreground text-sm">Pay via MMG before dispatch (required)</p>
+                </div>
+                {paymentMethod === "mmg" && <CheckCircle2 className="h-6 w-6 text-accent" />}
+              </div>
+            </button>
+
+            <button
               onClick={() => setPaymentMethod("cash")}
               className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
                 paymentMethod === "cash" ? "border-accent bg-accent/5" : "border-border/50 bg-card"
@@ -318,11 +347,25 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                 <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center text-2xl">💵</div>
                 <div className="flex-1">
                   <p className="font-display font-bold text-foreground">Cash on Delivery</p>
-                  <p className="text-muted-foreground text-sm">Pay with cash when your order is delivered</p>
+                  <p className="text-muted-foreground text-sm">Requires admin approval before dispatch</p>
                 </div>
                 {paymentMethod === "cash" && <CheckCircle2 className="h-6 w-6 text-accent" />}
               </div>
             </button>
+
+            {paymentMethod === "cash" && (
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
+                <span className="text-lg">⚠️</span>
+                <div>
+                  <p className="text-foreground text-sm font-semibold">Cash requires approval</p>
+                  <p className="text-muted-foreground text-sm">
+                    Contact support at{" "}
+                    <a href="tel:+5927219769" className="text-primary underline font-semibold">+592 721-9769</a>{" "}
+                    to arrange cash payment before submitting.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-start gap-3">
               <span className="text-lg">ℹ️</span>
@@ -351,7 +394,7 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                 <span className="text-muted-foreground font-medium italic">Documents:</span>
                 <span className="text-foreground">{documents.length} file(s)</span>
                 <span className="text-muted-foreground font-medium italic">Payment:</span>
-                <span className="text-foreground">Cash</span>
+                <span className="text-foreground">{paymentMethod === "mmg" ? "MMG Pre-Payment" : "Cash (Admin Approval)"}</span>
               </div>
             </div>
 
@@ -383,6 +426,26 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
         );
     }
   };
+
+  if (mmgStep && createdOrderId) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="bg-card border-b border-border/50 safe-top">
+          <div className="container mx-auto px-4 py-3">
+            <h2 className="font-display font-bold text-foreground text-base">Complete MMG Payment</h2>
+          </div>
+        </header>
+        <main className="flex-1 container mx-auto px-4 py-6 max-w-2xl overflow-y-auto">
+          <MMGPaymentPage
+            orderId={createdOrderId}
+            amount={service.price}
+            onComplete={onComplete}
+            onCancel={onComplete}
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -312,6 +312,11 @@ const CustomerDashboard = () => {
           <TabsContent value="orders" className="animate-fade-in space-y-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-display text-xl font-bold text-foreground">My Orders</h2>
+              <NewOrderDialog onOrderCreated={() => setRefreshKey(k => k + 1)}>
+                <Button size="sm" className="rounded-full text-xs gap-1">
+                  <Package className="h-3.5 w-3.5" /> New Order
+                </Button>
+              </NewOrderDialog>
             </div>
 
             {/* Order type filter tabs */}

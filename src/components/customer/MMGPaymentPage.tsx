@@ -173,55 +173,54 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
       </div>
 
       {/* Payment Card */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-accent/5 border border-primary/20 p-6 space-y-5">
-        {/* Decorative circle */}
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5" />
-
-        <div className="relative space-y-1 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3">
-            <CreditCard className="h-7 w-7 text-primary" />
+      <div className="rounded-xl bg-card border border-border/60 p-4 space-y-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <CreditCard className="h-4 w-4 text-primary" />
           </div>
-          <h3 className="font-display text-xl font-bold text-foreground">MMG Payment</h3>
-          <p className="text-xs text-muted-foreground">Send payment to the details below</p>
+          <div>
+            <h3 className="text-sm font-bold text-foreground">MMG Payment</h3>
+            <p className="text-[11px] text-muted-foreground">Send payment to the details below</p>
+          </div>
         </div>
 
-        <div className="space-y-3 relative">
-          <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border/50">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Account Name</p>
-            <p className="font-display font-bold text-foreground text-lg">{settings.account_name}</p>
+        <div className="space-y-2">
+          <div className="bg-muted/30 rounded-lg px-3 py-2.5 border border-border/40">
+            <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Account Name</p>
+            <p className="font-semibold text-foreground text-sm">{settings.account_name}</p>
           </div>
 
-          <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border/50 flex items-center justify-between">
+          <div className="bg-muted/30 rounded-lg px-3 py-2.5 border border-border/40 flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">MMG Number</p>
-              <p className="font-display font-bold text-primary text-2xl tracking-wide">{settings.mmg_number}</p>
+              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">MMG Number</p>
+              <p className="font-bold text-primary text-lg tracking-wide">{settings.mmg_number}</p>
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl border-primary/30 hover:bg-primary/10"
+              className="h-7 text-xs rounded-lg border-primary/30 hover:bg-primary/10"
               onClick={() => {
                 navigator.clipboard.writeText(settings.mmg_number);
                 toast.success("MMG number copied!");
               }}
             >
-              <Copy className="h-4 w-4 mr-1" /> Copy
+              <Copy className="h-3 w-3 mr-1" /> Copy
             </Button>
           </div>
 
-          <div className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-xl p-4 border border-accent/20">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Amount to Pay</p>
-            <p className="font-display font-bold text-3xl text-foreground">
-              ${amount.toLocaleString()} <span className="text-base font-normal text-muted-foreground">GYD</span>
+          <div className="bg-accent/5 rounded-lg px-3 py-2.5 border border-accent/20">
+            <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Amount to Pay</p>
+            <p className="font-bold text-xl text-foreground">
+              ${amount.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">GYD</span>
             </p>
           </div>
         </div>
 
-        <div className="relative bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-border/30">
-          <h4 className="text-xs font-bold text-foreground mb-2 flex items-center gap-1.5">
+        <div className="bg-muted/20 rounded-lg px-3 py-2.5 border border-border/30">
+          <h4 className="text-[11px] font-bold text-foreground mb-1.5 flex items-center gap-1">
             <ArrowRight className="h-3 w-3 text-accent" /> How to Pay
           </h4>
-          <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside leading-relaxed">
+          <ol className="text-[11px] text-muted-foreground space-y-1 list-decimal list-inside leading-relaxed">
             <li>Open your <span className="font-semibold text-foreground">MMG wallet</span> app</li>
             <li>Send <span className="font-semibold text-accent">${amount.toLocaleString()} GYD</span> to <span className="font-semibold text-primary">{settings.mmg_number}</span></li>
             <li>Copy the <span className="font-semibold text-foreground">Transaction ID</span> from MMG</li>

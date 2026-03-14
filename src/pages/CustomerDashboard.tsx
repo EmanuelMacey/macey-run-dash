@@ -312,6 +312,30 @@ const CustomerDashboard = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="orders" className="animate-fade-in space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-display text-xl font-bold text-foreground">My Orders</h2>
+            </div>
+
+            {/* Order type filter tabs */}
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="w-full grid grid-cols-3 h-10 rounded-xl bg-muted/50 p-1">
+                <TabsTrigger value="all" className="rounded-lg text-xs font-semibold">All Orders</TabsTrigger>
+                <TabsTrigger value="delivery" className="rounded-lg text-xs font-semibold">🚗 Deliveries</TabsTrigger>
+                <TabsTrigger value="errand" className="rounded-lg text-xs font-semibold">🏃 Errands</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all">
+                <OrdersList refreshKey={refreshKey} />
+              </TabsContent>
+              <TabsContent value="delivery">
+                <OrdersList refreshKey={refreshKey} filterType="delivery" />
+              </TabsContent>
+              <TabsContent value="errand">
+                <OrdersList refreshKey={refreshKey} filterType="errand" />
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
           <TabsContent value="marketplace" className="animate-fade-in">
             <MarketplaceBrowser initialStoreId={targetStoreId} initialProductId={targetProductId} onStoreOpened={() => { setTargetStoreId(null); setTargetProductId(null); }} />
           </TabsContent>

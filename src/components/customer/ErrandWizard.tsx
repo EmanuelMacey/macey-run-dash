@@ -394,7 +394,7 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                 <span className="text-muted-foreground font-medium italic">Documents:</span>
                 <span className="text-foreground">{documents.length} file(s)</span>
                 <span className="text-muted-foreground font-medium italic">Payment:</span>
-                <span className="text-foreground">Cash</span>
+                <span className="text-foreground">{paymentMethod === "mmg" ? "MMG Pre-Payment" : "Cash (Admin Approval)"}</span>
               </div>
             </div>
 

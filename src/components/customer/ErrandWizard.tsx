@@ -90,18 +90,20 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
 
       const description = `[${category.title}] ${service.name}\n\nInstructions: ${instructions}${notes ? `\n\nNotes: ${notes}` : ""}`;
 
+      const isMMG = paymentMethod === "mmg";
+
       const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: "errand" as const,
         pickup_address: pickupAddress,
         dropoff_address: dropoffAddress,
         description,
-        payment_method: paymentMethod,
+        payment_method: isMMG ? "mmg" : paymentMethod,
         price: service.price,
         status: "pending" as const,
         payment_status: "pending" as const,
         scheduled_for: scheduledFor,
-      }).select("id").single();
+      } as any).select("id").single();
 
       if (error) throw error;
 
@@ -114,8 +116,14 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
         }
       }
 
-      toast.success("Errand submitted successfully! 🎉");
-      onComplete();
+      if (isMMG && orderData) {
+        setCreatedOrderId(orderData.id);
+        setMmgStep(true);
+        toast.success("Errand created! Please complete MMG payment.");
+      } else {
+        toast.success("Errand submitted successfully! 🎉");
+        onComplete();
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to submit errand");
     } finally {

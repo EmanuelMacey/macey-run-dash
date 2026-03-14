@@ -556,6 +556,83 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_settings: {
+        Row: {
+          account_name: string
+          id: string
+          mmg_number: string
+          payment_instructions: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          account_name?: string
+          id?: string
+          mmg_number?: string
+          payment_instructions?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          account_name?: string
+          id?: string
+          mmg_number?: string
+          payment_instructions?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      payment_verifications: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          mmg_number_used: string
+          order_id: string
+          screenshot_url: string | null
+          status: string
+          transaction_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          mmg_number_used: string
+          order_id: string
+          screenshot_url?: string | null
+          status?: string
+          transaction_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          mmg_number_used?: string
+          order_id?: string
+          screenshot_url?: string | null
+          status?: string
+          transaction_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_verifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -810,6 +887,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_cancel_unverified_mmg_orders: { Args: never; Returns: undefined }
       driver_update_order_status: {
         Args: {
           p_new_status: Database["public"]["Enums"]["order_status"]

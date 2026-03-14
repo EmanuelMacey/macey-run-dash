@@ -34,11 +34,13 @@ const orderSchema = z.object({
 type OrderFormValues = z.infer<typeof orderSchema>;
 
 // Pricing constants
-const BASE_FEE = 300;
-const PER_KM_RATE = 150;
-const MIN_PRICES = { delivery: 700, errand: 1000 };
+const BASE_FEE = 500;
+const PER_KM_RATE = 250;
+const MIN_DELIVERY_PRICE = 700;
 const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
+const STANDARD_ERRAND_PRICE = 1200;
+const PREMIUM_ERRAND_PRICE = 1500;
 
 // Haversine distance in km
 const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {

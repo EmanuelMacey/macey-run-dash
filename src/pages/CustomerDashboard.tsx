@@ -307,9 +307,6 @@ const CustomerDashboard = () => {
               </motion.div>
             )}
 
-            <div>
-              <OrdersList refreshKey={refreshKey} />
-            </div>
           </TabsContent>
 
           <TabsContent value="orders" className="animate-fade-in space-y-4">

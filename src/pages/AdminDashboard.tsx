@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, CreditCard } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -17,6 +17,7 @@ import AdminTestimonials from "@/components/admin/AdminTestimonials";
 import AdminInvoices from "@/components/admin/AdminInvoices";
 import AdminPromotions from "@/components/admin/AdminPromotions";
 import AdminLeadership from "@/components/admin/AdminLeadership";
+import AdminPaymentVerifications from "@/components/admin/AdminPaymentVerifications";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
@@ -51,6 +52,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="analytics" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <BarChart3 className="h-4 w-4" /> <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
+            <TabsTrigger value="payments" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <CreditCard className="h-4 w-4" /> <span className="hidden sm:inline">Payments</span>
+            </TabsTrigger>
             <TabsTrigger value="orders" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <ShoppingBag className="h-4 w-4" /> <span className="hidden sm:inline">Orders</span>
             </TabsTrigger>
@@ -84,6 +88,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
+          <TabsContent value="payments"><AdminPaymentVerifications /></TabsContent>
           <TabsContent value="orders"><AdminOrders /></TabsContent>
           <TabsContent value="invoices"><AdminInvoices /></TabsContent>
           <TabsContent value="stores"><AdminStores /></TabsContent>

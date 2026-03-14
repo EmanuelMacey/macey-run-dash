@@ -9,9 +9,9 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 const REDEEM_TIERS = [
-  { points: 50, discount: 500, label: "$500 GYD off", emoji: "🎁" },
-  { points: 100, discount: 1000, label: "$1,000 GYD off", emoji: "🎉" },
-  { points: 200, discount: 2500, label: "$2,500 GYD off", emoji: "💎" },
+  { points: 50, discount: 200, label: "$200 GYD off", emoji: "🎁" },
+  { points: 100, discount: 400, label: "$400 GYD off", emoji: "🎉" },
+  { points: 200, discount: 800, label: "$800 GYD off", emoji: "💎" },
 ];
 
 const TIER_CONFIG = {

@@ -320,6 +320,24 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
             <p className="text-muted-foreground text-sm">Select how you'd like to pay for this errand</p>
 
             <button
+              onClick={() => setPaymentMethod("mmg")}
+              className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
+                paymentMethod === "mmg" ? "border-accent bg-accent/5" : "border-border/50 bg-card"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center">
+                  <CreditCard className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-display font-bold text-foreground">MMG Pre-Payment</p>
+                  <p className="text-muted-foreground text-sm">Pay via MMG before dispatch (required)</p>
+                </div>
+                {paymentMethod === "mmg" && <CheckCircle2 className="h-6 w-6 text-accent" />}
+              </div>
+            </button>
+
+            <button
               onClick={() => setPaymentMethod("cash")}
               className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
                 paymentMethod === "cash" ? "border-accent bg-accent/5" : "border-border/50 bg-card"
@@ -329,11 +347,25 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                 <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center text-2xl">💵</div>
                 <div className="flex-1">
                   <p className="font-display font-bold text-foreground">Cash on Delivery</p>
-                  <p className="text-muted-foreground text-sm">Pay with cash when your order is delivered</p>
+                  <p className="text-muted-foreground text-sm">Requires admin approval before dispatch</p>
                 </div>
                 {paymentMethod === "cash" && <CheckCircle2 className="h-6 w-6 text-accent" />}
               </div>
             </button>
+
+            {paymentMethod === "cash" && (
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
+                <span className="text-lg">⚠️</span>
+                <div>
+                  <p className="text-foreground text-sm font-semibold">Cash requires approval</p>
+                  <p className="text-muted-foreground text-sm">
+                    Contact support at{" "}
+                    <a href="tel:+5927219769" className="text-primary underline font-semibold">+592 721-9769</a>{" "}
+                    to arrange cash payment before submitting.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-start gap-3">
               <span className="text-lg">ℹ️</span>

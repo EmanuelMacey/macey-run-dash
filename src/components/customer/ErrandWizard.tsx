@@ -37,7 +37,9 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
   const [documents, setDocuments] = useState<File[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<"cash">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "mmg">("mmg");
+  const [mmgStep, setMmgStep] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   const useCurrentLocation = async (target: "pickup" | "dropoff") => {
     const setLocating = target === "pickup" ? setLocatingPickup : setLocatingDropoff;

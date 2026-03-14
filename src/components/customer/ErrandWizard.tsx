@@ -427,6 +427,26 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
     }
   };
 
+  if (mmgStep && createdOrderId) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="bg-card border-b border-border/50 safe-top">
+          <div className="container mx-auto px-4 py-3">
+            <h2 className="font-display font-bold text-foreground text-base">Complete MMG Payment</h2>
+          </div>
+        </header>
+        <main className="flex-1 container mx-auto px-4 py-6 max-w-2xl overflow-y-auto">
+          <MMGPaymentPage
+            orderId={createdOrderId}
+            amount={service.price}
+            onComplete={onComplete}
+            onCancel={onComplete}
+          />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}

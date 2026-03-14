@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Navigation, Loader2, Paperclip, X, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Loader2, Paperclip, X, CheckCircle2, CreditCard, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

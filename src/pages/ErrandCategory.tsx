@@ -190,8 +190,8 @@ const ErrandCategory = () => {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
-                  <span className="inline-block px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold">
-                    GYD ${service.price.toLocaleString()}
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${service.tier === "premium" ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"}`}>
+                    {service.tier === "premium" ? "Premium" : "Standard"} · ${service.price.toLocaleString()}
                   </span>
                   <span className="text-accent text-sm font-semibold flex items-center gap-0.5">
                     Select <ChevronRight className="h-4 w-4" />

@@ -113,17 +113,20 @@ const CustomerDashboard = () => {
 
       <main className="container mx-auto px-4 py-4 max-w-2xl relative">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 mb-5 h-11 rounded-2xl bg-card/80 backdrop-blur-sm p-1 border border-border/50">
-            <TabsTrigger value="order" className="gap-1.5 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
+          <TabsList className="w-full grid grid-cols-5 mb-5 h-11 rounded-2xl bg-card/80 backdrop-blur-sm p-1 border border-border/50">
+            <TabsTrigger value="order" className="gap-1 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
               <Package className="h-4 w-4" /> <span className="hidden sm:inline">Home</span>
             </TabsTrigger>
-            <TabsTrigger value="marketplace" className="gap-1.5 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
+            <TabsTrigger value="orders" className="gap-1 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
+              <ClipboardList className="h-4 w-4" /> <span className="hidden sm:inline">Orders</span>
+            </TabsTrigger>
+            <TabsTrigger value="marketplace" className="gap-1 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
               <UtensilsCrossed className="h-4 w-4" /> <span className="hidden sm:inline">Food</span>
             </TabsTrigger>
-            <TabsTrigger value="invoices" className="gap-1.5 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
+            <TabsTrigger value="invoices" className="gap-1 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
               <FileText className="h-4 w-4" /> <span className="hidden sm:inline">Invoices</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="gap-1.5 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
+            <TabsTrigger value="profile" className="gap-1 rounded-xl data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md font-semibold transition-all text-xs">
               <User className="h-4 w-4" /> <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
           </TabsList>

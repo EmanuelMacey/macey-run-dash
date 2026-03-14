@@ -4,10 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Phone, Upload, CheckCircle2, Clock, AlertTriangle, Copy } from "lucide-react";
+import { Loader2, Phone, Upload, CheckCircle2, Clock, AlertTriangle, Copy, ShieldCheck, CreditCard, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface MMGPaymentPageProps {
   orderId: string;
@@ -24,7 +24,7 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(20 * 60); // 20 minutes
+  const [timeLeft, setTimeLeft] = useState(20 * 60);
 
   useEffect(() => {
     supabase
@@ -37,7 +37,6 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
       });
   }, []);
 
-  // Countdown timer
   useEffect(() => {
     if (submitted || timeLeft <= 0) return;
     const interval = setInterval(() => {
@@ -59,6 +58,8 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
+
+  const progressPercent = (timeLeft / (20 * 60)) * 100;
 
   const handleSubmit = async () => {
     if (!user || !transactionId.trim() || !mmgNumberUsed.trim()) {
@@ -89,7 +90,7 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
 
       if (error) {
         if (error.message?.includes("unique") || error.message?.includes("duplicate")) {
-          toast.error("This Transaction ID has already been used. Please check and try again.");
+          toast.error("This Transaction ID has already been used.");
         } else {
           throw error;
         }
@@ -97,8 +98,8 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
       }
 
       setSubmitted(true);
-      toast.success("Payment verification submitted! We'll verify shortly.");
-      setTimeout(() => onComplete(), 2000);
+      toast.success("Payment verification submitted!");
+      setTimeout(() => onComplete(), 2500);
     } catch (err: any) {
       toast.error(err.message || "Failed to submit verification");
     } finally {
@@ -108,121 +109,177 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
 
   if (!settings) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (submitted) {
     return (
-      <div className="text-center space-y-4 p-6">
-        <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto">
-          <CheckCircle2 className="h-8 w-8 text-green-500" />
-        </div>
-        <h3 className="font-display text-xl font-bold text-foreground">Payment Submitted!</h3>
-        <p className="text-sm text-muted-foreground">
-          Your payment verification is being reviewed. You'll be notified once confirmed.
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center space-y-5 py-8"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+          className="w-20 h-20 rounded-full bg-green-500/10 border-2 border-green-500/30 flex items-center justify-center mx-auto"
+        >
+          <CheckCircle2 className="h-10 w-10 text-green-500" />
+        </motion.div>
+        <h3 className="font-display text-2xl font-bold text-foreground">Payment Submitted!</h3>
+        <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+          Your payment verification is being reviewed by our team. You'll receive a notification once confirmed.
         </p>
-        <Badge variant="outline" className="text-primary border-primary/30">
-          <Clock className="h-3 w-3 mr-1" /> Pending Payment Verification
+        <Badge variant="outline" className="text-primary border-primary/30 px-4 py-1.5 text-sm">
+          <Clock className="h-3.5 w-3.5 mr-1.5" /> Pending Verification
         </Badge>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {/* Timer warning */}
-      <div className={`flex items-center gap-2 p-3 rounded-xl border ${timeLeft < 300 ? "bg-destructive/10 border-destructive/30" : "bg-accent/10 border-accent/30"}`}>
-        <Clock className={`h-4 w-4 ${timeLeft < 300 ? "text-destructive" : "text-accent"}`} />
-        <span className="text-sm font-semibold">
-          Time remaining: <span className={timeLeft < 300 ? "text-destructive" : "text-primary"}>{formatTime(timeLeft)}</span>
-        </span>
-      </div>
-
-      {/* Payment Instructions */}
-      <Card className="p-5 space-y-4 border-primary/20 bg-primary/5">
-        <div className="text-center space-y-1">
-          <Badge className="bg-primary text-primary-foreground">MMG Payment</Badge>
-          <h3 className="font-display text-lg font-bold text-foreground mt-2">Payment Instructions</h3>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex justify-between items-center bg-card rounded-xl p-3 border border-border/50">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      {/* Timer */}
+      <div className={`relative overflow-hidden rounded-2xl border ${timeLeft < 300 ? "bg-destructive/5 border-destructive/30" : "bg-accent/5 border-accent/20"}`}>
+        <div className="p-4 flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-2">
+            <Clock className={`h-5 w-5 ${timeLeft < 300 ? "text-destructive animate-pulse" : "text-accent"}`} />
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">Account Name</p>
-              <p className="font-display font-bold text-foreground">{settings.account_name}</p>
+              <p className="text-xs text-muted-foreground font-medium">Complete payment within</p>
+              <p className={`text-2xl font-display font-bold tracking-tight ${timeLeft < 300 ? "text-destructive" : "text-foreground"}`}>
+                {formatTime(timeLeft)}
+              </p>
             </div>
           </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Order expires if not verified</p>
+          </div>
+        </div>
+        <div className="h-1 bg-muted/30">
+          <motion.div
+            className={`h-full ${timeLeft < 300 ? "bg-destructive" : "bg-accent"}`}
+            style={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+      </div>
 
-          <div className="flex justify-between items-center bg-card rounded-xl p-3 border border-border/50">
+      {/* Payment Card */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-accent/5 border border-primary/20 p-6 space-y-5">
+        {/* Decorative circle */}
+        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-primary/5" />
+
+        <div className="relative space-y-1 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3">
+            <CreditCard className="h-7 w-7 text-primary" />
+          </div>
+          <h3 className="font-display text-xl font-bold text-foreground">MMG Payment</h3>
+          <p className="text-xs text-muted-foreground">Send payment to the details below</p>
+        </div>
+
+        <div className="space-y-3 relative">
+          <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Account Name</p>
+            <p className="font-display font-bold text-foreground text-lg">{settings.account_name}</p>
+          </div>
+
+          <div className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border/50 flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">MMG Number</p>
-              <p className="font-display font-bold text-primary text-lg">{settings.mmg_number}</p>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">MMG Number</p>
+              <p className="font-display font-bold text-primary text-2xl tracking-wide">{settings.mmg_number}</p>
             </div>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
+              className="rounded-xl border-primary/30 hover:bg-primary/10"
               onClick={() => {
                 navigator.clipboard.writeText(settings.mmg_number);
                 toast.success("MMG number copied!");
               }}
             >
-              <Copy className="h-4 w-4" />
+              <Copy className="h-4 w-4 mr-1" /> Copy
             </Button>
           </div>
 
-          <div className="flex justify-between items-center bg-card rounded-xl p-3 border border-border/50">
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wide">Amount to Pay</p>
-              <p className="font-display font-bold text-green-600 text-xl">${amount.toLocaleString()} GYD</p>
-            </div>
+          <div className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-xl p-4 border border-accent/20">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Amount to Pay</p>
+            <p className="font-display font-bold text-3xl text-foreground">
+              ${amount.toLocaleString()} <span className="text-base font-normal text-muted-foreground">GYD</span>
+            </p>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 border border-border/50">
-          <p className="text-xs text-muted-foreground leading-relaxed">{settings.payment_instructions}</p>
+        <div className="relative bg-card/60 backdrop-blur-sm rounded-xl p-4 border border-border/30">
+          <h4 className="text-xs font-bold text-foreground mb-2 flex items-center gap-1.5">
+            <ArrowRight className="h-3 w-3 text-accent" /> How to Pay
+          </h4>
+          <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside leading-relaxed">
+            <li>Open your <span className="font-semibold text-foreground">MMG wallet</span> app</li>
+            <li>Send <span className="font-semibold text-accent">${amount.toLocaleString()} GYD</span> to <span className="font-semibold text-primary">{settings.mmg_number}</span></li>
+            <li>Copy the <span className="font-semibold text-foreground">Transaction ID</span> from MMG</li>
+            <li>Come back here and <span className="font-semibold text-foreground">submit the ID below</span></li>
+          </ol>
         </div>
-      </Card>
+      </div>
 
       {/* Verification Form */}
       <div className="space-y-4">
-        <h4 className="font-display font-bold text-foreground">Submit Payment Verification</h4>
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-accent" />
+          <h4 className="font-display font-bold text-lg text-foreground">Submit Verification</h4>
+        </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-semibold">Transaction ID *</Label>
+          <Label className="text-sm font-semibold flex items-center gap-1">
+            Transaction ID <span className="text-destructive">*</span>
+          </Label>
           <Input
             placeholder="Enter your MMG Transaction ID"
             value={transactionId}
             onChange={(e) => setTransactionId(e.target.value)}
-            className="rounded-xl"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-sm font-semibold">MMG Number Used *</Label>
-          <Input
-            placeholder="e.g. +592 6XX XXXX"
-            value={mmgNumberUsed}
-            onChange={(e) => setMmgNumberUsed(e.target.value)}
-            className="rounded-xl"
+            className="rounded-xl h-12 text-base font-mono bg-muted/30 border-border/50"
           />
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-semibold flex items-center gap-1">
-            <Upload className="h-3.5 w-3.5" /> Payment Screenshot (optional)
+            MMG Number Used <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            placeholder="e.g. +592 6XX XXXX"
+            value={mmgNumberUsed}
+            onChange={(e) => setMmgNumberUsed(e.target.value)}
+            className="rounded-xl h-12 text-base bg-muted/30 border-border/50"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold flex items-center gap-1.5">
+            <Upload className="h-3.5 w-3.5" /> Payment Screenshot <span className="text-muted-foreground font-normal">(optional)</span>
           </Label>
           {screenshot ? (
-            <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-3">
-              <span className="text-sm truncate flex-1">{screenshot.name}</span>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setScreenshot(null)}>Remove</Button>
+            <div className="flex items-center gap-2 bg-accent/5 border border-accent/20 rounded-xl p-3">
+              <CheckCircle2 className="h-4 w-4 text-accent shrink-0" />
+              <span className="text-sm truncate flex-1 text-foreground">{screenshot.name}</span>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setScreenshot(null)} className="text-muted-foreground hover:text-destructive">
+                Remove
+              </Button>
             </div>
           ) : (
-            <label className="flex items-center gap-2 border border-dashed border-border rounded-xl p-3 cursor-pointer hover:border-primary/50 transition-colors">
-              <Upload className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Upload screenshot of payment</span>
+            <label className="flex items-center gap-3 border-2 border-dashed border-border/50 rounded-xl p-4 cursor-pointer hover:border-accent/40 transition-colors">
+              <Upload className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Upload screenshot</p>
+                <p className="text-xs text-muted-foreground">Helps speed up verification</p>
+              </div>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => setScreenshot(e.target.files?.[0] || null)} />
             </label>
           )}
@@ -231,32 +288,40 @@ const MMGPaymentPage = ({ orderId, amount, onComplete, onCancel }: MMGPaymentPag
         <Button
           onClick={handleSubmit}
           disabled={submitting || !transactionId.trim() || !mmgNumberUsed.trim()}
-          className="w-full rounded-xl"
+          className="w-full h-14 rounded-2xl text-base font-bold bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
+          size="lg"
         >
-          {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          {submitting ? (
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+          ) : (
+            <ShieldCheck className="h-5 w-5 mr-2" />
+          )}
           Submit Payment Verification
         </Button>
       </div>
 
       {/* Cash Exception */}
-      <div className="bg-muted/50 rounded-xl p-4 border border-border/50 space-y-2">
-        <div className="flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+      <div className="bg-muted/30 rounded-2xl p-5 border border-border/30 space-y-3">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+          </div>
           <div>
-            <p className="text-xs font-semibold text-foreground">Need to pay by cash instead?</p>
-            <p className="text-xs text-muted-foreground">Contact MaceyRunners support before submitting your order. Cash payments require admin approval.</p>
+            <p className="text-sm font-bold text-foreground">Need to pay by cash?</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Contact MaceyRunners support to arrange cash payment. Cash orders require admin approval before dispatch.
+            </p>
           </div>
         </div>
         <Button
           variant="outline"
-          size="sm"
-          className="w-full rounded-xl text-xs"
+          className="w-full rounded-xl border-amber-500/30 hover:bg-amber-500/5 font-semibold"
           onClick={() => window.open("tel:+5927219769")}
         >
-          <Phone className="h-3.5 w-3.5 mr-1.5" /> Contact Support: +592 721-9769
+          <Phone className="h-4 w-4 mr-2" /> Call Support: +592 721-9769
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 import deliveryRider from "@/assets/delivery-rider.png";
 import { Zap, Smartphone, Store, ShoppingBag, MapPin, Truck, ArrowRight, CheckCircle2 } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   const { user, role, loading } = useAuth();

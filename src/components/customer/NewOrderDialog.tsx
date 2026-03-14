@@ -97,7 +97,8 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const orderType = form.watch("order_type");
   const pickupAddress = form.watch("pickup_address");
   const dropoffAddress = form.watch("dropoff_address");
-  const minPrice = MIN_PRICES[orderType];
+  const isErrand = orderType === "errand";
+  const minPrice = isErrand ? STANDARD_ERRAND_PRICE : MIN_DELIVERY_PRICE;
 
   // Calculate price based on distance
   useEffect(() => {

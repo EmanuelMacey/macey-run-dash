@@ -13,9 +13,10 @@ type Order = Tables<"orders">;
 
 interface OrdersListProps {
   refreshKey: number;
+  filterType?: "delivery" | "errand";
 }
 
-const OrdersList = ({ refreshKey }: OrdersListProps) => {
+const OrdersList = ({ refreshKey, filterType }: OrdersListProps) => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

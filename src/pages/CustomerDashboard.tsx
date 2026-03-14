@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed, Gift, Users, Zap, TrendingUp, Clock, Star, ShoppingCart, Pill, FileCheck, ChevronRight, Search, Landmark } from "lucide-react";
+import { LogOut, Package, MapPin, ShoppingBag, User, FileText, UtensilsCrossed, Gift, Users, Zap, TrendingUp, Clock, Star, ShoppingCart, Pill, FileCheck, ChevronRight, Search, Landmark, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

@@ -51,6 +51,7 @@ const Index = () => {
           <span className="font-display font-bold text-xl text-foreground tracking-tight">MaceyRunners</span>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link to="/login">
             <Button variant="ghost" className="rounded-full text-sm font-semibold text-muted-foreground hover:text-foreground">
               Login

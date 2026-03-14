@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import MMGPaymentPage from "./MMGPaymentPage";
 
 const TOTAL_STEPS = 6;
 

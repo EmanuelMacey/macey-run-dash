@@ -21,10 +21,16 @@ Deno.serve(async (req) => {
 
     // Authorize: require service-role key (internal trigger calls) or valid user JWT
     const authHeader = req.headers.get('Authorization');
+    const internalHeader = req.headers.get('x-internal-secret');
     let isAuthorized = false;
     const internalWebhookSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
 
-    if (authHeader?.startsWith('Bearer ')) {
+    // Check custom internal header first (most reliable for pg_net calls)
+    if (internalWebhookSecret && internalHeader && internalHeader === internalWebhookSecret) {
+      isAuthorized = true;
+    }
+
+    if (!isAuthorized && authHeader?.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '');
       // Accept service role key, internal webhook secret, or valid user JWT
       if (token === serviceRoleKey) {

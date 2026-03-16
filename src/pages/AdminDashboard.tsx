@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, CreditCard } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, CreditCard, ClipboardList, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -45,7 +46,20 @@ const AdminDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-5xl relative">
-        <h1 className="font-display text-3xl font-bold text-navy dark:text-white mb-6">Admin Dashboard</h1>
+        <h1 className="font-display text-3xl font-bold text-navy dark:text-white mb-4">Admin Dashboard</h1>
+
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Link to="/admin/price-list">
+            <Button variant="outline" size="sm" className="gap-1.5 rounded-xl">
+              <ClipboardList className="h-4 w-4" /> Price List
+            </Button>
+          </Link>
+          <Link to="/admin/hiring">
+            <Button variant="outline" size="sm" className="gap-1.5 rounded-xl">
+              <UserPlus className="h-4 w-4" /> Hiring Flyer
+            </Button>
+          </Link>
+        </div>
 
         <Tabs defaultValue="analytics" className="space-y-6">
           <TabsList className="flex flex-wrap w-full bg-card/80 dark:bg-white/5 backdrop-blur-sm border border-navy/10 dark:border-white/10 rounded-2xl p-1 gap-1">

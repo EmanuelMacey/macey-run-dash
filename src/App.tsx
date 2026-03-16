@@ -27,6 +27,8 @@ import Portfolio from "./pages/Portfolio";
 import WomensDay from "./pages/WomensDay";
 import ErrandServices from "./pages/ErrandServices";
 import ErrandCategory from "./pages/ErrandCategory";
+import AdminPriceList from "./pages/AdminPriceList";
+import AdminHiringFlyer from "./pages/AdminHiringFlyer";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 
@@ -90,6 +92,22 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/price-list"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminPriceList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/hiring"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminHiringFlyer />
                   </ProtectedRoute>
                 }
               />

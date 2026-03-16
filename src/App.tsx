@@ -95,6 +95,22 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/price-list"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminPriceList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/hiring"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminHiringFlyer />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />

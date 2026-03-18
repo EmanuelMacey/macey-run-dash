@@ -130,8 +130,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         if (pickupCoords && dropCoords) {
           const dist = haversineKm(pickupCoords.lat, pickupCoords.lon, dropCoords.lat, dropCoords.lon);
           setDistanceKm(Math.round(dist * 10) / 10);
-          const fee = Math.round(BASE_FEE + dist * PER_KM_RATE);
-          const clampedFee = Math.max(MIN_DELIVERY_PRICE, Math.min(MAX_FEE, fee));
+          const clampedFee = dist <= GEORGETOWN_RADIUS_KM
+            ? GEORGETOWN_FLAT_FEE
+            : Math.max(MIN_DELIVERY_PRICE, Math.min(MAX_FEE, Math.round(BASE_FEE + dist * PER_KM_RATE)));
           setCalculatedPrice(clampedFee);
         } else {
           setDistanceKm(null);

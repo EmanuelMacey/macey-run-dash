@@ -40,9 +40,11 @@ const geocode = async (address: string): Promise<{ lat: number; lon: number } | 
   return null;
 };
 
-const BASE_FEE = 300;
-const PER_KM_RATE = 150;
-const MIN_FEE = 700;
+const GEORGETOWN_RADIUS_KM = 5;
+const GEORGETOWN_FLAT_FEE = 1000;
+const BASE_FEE = 500;
+const PER_KM_RATE = 250;
+const MIN_FEE = 1000;
 const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
 

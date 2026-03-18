@@ -49,6 +49,7 @@ const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
 
 const calculateDeliveryFee = (distanceKm: number) => {
+  if (distanceKm <= GEORGETOWN_RADIUS_KM) return GEORGETOWN_FLAT_FEE;
   const fee = Math.round(BASE_FEE + distanceKm * PER_KM_RATE);
   return Math.max(MIN_FEE, Math.min(MAX_FEE, fee));
 };

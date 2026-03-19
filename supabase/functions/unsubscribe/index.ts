@@ -5,36 +5,44 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Simple token: base64url-encode the user_id + HMAC signature
-function encodeToken(userId: string, secret: string): string {
+// HMAC-SHA256 based token: base64url( JSON({ uid, sig }) )
+async function encodeToken(userId: string, secret: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(userId);
-  // Simple HMAC-like: just append a hash for verification
-  const key = encoder.encode(secret);
-  let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    hash = ((hash << 5) - hash + data[i] + (key[i % key.length] || 0)) | 0;
-  }
-  const payload = btoa(JSON.stringify({ uid: userId, h: hash }))
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(userId));
+  const sigHex = Array.from(new Uint8Array(sigBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  const payload = btoa(JSON.stringify({ uid: userId, sig: sigHex }))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   return payload;
 }
 
-function decodeToken(token: string, secret: string): string | null {
+async function decodeToken(token: string, secret: string): Promise<string | null> {
   try {
     const padded = token.replace(/-/g, '+').replace(/_/g, '/');
     const json = atob(padded);
-    const { uid, h } = JSON.parse(json);
-    
-    // Verify hash
+    const { uid, sig } = JSON.parse(json);
+    if (!uid || !sig) return null;
+
     const encoder = new TextEncoder();
-    const data = encoder.encode(uid);
-    const key = encoder.encode(secret);
-    let hash = 0;
-    for (let i = 0; i < data.length; i++) {
-      hash = ((hash << 5) - hash + data[i] + (key[i % key.length] || 0)) | 0;
-    }
-    if (hash !== h) return null;
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    // Convert hex sig back to Uint8Array
+    const sigBytes = new Uint8Array(sig.match(/.{2}/g).map((b: string) => parseInt(b, 16)));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(uid));
+    if (!valid) return null;
     return uid;
   } catch {
     return null;
@@ -58,7 +66,7 @@ Deno.serve(async (req) => {
   }
 
   const secret = Deno.env.get('INTERNAL_WEBHOOK_SECRET') || 'fallback-key';
-  const userId = decodeToken(token, secret);
+  const userId = await decodeToken(token, secret);
 
   if (!userId) {
     return new Response(renderPage('Invalid Link', 'This link is invalid or has expired.', 'error', ''), {

@@ -29,6 +29,7 @@ import ErrandServices from "./pages/ErrandServices";
 import ErrandCategory from "./pages/ErrandCategory";
 import AdminPriceList from "./pages/AdminPriceList";
 import AdminHiringFlyer from "./pages/AdminHiringFlyer";
+import DriverApplication from "./pages/DriverApplication";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 

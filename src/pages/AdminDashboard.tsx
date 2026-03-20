@@ -100,6 +100,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="leadership" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Crown className="h-4 w-4" /> <span className="hidden sm:inline">Team</span>
             </TabsTrigger>
+            <TabsTrigger value="applications" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <ClipboardCheck className="h-4 w-4" /> <span className="hidden sm:inline">Applications</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>

@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, Eye, EyeOff, Wand2, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Wand2, ArrowRight, User, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const Login = () => {
-  const { signIn, signInWithMagicLink, user, role, loading } = useAuth();
+  const { signIn, signInWithMagicLink, signInAsGuest, user, role, loading } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +19,9 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [showMagicLink, setShowMagicLink] = useState(false);
+  const [showGuest, setShowGuest] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
 
   if (!loading && user && role) {
     if (role === "admin") return <Navigate to="/admin" replace />;

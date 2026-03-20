@@ -411,10 +411,9 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
               </p>
             )}
             {paymentMethod === "cash" && (
-              <div className="text-xs text-amber-600 bg-amber-500/10 rounded-lg p-2">
-                ⚠️ Cash payments require admin approval. Contact{" "}
-                <a href="tel:+5927219769" className="text-primary underline font-semibold">+592 721-9769</a> to arrange.
-              </div>
+              <p className="text-xs text-muted-foreground">
+                💵 Pay cash directly to your runner upon delivery.
+              </p>
             )}
           </div>
 

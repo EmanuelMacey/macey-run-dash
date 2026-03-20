@@ -382,23 +382,18 @@ const ErrandWizard = ({ category, service, onBack, onComplete }: ErrandWizardPro
                 <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center text-2xl">💵</div>
                 <div className="flex-1">
                   <p className="font-display font-bold text-foreground">Cash on Delivery</p>
-                  <p className="text-muted-foreground text-sm">Requires admin approval before dispatch</p>
+                  <p className="text-muted-foreground text-sm">Pay your runner when they arrive</p>
                 </div>
                 {paymentMethod === "cash" && <CheckCircle2 className="h-6 w-6 text-accent" />}
               </div>
             </button>
 
             {paymentMethod === "cash" && (
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
-                <span className="text-lg">⚠️</span>
-                <div>
-                  <p className="text-foreground text-sm font-semibold">Cash requires approval</p>
-                  <p className="text-muted-foreground text-sm">
-                    Contact support at{" "}
-                    <a href="tel:+5927219769" className="text-primary underline font-semibold">+592 721-9769</a>{" "}
-                    to arrange cash payment before submitting.
-                  </p>
-                </div>
+              <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-start gap-3">
+                <span className="text-lg">💵</span>
+                <p className="text-muted-foreground text-sm">
+                  Have the exact amount ready. Your runner will collect payment upon delivery.
+                </p>
               </div>
             )}
 

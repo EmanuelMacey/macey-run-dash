@@ -471,21 +471,19 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="mmg">MMG Pre-Payment (Required)</SelectItem>
-                        <SelectItem value="cash">Cash (Requires Admin Approval)</SelectItem>
+                        <SelectItem value="mmg">MMG Mobile Money</SelectItem>
+                        <SelectItem value="cash">Cash on Delivery</SelectItem>
                       </SelectContent>
                     </Select>
                     {field.value === "mmg" && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        You'll be directed to submit your MMG Transaction ID after placing this order.
+                        You'll submit your MMG Transaction ID after placing this order.
                       </p>
                     )}
                     {field.value === "cash" && (
-                      <div className="text-xs text-amber-600 mt-1 bg-amber-500/10 rounded-lg p-2">
-                        ⚠️ Cash payments require admin approval before dispatch. Contact{" "}
-                        <a href="tel:+5927219769" className="text-primary underline font-semibold">+592 721-9769</a>{" "}
-                        to arrange cash payment.
-                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        💵 Pay cash directly to your runner upon delivery.
+                      </p>
                     )}
                     <FormMessage />
                   </FormItem>

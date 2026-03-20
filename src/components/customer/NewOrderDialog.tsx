@@ -35,10 +35,10 @@ const orderSchema = z.object({
 type OrderFormValues = z.infer<typeof orderSchema>;
 
 const GEORGETOWN_RADIUS_KM = 5;
-const GEORGETOWN_FLAT_FEE = 1000;
+const GEORGETOWN_FLAT_FEE = 800;
 const BASE_FEE = 500;
 const PER_KM_RATE = 250;
-const MIN_DELIVERY_PRICE = 1000;
+const MIN_DELIVERY_PRICE = 800;
 const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
 const STANDARD_ERRAND_PRICE = 1200;

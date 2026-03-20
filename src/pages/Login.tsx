@@ -55,6 +55,20 @@ const Login = () => {
     setSubmitting(false);
   };
 
+  const handleGuestLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guestName.trim() || !guestPhone.trim()) {
+      toast({ title: "Please enter your name and phone number", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await signInAsGuest(guestName.trim(), guestPhone.trim());
+    if (error) {
+      toast({ title: "Guest login failed", description: error.message, variant: "destructive" });
+    }
+    setSubmitting(false);
+  };
+
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col relative overflow-hidden safe-all">
       {/* Subtle background glow — same as landing */}

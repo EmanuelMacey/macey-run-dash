@@ -326,7 +326,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                           Delivery
                         </span>
                         <span className="text-xs text-muted-foreground">From $800 GYD (Georgetown)</span>
-                        <span className="text-xs text-muted-foreground">Distance-based pricing</span>
+                        <span className="text-xs text-muted-foreground">Custom deliveries available</span>
                       </button>
                       <button
                         type="button"

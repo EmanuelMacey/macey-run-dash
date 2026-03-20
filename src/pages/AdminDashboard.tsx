@@ -19,6 +19,7 @@ import AdminInvoices from "@/components/admin/AdminInvoices";
 import AdminPromotions from "@/components/admin/AdminPromotions";
 import AdminLeadership from "@/components/admin/AdminLeadership";
 import AdminPaymentVerifications from "@/components/admin/AdminPaymentVerifications";
+import AdminDriverApplications from "@/components/admin/AdminDriverApplications";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {

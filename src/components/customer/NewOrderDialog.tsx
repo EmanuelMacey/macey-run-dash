@@ -325,6 +325,7 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                         <span className={`font-display font-semibold text-sm ${field.value === "delivery" ? "text-primary" : "text-foreground"}`}>
                           Delivery
                         </span>
+                        <span className="text-xs text-muted-foreground">From $800 GYD (Georgetown)</span>
                         <span className="text-xs text-muted-foreground">Distance-based pricing</span>
                       </button>
                       <button

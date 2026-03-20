@@ -84,7 +84,13 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-6 sm:mt-8 justify-center md:justify-start">
+          {/* Pricing teaser */}
+          <div className="mt-4 sm:mt-5 flex flex-wrap gap-2 justify-center md:justify-start">
+            <span className="bg-accent/10 text-accent text-xs font-bold px-3 py-1 rounded-full">Deliveries from $800 GYD</span>
+            <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full">Errands from $1,200 GYD</span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-5 sm:mt-6 justify-center md:justify-start">
             <Link to="/signup" className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto h-12 sm:h-13 rounded-2xl text-sm sm:text-base font-bold bg-foreground hover:bg-foreground/90 text-background px-6 sm:px-8 shadow-lg">
                 Get Started <ArrowRight className="ml-2 h-4 w-4" />

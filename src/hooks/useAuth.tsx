@@ -9,8 +9,10 @@ interface AuthContextType {
   user: User | null;
   role: AppRole | null;
   loading: boolean;
+  isGuest: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInAsGuest: (name: string, phone: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
@@ -117,6 +119,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
   };
 
+  const signInAsGuest = async (name: string, phone: string) => {
+    const { data, error } = await supabase.auth.signInAnonymously({
+      options: { data: { full_name: name, phone } },
+    });
+    if (!error && data?.user) {
+      // Update the profile with guest info
+      await supabase.from("profiles").update({ full_name: name, phone }).eq("user_id", data.user.id);
+    }
+    return { error };
+  };
+
+  const isGuest = !!user && !user.email;
+
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -135,7 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, role, loading, signUp, signIn, signOut, resetPassword, signInWithMagicLink }}>
+    <AuthContext.Provider value={{ session, user, role, loading, isGuest, signUp, signIn, signInAsGuest, signOut, resetPassword, signInWithMagicLink }}>
       {children}
     </AuthContext.Provider>
   );

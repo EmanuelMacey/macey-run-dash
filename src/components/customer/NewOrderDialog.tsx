@@ -35,10 +35,10 @@ const orderSchema = z.object({
 type OrderFormValues = z.infer<typeof orderSchema>;
 
 const GEORGETOWN_RADIUS_KM = 5;
-const GEORGETOWN_FLAT_FEE = 1000;
+const GEORGETOWN_FLAT_FEE = 800;
 const BASE_FEE = 500;
 const PER_KM_RATE = 250;
-const MIN_DELIVERY_PRICE = 1000;
+const MIN_DELIVERY_PRICE = 800;
 const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
 const STANDARD_ERRAND_PRICE = 1200;
@@ -325,7 +325,8 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                         <span className={`font-display font-semibold text-sm ${field.value === "delivery" ? "text-primary" : "text-foreground"}`}>
                           Delivery
                         </span>
-                        <span className="text-xs text-muted-foreground">Distance-based pricing</span>
+                        <span className="text-xs text-muted-foreground">From $800 GYD (Georgetown)</span>
+                        <span className="text-xs text-muted-foreground">Custom deliveries available</span>
                       </button>
                       <button
                         type="button"
@@ -470,21 +471,19 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="mmg">MMG Pre-Payment (Required)</SelectItem>
-                        <SelectItem value="cash">Cash (Requires Admin Approval)</SelectItem>
+                        <SelectItem value="mmg">MMG Mobile Money</SelectItem>
+                        <SelectItem value="cash">Cash on Delivery</SelectItem>
                       </SelectContent>
                     </Select>
                     {field.value === "mmg" && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        You'll be directed to submit your MMG Transaction ID after placing this order.
+                        You'll submit your MMG Transaction ID after placing this order.
                       </p>
                     )}
                     {field.value === "cash" && (
-                      <div className="text-xs text-amber-600 mt-1 bg-amber-500/10 rounded-lg p-2">
-                        ⚠️ Cash payments require admin approval before dispatch. Contact{" "}
-                        <a href="tel:+5927219769" className="text-primary underline font-semibold">+592 721-9769</a>{" "}
-                        to arrange cash payment.
-                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        💵 Pay cash directly to your runner upon delivery.
+                      </p>
                     )}
                     <FormMessage />
                   </FormItem>

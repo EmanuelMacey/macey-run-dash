@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock, Eye, EyeOff, Wand2, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Wand2, ArrowRight, User, Phone } from "lucide-react";
 import { motion } from "framer-motion";
 import logo from "@/assets/logo.png";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const Login = () => {
-  const { signIn, signInWithMagicLink, user, role, loading } = useAuth();
+  const { signIn, signInWithMagicLink, signInAsGuest, user, role, loading } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +19,9 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [showMagicLink, setShowMagicLink] = useState(false);
+  const [showGuest, setShowGuest] = useState(false);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
 
   if (!loading && user && role) {
     if (role === "admin") return <Navigate to="/admin" replace />;
@@ -48,6 +51,20 @@ const Login = () => {
       toast({ title: "Failed", description: error.message, variant: "destructive" });
     } else {
       setMagicLinkSent(true);
+    }
+    setSubmitting(false);
+  };
+
+  const handleGuestLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guestName.trim() || !guestPhone.trim()) {
+      toast({ title: "Please enter your name and phone number", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await signInAsGuest(guestName.trim(), guestPhone.trim());
+    if (error) {
+      toast({ title: "Guest login failed", description: error.message, variant: "destructive" });
     }
     setSubmitting(false);
   };
@@ -128,6 +145,36 @@ const Login = () => {
                 <Link to="/signup" className="text-accent font-medium hover:underline">Sign up</Link>
               </p>
             </form>
+          ) : showGuest ? (
+            <form onSubmit={handleGuestLogin} className="bg-card border border-border/50 rounded-2xl p-6 sm:p-8 shadow-lg space-y-5">
+              <div className="text-center mb-2">
+                <p className="text-sm text-muted-foreground">Quick order — no account needed</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="guestName">Your Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="guestName" placeholder="Enter your full name" value={guestName} onChange={(e) => setGuestName(e.target.value)} className="pl-10 rounded-xl h-11" required />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="guestPhone">Phone Number</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input id="guestPhone" type="tel" placeholder="+592 600-0000" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="pl-10 rounded-xl h-11" required />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full h-12 rounded-2xl text-sm font-bold bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg" disabled={submitting}>
+                {submitting ? "Setting up..." : "Continue as Guest"} <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+
+              <button type="button" onClick={() => setShowGuest(false)} className="w-full text-center text-sm text-accent font-medium hover:underline">
+                Sign in with account instead
+              </button>
+            </form>
           ) : (
             <form onSubmit={handleSubmit} className="bg-card border border-border/50 rounded-2xl p-6 sm:p-8 shadow-lg space-y-5">
               <div className="space-y-2">
@@ -161,9 +208,14 @@ const Login = () => {
                 <div className="relative flex justify-center text-xs"><span className="bg-card px-3 text-muted-foreground">or</span></div>
               </div>
 
-              <Button type="button" variant="outline" onClick={() => setShowMagicLink(true)} className="w-full h-11 rounded-2xl gap-2 border-2 border-border text-foreground hover:bg-muted/50 font-semibold">
-                <Wand2 className="h-4 w-4" /> Sign in with Magic Link
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowMagicLink(true)} className="h-11 rounded-2xl gap-1.5 border-2 border-border text-foreground hover:bg-muted/50 font-semibold text-xs">
+                  <Wand2 className="h-3.5 w-3.5" /> Magic Link
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowGuest(true)} className="h-11 rounded-2xl gap-1.5 border-2 border-accent/30 text-accent hover:bg-accent/5 font-semibold text-xs">
+                  <User className="h-3.5 w-3.5" /> Guest Order
+                </Button>
+              </div>
 
               <p className="text-center text-sm text-muted-foreground">
                 Don't have an account?{" "}

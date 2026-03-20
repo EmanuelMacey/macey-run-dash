@@ -49,6 +49,66 @@ export type Database = {
           },
         ]
       }
+      driver_applications: {
+        Row: {
+          address: string
+          admin_notes: string | null
+          availability: string
+          created_at: string
+          email: string
+          experience: string | null
+          full_name: string
+          has_license: boolean
+          id: string
+          license_plate: string | null
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          vehicle_type: string
+          why_join: string | null
+        }
+        Insert: {
+          address?: string
+          admin_notes?: string | null
+          availability?: string
+          created_at?: string
+          email: string
+          experience?: string | null
+          full_name: string
+          has_license?: boolean
+          id?: string
+          license_plate?: string | null
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_type?: string
+          why_join?: string | null
+        }
+        Update: {
+          address?: string
+          admin_notes?: string | null
+          availability?: string
+          created_at?: string
+          email?: string
+          experience?: string | null
+          full_name?: string
+          has_license?: boolean
+          id?: string
+          license_plate?: string | null
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_type?: string
+          why_join?: string | null
+        }
+        Relationships: []
+      }
       driver_ratings: {
         Row: {
           comment: string | null

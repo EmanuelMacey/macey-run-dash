@@ -168,29 +168,22 @@ const StorePage = () => {
               <h2 className="font-display text-lg font-bold text-foreground mb-4 sticky top-[7.5rem] bg-background/80 backdrop-blur-xl py-2 z-30">
                 {cat}
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {products.filter((p) => (p.category || "Other") === cat).map((product) => {
                   const qty = getCartQuantity(product.id);
                   return (
-                    <div key={product.id} className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden hover:border-primary/20 hover:shadow-lg transition-all duration-300">
-                      {/* Product image */}
-                      <div className="relative h-32 bg-gradient-to-br from-muted/30 to-muted/10 flex items-center justify-center overflow-hidden">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-4xl opacity-30">🍽️</span>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{cat}</p>
-                        <h3 className="font-display font-bold text-sm text-card-foreground mt-0.5">{product.name}</h3>
-                        {product.description && (
-                          <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{product.description}</p>
-                        )}
-                        <p className="text-accent font-display font-bold text-sm mt-2">
-                          GYD{formatPrice(product.price)}
-                        </p>
-                        <div className="flex items-center justify-end mt-2">
+                    <div key={product.id} className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-3 hover:border-primary/20 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-display font-bold text-sm text-card-foreground">{product.name}</h3>
+                          {product.description && (
+                            <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{product.description}</p>
+                          )}
+                          <p className="text-accent font-display font-bold text-sm mt-1.5">
+                            GYD{formatPrice(product.price)}
+                          </p>
+                        </div>
+                        <div className="shrink-0">
                           {qty > 0 ? (
                             <div className="flex items-center gap-1">
                               <Button variant="outline" size="icon" className="h-7 w-7 rounded-full" onClick={() => updateQuantity(product.id, qty - 1)}>

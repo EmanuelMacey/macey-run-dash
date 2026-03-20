@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, CreditCard, ClipboardList, UserPlus } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, CreditCard, ClipboardList, UserPlus, ClipboardCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
@@ -19,6 +19,7 @@ import AdminInvoices from "@/components/admin/AdminInvoices";
 import AdminPromotions from "@/components/admin/AdminPromotions";
 import AdminLeadership from "@/components/admin/AdminLeadership";
 import AdminPaymentVerifications from "@/components/admin/AdminPaymentVerifications";
+import AdminDriverApplications from "@/components/admin/AdminDriverApplications";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
@@ -99,6 +100,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="leadership" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
               <Crown className="h-4 w-4" /> <span className="hidden sm:inline">Team</span>
             </TabsTrigger>
+            <TabsTrigger value="applications" className="gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 min-w-0">
+              <ClipboardCheck className="h-4 w-4" /> <span className="hidden sm:inline">Applications</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
@@ -113,6 +117,7 @@ const AdminDashboard = () => {
           <TabsContent value="testimonials"><AdminTestimonials /></TabsContent>
           <TabsContent value="promotions"><AdminPromotions /></TabsContent>
           <TabsContent value="leadership"><AdminLeadership /></TabsContent>
+          <TabsContent value="applications"><AdminDriverApplications /></TabsContent>
         </Tabs>
       </main>
     </div>

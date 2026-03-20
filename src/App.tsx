@@ -112,6 +112,7 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route path="/apply-driver" element={<DriverApplication />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />

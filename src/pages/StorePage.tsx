@@ -168,7 +168,7 @@ const StorePage = () => {
               <h2 className="font-display text-lg font-bold text-foreground mb-4 sticky top-[7.5rem] bg-background/80 backdrop-blur-xl py-2 z-30">
                 {cat}
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
                 {products.filter((p) => (p.category || "Other") === cat).map((product) => {
                   const qty = getCartQuantity(product.id);
                   return (

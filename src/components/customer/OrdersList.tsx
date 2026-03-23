@@ -13,10 +13,9 @@ type Order = Tables<"orders">;
 
 interface OrdersListProps {
   refreshKey: number;
-  filterType?: "delivery" | "errand";
 }
 
-const OrdersList = ({ refreshKey, filterType }: OrdersListProps) => {
+const OrdersList = ({ refreshKey }: OrdersListProps) => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,15 +25,11 @@ const OrdersList = ({ refreshKey, filterType }: OrdersListProps) => {
 
   const fetchOrders = async () => {
     if (!user) return;
-    let query = supabase
+    const { data } = await supabase
       .from("orders")
       .select("*")
       .eq("customer_id", user.id)
       .order("created_at", { ascending: false });
-    if (filterType) {
-      query = query.eq("order_type", filterType);
-    }
-    const { data } = await query;
     setOrders(data || []);
     setLoading(false);
   };

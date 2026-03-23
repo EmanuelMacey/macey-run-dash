@@ -9,9 +9,9 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 const REDEEM_TIERS = [
-  { points: 50, discount: 200, label: "$200 GYD off", emoji: "🎁" },
-  { points: 100, discount: 400, label: "$400 GYD off", emoji: "🎉" },
-  { points: 200, discount: 800, label: "$800 GYD off", emoji: "💎" },
+  { points: 50, discount: 500, label: "$500 GYD off", emoji: "🎁" },
+  { points: 100, discount: 1000, label: "$1,000 GYD off", emoji: "🎉" },
+  { points: 200, discount: 2500, label: "$2,500 GYD off", emoji: "💎" },
 ];
 
 const TIER_CONFIG = {
@@ -68,13 +68,21 @@ const LoyaltyCard = () => {
     if (!user || points < tier.points) return;
     setRedeeming(true);
     try {
-      const { data, error } = await supabase.rpc("redeem_loyalty_points", {
-        p_tier_points: tier.points,
-        p_discount_amount: tier.discount,
-      });
+      const { error } = await supabase
+        .from("loyalty_points")
+        .update({ points: points - tier.points, total_redeemed: totalEarned - (points - tier.points) })
+        .eq("user_id", user.id);
       if (error) throw error;
 
-      const code = data as string;
+      await supabase.from("loyalty_transactions").insert({
+        user_id: user.id, points: -tier.points, type: "redeem", description: `Redeemed for ${tier.label}`,
+      });
+
+      const code = `LOYAL${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      await supabase.from("promo_codes").insert({
+        code, discount_amount: tier.discount, is_active: true, max_uses: 1, current_uses: 0,
+      });
+
       toast.success(`${tier.emoji} Redeemed! Use promo code: ${code}`, { duration: 10000 });
       fetchLoyalty();
       if (showHistory) fetchTransactions();

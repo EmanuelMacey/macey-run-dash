@@ -9,9 +9,8 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, CalendarClock, Info, CreditCard } from "lucide-react";
+import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle, CalendarClock, Info } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
-import MMGPaymentPage from "@/components/customer/MMGPaymentPage";
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -19,6 +18,7 @@ interface CheckoutDialogProps {
   onOrderPlaced?: () => void;
 }
 
+// Haversine distance in km
 const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -29,6 +29,7 @@ const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => 
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
+// Geocode using Nominatim
 const geocode = async (address: string): Promise<{ lat: number; lon: number } | null> => {
   try {
     const res = await fetch(
@@ -40,16 +41,14 @@ const geocode = async (address: string): Promise<{ lat: number; lon: number } | 
   return null;
 };
 
-const GEORGETOWN_RADIUS_KM = 5;
-const GEORGETOWN_FLAT_FEE = 800;
-const BASE_FEE = 500;
-const PER_KM_RATE = 250;
-const MIN_FEE = 800;
+// Pricing: base + per-km rate (GYD)
+const BASE_FEE = 300;
+const PER_KM_RATE = 150;
+const MIN_FEE = 700;
 const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
 
 const calculateDeliveryFee = (distanceKm: number) => {
-  if (distanceKm <= GEORGETOWN_RADIUS_KM) return GEORGETOWN_FLAT_FEE;
   const fee = Math.round(BASE_FEE + distanceKm * PER_KM_RATE);
   return Math.max(MIN_FEE, Math.min(MAX_FEE, fee));
 };
@@ -59,7 +58,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const { user } = useAuth();
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "mmg">("mmg");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "mmg">("cash");
   const [loading, setLoading] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
@@ -70,11 +69,8 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const [defaultAddress, setDefaultAddress] = useState<string | null>(null);
   const [scheduledDate, setScheduledDate] = useState("");
   const [scheduledTime, setScheduledTime] = useState("");
-  // MMG payment step
-  const [mmgStep, setMmgStep] = useState(false);
-  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
-  const [createdOrderPrice, setCreatedOrderPrice] = useState(0);
 
+  // Fetch customer name and default address
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("full_name, default_address").eq("user_id", user.id).single()
@@ -89,6 +85,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const grandTotal = total + (deliveryFee ?? 0) + SERVICE_FEE;
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
 
+  // Debounced distance calculation
   useEffect(() => {
     if (!deliveryAddress.trim() || !storeName) {
       setDeliveryFee(null);
@@ -128,18 +125,6 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
     return `Food order from ${storeName}: ${itemLines}${notes ? ` | Notes: ${notes}` : ""}`;
   };
 
-  const resetState = () => {
-    setDeliveryAddress("");
-    setNotes("");
-    setDeliveryFee(null);
-    setDistanceKm(null);
-    setMmgStep(false);
-    setCreatedOrderId(null);
-    setCreatedOrderPrice(0);
-    setCompletedOrder(null);
-    setCompletedItems([]);
-  };
-
   const handlePlaceOrder = async () => {
     if (!deliveryAddress.trim()) {
       toast({ title: "Missing address", description: "Please enter a delivery address.", variant: "destructive" });
@@ -158,8 +143,6 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
         scheduledFor = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
       }
 
-      const isMMG = paymentMethod === "mmg";
-
       const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: "delivery" as const,
@@ -167,9 +150,8 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
         dropoff_address: deliveryAddress.trim(),
         description: buildDescription(),
         price: grandTotal,
-        payment_method: isMMG ? "mmg" : paymentMethod,
+        payment_method: paymentMethod === "mmg" ? "cash" as const : paymentMethod,
         status: "pending" as const,
-        payment_status: "pending" as const,
         scheduled_for: scheduledFor,
       } as any).select("id").single();
 
@@ -185,29 +167,22 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
       if (itemsError) console.error("Failed to save order items:", itemsError);
 
-      if (isMMG) {
-        setCreatedOrderId(orderData.id);
-        setCreatedOrderPrice(grandTotal);
-        setMmgStep(true);
-        // Don't clearCart or call onOrderPlaced here — defer to MMG completion
-      } else {
-        const savedItems = items.map((item) => ({
-          id: item.id,
-          product_name: item.name,
-          quantity: item.quantity,
-          unit_price: item.price,
-        }));
-        setCompletedOrder({ ...orderData, order_type: "delivery", pickup_address: storeName, dropoff_address: deliveryAddress.trim(), price: grandTotal, payment_method: paymentMethod, status: "pending", created_at: new Date().toISOString() });
-        setCompletedItems(savedItems);
+      const savedItems = items.map((item) => ({
+        id: item.id,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+      }));
+      setCompletedOrder({ ...orderData, order_type: "delivery", pickup_address: storeName, dropoff_address: deliveryAddress.trim(), price: grandTotal, payment_method: paymentMethod, status: "pending", created_at: new Date().toISOString() });
+      setCompletedItems(savedItems);
 
-        toast({ title: "Order placed! 🎉", description: "A driver will pick up your food soon." });
-        clearCart();
-        onOrderPlaced?.();
-        setDeliveryAddress("");
-        setNotes("");
-        setDeliveryFee(null);
-        setDistanceKm(null);
-      }
+      toast({ title: "Order placed! 🎉", description: "A driver will pick up your food soon." });
+      clearCart();
+      onOrderPlaced?.();
+      setDeliveryAddress("");
+      setNotes("");
+      setDeliveryFee(null);
+      setDistanceKm(null);
     } catch (err: any) {
       toast({ title: "Order failed", description: err.message, variant: "destructive" });
     } finally {
@@ -215,29 +190,10 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
     }
   };
 
-  // MMG Payment Step
-  if (mmgStep && createdOrderId) {
-    return (
-      <Dialog open={open} onOpenChange={(v) => { if (!v) { resetState(); clearCart(); onOrderPlaced?.(); } onOpenChange(v); }}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">Complete MMG Payment</DialogTitle>
-          </DialogHeader>
-          <MMGPaymentPage
-            orderId={createdOrderId}
-            amount={createdOrderPrice}
-            onComplete={() => { resetState(); clearCart(); onOrderPlaced?.(); onOpenChange(false); }}
-            onCancel={() => { resetState(); clearCart(); onOrderPlaced?.(); onOpenChange(false); }}
-          />
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Completed order receipt
+  // If order completed, show receipt
   if (completedOrder) {
     return (
-      <Dialog open={open} onOpenChange={(v) => { if (!v) resetState(); onOpenChange(v); }}>
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { setCompletedOrder(null); setCompletedItems([]); } onOpenChange(v); }}>
         <DialogContent className="sm:max-w-md">
           <div className="text-center space-y-4 py-4">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
@@ -248,7 +204,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
             <OrderReceipt order={completedOrder} orderItems={completedItems} customerName={customerName}>
               <Button className="w-full rounded-xl">View Receipt</Button>
             </OrderReceipt>
-            <Button variant="outline" className="w-full rounded-xl" onClick={() => { resetState(); onOpenChange(false); }}>
+            <Button variant="outline" className="w-full rounded-xl" onClick={() => { setCompletedOrder(null); setCompletedItems([]); onOpenChange(false); }}>
               Close
             </Button>
           </div>
@@ -383,17 +339,12 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           {/* Payment method */}
           <div className="space-y-2">
             <Label>Payment Method</Label>
-            <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as "cash" | "mmg")} className="grid grid-cols-2 gap-3">
-              <Label
-                htmlFor="pay-mmg"
-                className={`flex items-center gap-2 border rounded-xl p-3 cursor-pointer transition-colors ${
-                  paymentMethod === "mmg" ? "border-primary bg-primary/5" : "border-border"
-                }`}
-              >
-                <RadioGroupItem value="mmg" id="pay-mmg" />
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">MMG</span>
-              </Label>
+            <RadioGroup value={paymentMethod} onValueChange={(v) => {
+              setPaymentMethod(v as "cash" | "mmg");
+              if (v === "mmg") {
+                window.open("https://wa.me/5927219769?text=Hi%2C%20I%20would%20like%20to%20pay%20via%20MMG%20for%20my%20MaceyRunners%20order.", "_blank");
+              }
+            }} className="grid grid-cols-2 gap-3">
               <Label
                 htmlFor="pay-cash"
                 className={`flex items-center gap-2 border rounded-xl p-3 cursor-pointer transition-colors ${
@@ -404,15 +355,20 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
                 <Banknote className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Cash</span>
               </Label>
+              <Label
+                htmlFor="pay-mmg"
+                className={`flex items-center gap-2 border rounded-xl p-3 cursor-pointer transition-colors ${
+                  paymentMethod === "mmg" ? "border-primary bg-primary/5" : "border-border"
+                }`}
+              >
+                <RadioGroupItem value="mmg" id="pay-mmg" />
+                <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">MMG</span>
+              </Label>
             </RadioGroup>
             {paymentMethod === "mmg" && (
               <p className="text-xs text-muted-foreground">
-                You'll submit your MMG Transaction ID after placing this order.
-              </p>
-            )}
-            {paymentMethod === "cash" && (
-              <p className="text-xs text-muted-foreground">
-                💵 Pay cash directly to your runner upon delivery.
+                Contact <a href="https://wa.me/5927219769" target="_blank" rel="noopener noreferrer" className="text-primary underline">+592 721 9769</a> on WhatsApp to complete your MMG payment.
               </p>
             )}
           </div>
@@ -424,9 +380,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
             disabled={loading || items.length === 0 || deliveryFee === null || calculatingFee}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {deliveryFee !== null
-              ? `${paymentMethod === "mmg" ? "Continue to Payment" : "Place Order"} — ${formatPrice(grandTotal)} GYD`
-              : "Enter address to see total"}
+            {deliveryFee !== null ? `Place Order — ${formatPrice(grandTotal)} GYD` : "Enter address to see total"}
           </Button>
         </div>
       </DialogContent>

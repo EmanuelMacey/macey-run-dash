@@ -15,7 +15,6 @@ import firesideImg from "@/assets/stores/fireside-grill.jpg";
 import gangbaoImg from "@/assets/stores/gangbao.jpg";
 import goldenPagodaImg from "@/assets/stores/golden-pagoda.png";
 import kfcImg from "@/assets/stores/kfc.jpg";
-import kamboatImg from "@/assets/stores/kamboat.png";
 import pizzahutImg from "@/assets/stores/pizzahut.png";
 import popeyesImg from "@/assets/stores/popeyes.jpg";
 import starbucksImg from "@/assets/stores/starbucks.jpg";
@@ -24,15 +23,14 @@ import whiteCastleImg from "@/assets/stores/white-castle.jpg";
 const storeImageMap: Record<string, string> = {
   "Church's Chicken": churchsImg,
   "Exclusive Eggball": eggballImg,
-  "Fireside Grill and Chill": firesideImg,
+  "Fireside Grill & Chill": firesideImg,
   "Gangbao": gangbaoImg,
   "Golden Pagoda": goldenPagodaImg,
   "KFC": kfcImg,
-  "Kamboat Restaurant": kamboatImg,
   "Pizza Hut": pizzahutImg,
   "Popeyes": popeyesImg,
   "Starbucks": starbucksImg,
-  "White Castle": whiteCastleImg,
+  "White Castle Fish Shop": whiteCastleImg,
 };
 
 interface MarketplaceBrowserProps {
@@ -56,17 +54,21 @@ const MarketplaceBrowser = ({ initialStoreId, initialProductId, onStoreOpened }:
     },
   });
 
+  // Handle initial store/product navigation from promo banner
   useEffect(() => {
     if (initialStoreId && stores.length > 0) {
       const storeExists = stores.find(s => s.id === initialStoreId);
       if (storeExists) {
         setSelectedStoreId(initialStoreId);
-        if (initialProductId) setHighlightProductId(initialProductId);
+        if (initialProductId) {
+          setHighlightProductId(initialProductId);
+        }
         onStoreOpened?.();
       }
     }
   }, [initialStoreId, initialProductId, stores, onStoreOpened]);
 
+  // Scroll to highlighted product
   useEffect(() => {
     if (highlightProductId) {
       const timer = setTimeout(() => {
@@ -104,7 +106,7 @@ const MarketplaceBrowser = ({ initialStoreId, initialProductId, onStoreOpened }:
   const productCategories = [...new Set(products.map((p) => p.category || "Other"))];
   const getCartQuantity = (productId: string) => items.find((i) => i.id === productId)?.quantity || 0;
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
-  const getStoreImage = (name: string, imageUrl?: string | null) => imageUrl || storeImageMap[name] || null;
+  const getStoreImage = (name: string) => storeImageMap[name] || null;
 
   // Store detail view
   if (selectedStore) {
@@ -128,9 +130,9 @@ const MarketplaceBrowser = ({ initialStoreId, initialProductId, onStoreOpened }:
 
         {/* Store banner */}
         <div className="relative rounded-2xl overflow-hidden mb-6">
-          <div className="h-40 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent flex items-center justify-center overflow-hidden">
-            {getStoreImage(selectedStore.name, selectedStore.image_url) ? (
-              <img src={getStoreImage(selectedStore.name, selectedStore.image_url)!} alt={selectedStore.name} className="w-full h-full object-cover" />
+          <div className="h-36 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent flex items-center justify-center">
+            {getStoreImage(selectedStore.name) ? (
+              <img src={getStoreImage(selectedStore.name)!} alt={selectedStore.name} className="h-24 w-24 object-contain drop-shadow-lg" />
             ) : (
               <span className="text-5xl">🍽️</span>
             )}
@@ -157,51 +159,37 @@ const MarketplaceBrowser = ({ initialStoreId, initialProductId, onStoreOpened }:
           ))}
         </div>
 
-        {/* Products - grid with images */}
+        {/* Products */}
         {productCategories.map((cat) => (
           <section key={cat} id={`cat-${cat.replace(/\s+/g, "-")}`} className="mb-6">
             <h3 className="font-display text-sm font-bold text-foreground mb-3">{cat}</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
               {products.filter((p) => (p.category || "Other") === cat).map((product) => {
                 const qty = getCartQuantity(product.id);
                 return (
-                  <div key={product.id} id={`product-${product.id}`} className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/20 hover:shadow-sm transition-all">
-                    {/* Product image */}
-                    <div className="relative h-28 bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center overflow-hidden">
-                      {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-3xl opacity-40">🍽️</span>
-                      )}
+                  <div key={product.id} id={`product-${product.id}`} className="flex items-center justify-between bg-card border border-border rounded-2xl p-3 hover:border-primary/20 hover:shadow-sm transition-all">
+                    <div className="flex-1 min-w-0 mr-3">
+                      <h4 className="font-medium text-card-foreground text-sm truncate">{product.name}</h4>
+                      <p className="text-primary font-display font-bold text-sm mt-0.5">
+                        {formatPrice(product.price)} <span className="text-xs font-normal text-muted-foreground">GYD</span>
+                      </p>
                     </div>
-                    <div className="p-3">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{cat}</p>
-                      <h4 className="font-display font-bold text-sm text-card-foreground truncate mt-0.5">{product.name}</h4>
-                      {product.description && (
-                        <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{product.description}</p>
+                    <div className="flex items-center gap-1">
+                      {qty > 0 ? (
+                        <>
+                          <Button variant="outline" size="icon" className="h-7 w-7 rounded-full" onClick={() => updateQuantity(product.id, qty - 1)}>
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-6 text-center font-bold text-xs text-foreground">{qty}</span>
+                          <Button size="icon" className="h-7 w-7 rounded-full gradient-primary text-primary-foreground" onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: selectedStore.id, store_name: selectedStore.name })}>
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </>
+                      ) : (
+                        <Button size="icon" className="h-7 w-7 rounded-full gradient-primary text-primary-foreground" onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: selectedStore.id, store_name: selectedStore.name })}>
+                          <Plus className="h-3 w-3" />
+                        </Button>
                       )}
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-accent font-display font-bold text-sm">
-                          GYD{formatPrice(product.price)}
-                        </p>
-                        <div className="flex items-center gap-1">
-                          {qty > 0 ? (
-                            <>
-                              <Button variant="outline" size="icon" className="h-6 w-6 rounded-full" onClick={() => updateQuantity(product.id, qty - 1)}>
-                                <Minus className="h-2.5 w-2.5" />
-                              </Button>
-                              <span className="w-5 text-center font-bold text-xs text-foreground">{qty}</span>
-                              <Button size="icon" className="h-6 w-6 rounded-full gradient-primary text-primary-foreground" onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: selectedStore.id, store_name: selectedStore.name })}>
-                                <Plus className="h-2.5 w-2.5" />
-                              </Button>
-                            </>
-                          ) : (
-                            <Button size="icon" className="h-7 w-7 rounded-full gradient-primary text-primary-foreground" onClick={() => addItem({ id: product.id, name: product.name, price: product.price, store_id: selectedStore.id, store_name: selectedStore.name })}>
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 );
@@ -275,8 +263,8 @@ const MarketplaceBrowser = ({ initialStoreId, initialProductId, onStoreOpened }:
             <button key={store.id} onClick={() => setSelectedStoreId(store.id)}
               className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/30 hover:shadow-xl transition-all duration-300 text-left">
               <div className="relative h-28 bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center overflow-hidden">
-                {getStoreImage(store.name, store.image_url) ? (
-                  <img src={getStoreImage(store.name, store.image_url)!} alt={store.name}
+                {getStoreImage(store.name) ? (
+                  <img src={getStoreImage(store.name)!} alt={store.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 ) : (
                   <span className="text-4xl group-hover:scale-110 transition-transform">🍽️</span>

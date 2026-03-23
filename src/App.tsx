@@ -23,13 +23,6 @@ import Support from "./pages/Support";
 import OurValues from "./pages/OurValues";
 import BusinessPlan from "./pages/BusinessPlan";
 import RiderAgreement from "./pages/RiderAgreement";
-import Portfolio from "./pages/Portfolio";
-import WomensDay from "./pages/WomensDay";
-import ErrandServices from "./pages/ErrandServices";
-import ErrandCategory from "./pages/ErrandCategory";
-import AdminPriceList from "./pages/AdminPriceList";
-import AdminHiringFlyer from "./pages/AdminHiringFlyer";
-import DriverApplication from "./pages/DriverApplication";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 
@@ -63,11 +56,7 @@ const App = () => (
                 }
               />
               <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/portfolio" element={<Portfolio />} />
-              <Route path="/womens-day" element={<WomensDay />} />
               <Route path="/store/:storeId" element={<StorePage />} />
-              <Route path="/errands" element={<ProtectedRoute allowedRoles={["customer"]}><ErrandServices /></ProtectedRoute>} />
-              <Route path="/errands/:categoryId" element={<ProtectedRoute allowedRoles={["customer"]}><ErrandCategory /></ProtectedRoute>} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -96,23 +85,6 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/admin/price-list"
-                element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
-                    <AdminPriceList />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/hiring"
-                element={
-                  <ProtectedRoute allowedRoles={["admin"]}>
-                    <AdminHiringFlyer />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/apply-driver" element={<DriverApplication />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />

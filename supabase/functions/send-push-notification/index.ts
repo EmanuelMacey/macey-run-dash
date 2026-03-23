@@ -224,19 +224,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate: only internal triggers (INTERNAL_WEBHOOK_SECRET) or service role allowed
-    const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    const internalSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-    if (!token || (token !== internalSecret && token !== serviceKey)) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const { user_id, title, message, order_id } = await req.json();
 
     if (!user_id || !title || !message) {
@@ -313,7 +300,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error('Unexpected error:', e);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ error: e.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -10,12 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Store, Package, ArrowLeft, Loader2, ImageIcon, Link2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Store, Package, ArrowLeft, Loader2, ImageIcon } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const CATEGORIES = ["Fast Food", "Grill & Seafood", "Chinese Restaurant", "Pizza", "Coffee & Cafe", "Other"];
 
@@ -39,10 +38,6 @@ const AdminStores = () => {
   const [productPrice, setProductPrice] = useState("");
   const [productCategory, setProductCategory] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [productImageFile, setProductImageFile] = useState<File | null>(null);
-  const [productImageUrl, setProductImageUrl] = useState("");
-  const [productImageMode, setProductImageMode] = useState<"upload" | "url">("upload");
-  const [uploadingProductImage, setUploadingProductImage] = useState(false);
 
   const { data: stores = [], isLoading } = useQuery({
     queryKey: ["admin-stores"],
@@ -87,6 +82,7 @@ const AdminStores = () => {
     try {
       const ext = storeImageFile.name.split(".").pop();
       const path = `${storeId}.${ext}`;
+      // Remove old image first
       await supabase.storage.from("store-images").remove([path]);
       const { error } = await supabase.storage.from("store-images").upload(path, storeImageFile, { upsert: true });
       if (error) throw error;
@@ -97,25 +93,6 @@ const AdminStores = () => {
       return null;
     } finally {
       setUploadingImage(false);
-    }
-  };
-
-  const uploadProductImage = async (productId: string): Promise<string | null> => {
-    if (!productImageFile) return null;
-    setUploadingProductImage(true);
-    try {
-      const ext = productImageFile.name.split(".").pop();
-      const path = `products/${productId}.${ext}`;
-      await supabase.storage.from("store-images").remove([path]);
-      const { error } = await supabase.storage.from("store-images").upload(path, productImageFile, { upsert: true });
-      if (error) throw error;
-      const { data: urlData } = supabase.storage.from("store-images").getPublicUrl(path);
-      return urlData.publicUrl + `?t=${Date.now()}`;
-    } catch (err: any) {
-      toast.error("Product image upload failed: " + err.message);
-      return null;
-    } finally {
-      setUploadingProductImage(false);
     }
   };
 
@@ -140,6 +117,7 @@ const AdminStores = () => {
     const payload: any = { name: storeName.trim(), category: storeCategory, description: storeDescription.trim() || null };
     
     if (editingStore) {
+      // Upload image if selected
       if (storeImageFile) {
         const imageUrl = await uploadStoreImage(editingStore.id);
         if (imageUrl) payload.image_url = imageUrl;
@@ -150,6 +128,7 @@ const AdminStores = () => {
     } else {
       const { data, error } = await supabase.from("marketplace_stores").insert(payload).select("id").single();
       if (error) return toast.error(error.message);
+      // Upload image for new store
       if (storeImageFile && data) {
         const imageUrl = await uploadStoreImage(data.id);
         if (imageUrl) {
@@ -178,57 +157,35 @@ const AdminStores = () => {
       setProductPrice(String(product.price));
       setProductCategory(product.category || "");
       setProductDescription(product.description || "");
-      setProductImageUrl(product.image_url || "");
-      setProductImageMode(product.image_url ? "url" : "upload");
     } else {
       setEditingProduct(null);
       setProductName("");
       setProductPrice("");
       setProductCategory("");
       setProductDescription("");
-      setProductImageUrl("");
-      setProductImageMode("upload");
     }
-    setProductImageFile(null);
     setProductDialogOpen(true);
   };
 
   const saveProduct = async () => {
     if (!productName.trim() || !productPrice) return toast.error("Name and price are required");
-    const payload: any = {
+    const payload = {
       name: productName.trim(),
       price: Number(productPrice),
       category: productCategory.trim() || null,
       description: productDescription.trim() || null,
       store_id: selectedStoreId!,
     };
-
-    // Handle image
-    if (productImageMode === "url" && productImageUrl.trim()) {
-      payload.image_url = productImageUrl.trim();
-    }
-
     if (editingProduct) {
-      if (productImageMode === "upload" && productImageFile) {
-        const imageUrl = await uploadProductImage(editingProduct.id);
-        if (imageUrl) payload.image_url = imageUrl;
-      }
       const { error } = await supabase.from("marketplace_products").update(payload).eq("id", editingProduct.id);
       if (error) return toast.error(error.message);
       toast.success("Product updated");
     } else {
-      const { data, error } = await supabase.from("marketplace_products").insert(payload).select("id").single();
+      const { error } = await supabase.from("marketplace_products").insert(payload);
       if (error) return toast.error(error.message);
-      if (productImageMode === "upload" && productImageFile && data) {
-        const imageUrl = await uploadProductImage(data.id);
-        if (imageUrl) {
-          await supabase.from("marketplace_products").update({ image_url: imageUrl }).eq("id", data.id);
-        }
-      }
       toast.success("Product added");
     }
     setProductDialogOpen(false);
-    setProductImageFile(null);
     queryClient.invalidateQueries({ queryKey: ["admin-products", selectedStoreId] });
   };
 
@@ -279,18 +236,9 @@ const AdminStores = () => {
               <div className="space-y-2">
                 {products.filter((p) => (p.category || "Other") === cat).map((product) => (
                   <div key={product.id} className="flex items-center justify-between bg-card border border-border rounded-lg p-3">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                          <Package className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{product.name}</p>
-                        <p className="text-primary font-bold text-sm">${product.price.toLocaleString()} GYD</p>
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{product.name}</p>
+                      <p className="text-primary font-bold text-sm">${product.price.toLocaleString()} GYD</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Switch checked={product.is_available} onCheckedChange={(v) => toggleProduct.mutate({ id: product.id, is_available: v })} />
@@ -324,19 +272,19 @@ const AdminStores = () => {
 
         {/* Product dialog */}
         <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingProduct ? "Edit Product" : "Add Product"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label>Product Name</Label>
-                <Input value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="e.g. 3pc Combo" />
+                <Input value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="e.g. 9pc Bucket" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Price (GYD)</Label>
-                  <Input type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="2240" />
+                  <Input type="number" value={productPrice} onChange={(e) => setProductPrice(e.target.value)} placeholder="5000" />
                 </div>
                 <div className="space-y-2">
                   <Label>Category</Label>
@@ -345,47 +293,9 @@ const AdminStores = () => {
               </div>
               <div className="space-y-2">
                 <Label>Description (optional)</Label>
-                <Textarea value={productDescription} onChange={(e) => setProductDescription(e.target.value)} placeholder="3pcs chicken, 1 biscuit, 1 reg. fries..." />
+                <Textarea value={productDescription} onChange={(e) => setProductDescription(e.target.value)} placeholder="Product description..." />
               </div>
-
-              {/* Product Image */}
-              <div className="space-y-2">
-                <Label>Product Image</Label>
-                <Tabs value={productImageMode} onValueChange={(v) => setProductImageMode(v as "upload" | "url")} className="w-full">
-                  <TabsList className="w-full grid grid-cols-2 h-9">
-                    <TabsTrigger value="upload" className="text-xs gap-1"><ImageIcon className="h-3 w-3" /> Upload</TabsTrigger>
-                    <TabsTrigger value="url" className="text-xs gap-1"><Link2 className="h-3 w-3" /> URL</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="upload" className="mt-2">
-                    <div className="flex items-center gap-3">
-                      {(editingProduct?.image_url && !productImageFile && productImageMode === "upload") && (
-                        <img src={editingProduct.image_url} alt="Current" className="w-14 h-14 rounded-xl object-cover border border-border" />
-                      )}
-                      {productImageFile && (
-                        <img src={URL.createObjectURL(productImageFile)} alt="Preview" className="w-14 h-14 rounded-xl object-cover border border-border" />
-                      )}
-                      <label className="flex-1 flex items-center gap-2 border border-dashed border-border rounded-xl p-3 cursor-pointer hover:border-primary/50 transition-colors">
-                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground truncate">{productImageFile ? productImageFile.name : "Choose image..."}</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => setProductImageFile(e.target.files?.[0] || null)} />
-                      </label>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="url" className="mt-2">
-                    <div className="flex items-center gap-3">
-                      {productImageUrl && (
-                        <img src={productImageUrl} alt="Preview" className="w-14 h-14 rounded-xl object-cover border border-border" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                      )}
-                      <Input value={productImageUrl} onChange={(e) => setProductImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" className="flex-1" />
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <Button className="w-full" onClick={saveProduct} disabled={uploadingProductImage}>
-                {uploadingProductImage && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {editingProduct ? "Save Changes" : "Add Product"}
-              </Button>
+              <Button className="w-full" onClick={saveProduct}>{editingProduct ? "Save Changes" : "Add Product"}</Button>
             </div>
           </DialogContent>
         </Dialog>

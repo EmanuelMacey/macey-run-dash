@@ -288,10 +288,3 @@
     pointer-events: none;
   }
 }
-
-@media print {
-  body { background: white !important; }
-  .print\:hidden { display: none !important; }
-  .break-before-page { page-break-before: always; }
-  @page { margin: 0.75in; }
-}

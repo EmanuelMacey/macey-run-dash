@@ -15,5 +15,3 @@ project_id = "aczkjkkiiqrvljlrkccw"
     verify_jwt = false
   [functions.support-chat]
     verify_jwt = false
-  [functions.unsubscribe]
-    verify_jwt = false

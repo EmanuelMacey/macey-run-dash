@@ -85,6 +85,8 @@ Deno.serve(async (req) => {
 
       const { data: customerAuth } = await supabase.auth.admin.getUserById(order.customer_id);
       const customerEmail = customerAuth?.user?.email;
+      const { data: customerProfile } = await supabase.from('profiles').select('full_name').eq('user_id', order.customer_id).single();
+      const customerName = customerProfile?.full_name || 'Customer';
 
       const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
       const adminEmails: string[] = [];
@@ -106,6 +108,7 @@ Deno.serve(async (req) => {
 
       const orderEmailHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">Order Update ${orderNum}</h2>
+        <p style="font-size: 15px; color: #334155;">Hi <strong>${customerName}</strong>,</p>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Status:</strong> <span style="color: #2563eb; font-weight: 600;">${statusLabel}</span></p>
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${order.order_type}</p>
@@ -140,6 +143,8 @@ Deno.serve(async (req) => {
       }
 
       const orderNum = order.order_number ? `#${order.order_number}` : order.id.slice(0, 8);
+      const { data: custProfile } = await supabase.from('profiles').select('full_name').eq('user_id', order.customer_id).single();
+      const custName = custProfile?.full_name || 'A customer';
 
       const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
       const adminEmails: string[] = [];
@@ -161,6 +166,7 @@ Deno.serve(async (req) => {
 
       const newOrderHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">🚀 New Order ${orderNum}!</h2>
+        <p style="font-size: 15px; color: #334155;"><strong>${custName}</strong> placed a new order.</p>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${order.order_type}</p>
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Amount:</strong> $${order.price.toLocaleString()} GYD</p>

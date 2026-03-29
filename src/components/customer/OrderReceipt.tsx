@@ -44,11 +44,24 @@ const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, 
   const displayPhone = customerInfo?.phone || "—";
   const displayAddress = order.dropoff_address || customerInfo?.default_address || "—";
 
+  const esc = (s: string) =>
+    s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+     .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+    const safeOrderNum = esc(String(orderNum));
+    const safeName = esc(displayName);
+    const safePhone = esc(displayPhone);
+    const safeAddress = esc(displayAddress);
+    const safePickup = esc(order.pickup_address);
+    const safeType = esc(order.order_type);
+    const safePayment = esc(order.payment_method);
+    const safeStatus = esc(order.status.replace("_", " ").toUpperCase());
+
     printWindow.document.write(`
-      <html><head><title>Receipt #${orderNum}</title>
+      <html><head><title>Receipt #${safeOrderNum}</title>
       <style>
         body { font-family: 'Courier New', monospace; max-width: 320px; margin: 20px auto; padding: 20px; }
         .center { text-align: center; }
@@ -60,21 +73,21 @@ const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, 
       </style></head><body>
         <div class="center">
           <h2>MaceyRunners</h2>
-          <p class="small">Fast Delivery & Errands in Guyana</p>
+          <p class="small">Fast Delivery &amp; Errands in Guyana</p>
           <div class="line"></div>
-          <p class="bold">RECEIPT #${orderNum}</p>
-          <p class="small">${new Date(order.created_at).toLocaleString()}</p>
+          <p class="bold">RECEIPT #${safeOrderNum}</p>
+          <p class="small">${esc(new Date(order.created_at).toLocaleString())}</p>
         </div>
         <div class="line"></div>
-        <div class="row"><span>Customer:</span><span>${displayName}</span></div>
-        <div class="row"><span>Phone:</span><span>${displayPhone}</span></div>
-        <div class="row"><span>Type:</span><span style="text-transform:capitalize">${order.order_type}</span></div>
-        <div class="row"><span>From:</span><span>${order.pickup_address}</span></div>
-        <div class="row"><span>To:</span><span>${displayAddress}</span></div>
-        <div class="row"><span>Payment:</span><span style="text-transform:capitalize">${order.payment_method}</span></div>
+        <div class="row"><span>Customer:</span><span>${safeName}</span></div>
+        <div class="row"><span>Phone:</span><span>${safePhone}</span></div>
+        <div class="row"><span>Type:</span><span style="text-transform:capitalize">${safeType}</span></div>
+        <div class="row"><span>From:</span><span>${safePickup}</span></div>
+        <div class="row"><span>To:</span><span>${safeAddress}</span></div>
+        <div class="row"><span>Payment:</span><span style="text-transform:capitalize">${safePayment}</span></div>
         <div class="line"></div>
         ${hasItems ? orderItems.map(i => 
-          `<div class="row"><span>${i.quantity}x ${i.product_name}</span><span>$${(i.unit_price * i.quantity).toLocaleString()}</span></div>`
+          `<div class="row"><span>${i.quantity}x ${esc(i.product_name)}</span><span>$${(i.unit_price * i.quantity).toLocaleString()}</span></div>`
         ).join("") + `
           <div class="line"></div>
           <div class="row"><span>Subtotal</span><span>$${itemsTotal.toLocaleString()}</span></div>
@@ -86,7 +99,7 @@ const OrderReceipt = ({ order, orderItems = [], customerName: propCustomerName, 
         <div class="line"></div>
         <div class="center small" style="margin-top:12px">
           <p>Thank you for using MaceyRunners!</p>
-          <p>Status: ${order.status.replace("_", " ").toUpperCase()}</p>
+          <p>Status: ${safeStatus}</p>
         </div>
       </body></html>
     `);

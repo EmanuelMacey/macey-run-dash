@@ -10,9 +10,22 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Auth check: require internal secret or service role key
+  const authHeader = req.headers.get('Authorization')?.replace('Bearer ', '') || '';
+  const internalHeader = req.headers.get('x-internal-secret') || '';
+  const internalSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET') || '';
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+  const token = authHeader || internalHeader;
+  if (!token || (token !== internalSecret && token !== serviceRoleKey)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Find notifications that need retry

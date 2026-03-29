@@ -1,0 +1,5 @@
+SELECT vault.update_secret(
+  (SELECT id FROM vault.secrets WHERE name = 'INTERNAL_WEBHOOK_SECRET' LIMIT 1),
+  '2f1decece24adbeb5346ef5c40f7616a3e0194283b28e8777ec36b00154a829a',
+  'INTERNAL_WEBHOOK_SECRET'
+);

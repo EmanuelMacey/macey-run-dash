@@ -302,74 +302,6 @@ export type Database = {
         }
         Relationships: []
       }
-      loyalty_points: {
-        Row: {
-          created_at: string
-          id: string
-          points: number
-          total_earned: number
-          total_redeemed: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          points?: number
-          total_earned?: number
-          total_redeemed?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          points?: number
-          total_earned?: number
-          total_redeemed?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      loyalty_transactions: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          order_id: string | null
-          points: number
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          order_id?: string | null
-          points: number
-          type?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          order_id?: string | null
-          points?: number
-          type?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "loyalty_transactions_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       marketplace_products: {
         Row: {
           category: string | null
@@ -967,10 +899,6 @@ export type Database = {
         Returns: boolean
       }
       internal_edge_headers: { Args: never; Returns: Json }
-      redeem_loyalty_points: {
-        Args: { p_discount_amount: number; p_tier_points: number }
-        Returns: string
-      }
     }
     Enums: {
       app_role: "customer" | "driver" | "admin"

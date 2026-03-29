@@ -14,7 +14,7 @@ import MarketplaceBrowser from "@/components/customer/MarketplaceBrowser";
 import CustomerProfile from "@/components/customer/CustomerProfile";
 import CustomerInvoices from "@/components/customer/CustomerInvoices";
 import PromoBanner from "@/components/customer/PromoBanner";
-import LoyaltyCard from "@/components/customer/LoyaltyCard";
+
 import ThemeToggle from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
 
@@ -141,7 +141,7 @@ const CustomerDashboard = () => {
                 </button>
               </NewOrderDialog>
             </div>
-            <LoyaltyCard />
+            
 
             {/* Referral Quick Card */}
             {referralCode && (

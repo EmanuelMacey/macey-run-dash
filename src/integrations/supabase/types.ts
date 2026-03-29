@@ -49,6 +49,66 @@ export type Database = {
           },
         ]
       }
+      driver_applications: {
+        Row: {
+          address: string
+          admin_notes: string | null
+          availability: string
+          created_at: string
+          email: string
+          experience: string | null
+          full_name: string
+          has_license: boolean
+          id: string
+          license_plate: string | null
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          vehicle_type: string
+          why_join: string | null
+        }
+        Insert: {
+          address?: string
+          admin_notes?: string | null
+          availability?: string
+          created_at?: string
+          email: string
+          experience?: string | null
+          full_name: string
+          has_license?: boolean
+          id?: string
+          license_plate?: string | null
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_type?: string
+          why_join?: string | null
+        }
+        Update: {
+          address?: string
+          admin_notes?: string | null
+          availability?: string
+          created_at?: string
+          email?: string
+          experience?: string | null
+          full_name?: string
+          has_license?: boolean
+          id?: string
+          license_plate?: string | null
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_type?: string
+          why_join?: string | null
+        }
+        Relationships: []
+      }
       driver_ratings: {
         Row: {
           comment: string | null
@@ -126,6 +186,30 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vehicle_type?: string | null
+        }
+        Relationships: []
+      }
+      email_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          promotional_emails: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          promotional_emails?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          promotional_emails?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -532,6 +616,83 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_settings: {
+        Row: {
+          account_name: string
+          id: string
+          mmg_number: string
+          payment_instructions: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          account_name?: string
+          id?: string
+          mmg_number?: string
+          payment_instructions?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          account_name?: string
+          id?: string
+          mmg_number?: string
+          payment_instructions?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      payment_verifications: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          mmg_number_used: string
+          order_id: string
+          screenshot_url: string | null
+          status: string
+          transaction_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          mmg_number_used: string
+          order_id: string
+          screenshot_url?: string | null
+          status?: string
+          transaction_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          mmg_number_used?: string
+          order_id?: string
+          screenshot_url?: string | null
+          status?: string
+          transaction_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_verifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -786,6 +947,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_cancel_unverified_mmg_orders: { Args: never; Returns: undefined }
+      driver_update_order_status: {
+        Args: {
+          p_new_status: Database["public"]["Enums"]["order_status"]
+          p_order_id: string
+        }
+        Returns: undefined
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -796,6 +965,11 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      internal_edge_headers: { Args: never; Returns: Json }
+      redeem_loyalty_points: {
+        Args: { p_discount_amount: number; p_tier_points: number }
+        Returns: string
       }
     }
     Enums: {
@@ -808,7 +982,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
       order_type: "delivery" | "errand"
-      payment_method: "card" | "cash"
+      payment_method: "card" | "cash" | "mmg"
       payment_status: "pending" | "paid" | "refunded" | "failed"
     }
     CompositeTypes: {
@@ -947,7 +1121,7 @@ export const Constants = {
         "cancelled",
       ],
       order_type: ["delivery", "errand"],
-      payment_method: ["card", "cash"],
+      payment_method: ["card", "cash", "mmg"],
       payment_status: ["pending", "paid", "refunded", "failed"],
     },
   },

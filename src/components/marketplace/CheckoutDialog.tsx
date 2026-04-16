@@ -236,9 +236,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
                 <span className="font-medium text-foreground">{formatPrice(total)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Delivery fee {distanceKm !== null ? `(${distanceKm} km)` : ""}
-                </span>
+                <span className="text-muted-foreground">Delivery fee</span>
                 <span className="font-medium text-foreground">
                   {deliveryFee !== null ? formatPrice(deliveryFee) : "—"}
                 </span>

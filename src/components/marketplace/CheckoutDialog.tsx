@@ -74,43 +74,19 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
       });
   }, [user]);
 
-  const grandTotal = total + (deliveryFee ?? 0) + SERVICE_FEE;
+  const grandTotal = total + STANDARD_DELIVERY_FEE + SERVICE_FEE;
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
 
-  // Debounced distance calculation
+  // Set flat delivery fee when address is entered
   useEffect(() => {
-    if (!deliveryAddress.trim() || !storeName) {
+    if (!deliveryAddress.trim()) {
       setDeliveryFee(null);
       setDistanceKm(null);
       return;
     }
-
-    const timer = setTimeout(async () => {
-      setCalculatingFee(true);
-      try {
-        const [storeCoords, dropCoords] = await Promise.all([
-          geocode(`${storeName}, Georgetown, Guyana`),
-          geocode(`${deliveryAddress}, Guyana`),
-        ]);
-
-        if (storeCoords && dropCoords) {
-          const dist = haversineKm(storeCoords.lat, storeCoords.lon, dropCoords.lat, dropCoords.lon);
-          setDistanceKm(Math.round(dist * 10) / 10);
-          setDeliveryFee(calculateDeliveryFee(dist));
-        } else {
-          setDistanceKm(null);
-          setDeliveryFee(MIN_FEE);
-        }
-      } catch {
-        setDeliveryFee(MIN_FEE);
-        setDistanceKm(null);
-      } finally {
-        setCalculatingFee(false);
-      }
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [deliveryAddress, storeName]);
+    setDeliveryFee(STANDARD_DELIVERY_FEE);
+    setDistanceKm(null);
+  }, [deliveryAddress]);
 
   const buildDescription = () => {
     const itemLines = items.map((i) => `${i.quantity}x ${i.name}`).join(", ");

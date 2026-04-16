@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -338,7 +338,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           <Button
             className="w-full h-12 rounded-full text-base font-bold"
             onClick={handlePlaceOrder}
-            disabled={loading || items.length === 0 || deliveryFee === null || calculatingFee}
+            disabled={loading || items.length === 0 || deliveryFee === null}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             {deliveryFee !== null ? `Place Order — ${formatPrice(grandTotal)} GYD` : "Enter address to see total"}

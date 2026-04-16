@@ -41,17 +41,9 @@ const geocode = async (address: string): Promise<{ lat: number; lon: number } | 
   return null;
 };
 
-// Pricing: base + per-km rate (GYD)
-const BASE_FEE = 300;
-const PER_KM_RATE = 150;
-const MIN_FEE = 700;
-const MAX_FEE = 5000;
+// Pricing: flat delivery fee (GYD)
+const STANDARD_DELIVERY_FEE = 1000;
 const SERVICE_FEE = 100;
-
-const calculateDeliveryFee = (distanceKm: number) => {
-  const fee = Math.round(BASE_FEE + distanceKm * PER_KM_RATE);
-  return Math.max(MIN_FEE, Math.min(MAX_FEE, fee));
-};
 
 const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogProps) => {
   const { items, total, storeName, storeId, clearCart } = useCart();

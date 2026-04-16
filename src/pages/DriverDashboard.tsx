@@ -21,12 +21,35 @@ const DriverDashboard = () => {
   const gpsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const [driverName, setDriverName] = useState("");
+  const autoOnlineDone = useRef(false);
 
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("full_name").eq("user_id", user.id).single().then(({ data }) => {
       if (data?.full_name) setDriverName(data.full_name.split(" ")[0]);
     });
+  }, [user]);
+
+  // Auto-set driver online when entering dashboard
+  useEffect(() => {
+    if (!user || autoOnlineDone.current) return;
+    autoOnlineDone.current = true;
+
+    const autoGoOnline = async () => {
+      const { data } = await supabase.from("drivers").select("is_online, is_approved").eq("user_id", user.id).single();
+      if (!data) return;
+      
+      if (data.is_approved && !data.is_online) {
+        const { error } = await supabase.from("drivers").update({ is_online: true }).eq("user_id", user.id);
+        if (!error) {
+          setIsOnline(true);
+          toast.success("You're now online! 🟢", { description: "Auto-connected on login" });
+        }
+      } else {
+        setIsOnline(data.is_online);
+      }
+    };
+    autoGoOnline();
   }, [user]);
 
   const startGpsBroadcast = useCallback(() => {
@@ -64,11 +87,16 @@ const DriverDashboard = () => {
     return () => stopGpsBroadcast();
   }, [isOnline, startGpsBroadcast, stopGpsBroadcast]);
 
+  // Set driver offline when leaving the dashboard
   useEffect(() => {
     if (!user) return;
-    supabase.from("drivers").select("is_online").eq("user_id", user.id).single().then(({ data }) => {
-      if (data) setIsOnline(data.is_online);
-    });
+    const handleBeforeUnload = () => {
+      navigator.sendBeacon && supabase.from("drivers").update({ is_online: false }).eq("user_id", user.id);
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, [user]);
 
   const toggleOnline = useCallback(async () => {
@@ -89,11 +117,9 @@ const DriverDashboard = () => {
 
   return (
     <div className="min-h-screen mesh-bg" onClick={unlockAudio}>
-      {/* Decorative particles */}
       <div className="particle w-3 h-3 bg-success/20 top-24 left-[8%]" style={{ animationDelay: '0s' }} />
       <div className="particle w-2 h-2 bg-accent/15 top-48 right-[12%]" style={{ animationDelay: '3s' }} />
 
-      {/* Header */}
       <header className="bg-navy dark:bg-secondary/95 backdrop-blur-xl border-b border-navy/20 dark:border-white/10 sticky top-0 z-50 safe-top">
         <div className="container mx-auto px-4 safe-x flex items-center justify-between h-16">
           <div className="flex items-center gap-2.5">
@@ -126,7 +152,6 @@ const DriverDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-2xl relative space-y-6">
-        {/* Welcome Hero */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -148,7 +173,6 @@ const DriverDashboard = () => {
           </div>
         </motion.div>
 
-        {/* GPS Status */}
         {gpsActive && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -165,13 +189,8 @@ const DriverDashboard = () => {
           </motion.div>
         )}
 
-        {/* Quick Stats */}
         <DriverEarnings />
-
-        {/* Profile Section */}
         <DriverProfile />
-
-        {/* Orders Section */}
         <DriverOrderFeed isOnline={isOnline} />
       </main>
     </div>

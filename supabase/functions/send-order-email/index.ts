@@ -399,6 +399,52 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ---- DRIVER STATUS CHANGE EMAIL ----
+    if (type === 'driver_status_change') {
+      const { driver_id, is_online } = body;
+      if (!driver_id) {
+        return new Response(JSON.stringify({ error: 'Missing driver_id' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: driverAuth } = await supabase.auth.admin.getUserById(driver_id);
+      const driverEmail = driverAuth?.user?.email || 'Unknown';
+      const { data: driverProfile } = await supabase.from('profiles').select('full_name').eq('user_id', driver_id).single();
+      const driverName = driverProfile?.full_name || driverEmail;
+
+      const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
+      const adminEmails: string[] = [];
+      if (adminRoles) {
+        for (const ar of adminRoles) {
+          const { data: au } = await supabase.auth.admin.getUserById(ar.user_id);
+          if (au?.user?.email) adminEmails.push(au.user.email);
+        }
+      }
+
+      const statusText = is_online ? '🟢 Online' : '🔴 Offline';
+      const statusColor = is_online ? '#16a34a' : '#dc2626';
+
+      const statusHtml = emailTemplate(`
+        <h2 style="color: #1e3a5f; margin-top: 0;">Driver Status Change</h2>
+        <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Driver:</strong> ${driverName}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Email:</strong> ${driverEmail}</p>
+          <p style="margin: 0; font-size: 16px;"><strong>Status:</strong> <span style="color: ${statusColor}; font-weight: 700;">${statusText}</span></p>
+        </div>
+        <p style="color: #64748b; font-size: 13px;">${is_online ? 'This driver is now accepting orders.' : 'This driver has gone offline and is no longer accepting orders.'}</p>
+        <p style="color: #94a3b8; font-size: 12px; margin-top: 16px;">${new Date().toLocaleString('en-US', { timeZone: 'America/Guyana' })}</p>
+      `);
+
+      for (const ae of adminEmails) {
+        await sendEmail(ae, `[Driver ${is_online ? 'Online' : 'Offline'}] ${driverName}`, statusHtml);
+      }
+
+      return new Response(JSON.stringify({ sent: true, admins: adminEmails.length }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown email type' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

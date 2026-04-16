@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Maximize2, Minimize2, Navigation, Layers } from "lucide-react";
 
 interface DriverMapProps {
   driverId: string;
@@ -83,6 +85,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
   const [noLocation, setNoLocation] = useState(false);
   const [driverLatLng, setDriverLatLng] = useState<[number, number] | null>(null);
   const [dropoffLatLng, setDropoffLatLng] = useState<[number, number] | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (driverLatLng && dropoffLatLng) {
@@ -100,10 +103,9 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
       markerRef.current.setLatLng([lat, lng]);
     } else {
       markerRef.current = L.marker([lat, lng], { icon: DRIVER_ICON }).addTo(mapInstance.current);
-      markerRef.current.bindTooltip("Driver", { direction: "top", offset: [0, -18] });
+      markerRef.current.bindPopup("<b>🚗 Driver</b><br/>Currently here").openPopup();
     }
     setDriverLatLng([lat, lng]);
-    mapInstance.current.setView([lat, lng], mapInstance.current.getZoom(), { animate: true });
   };
 
   const updateRouteLine = () => {
@@ -119,10 +121,10 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
         routeLineRef.current.setLatLngs(points);
       } else {
         routeLineRef.current = L.polyline(points, {
-          color: "hsl(348, 83%, 52%)",
-          weight: 3,
-          opacity: 0.7,
-          dashArray: "8, 8",
+          color: "hsl(220, 90%, 56%)",
+          weight: 4,
+          opacity: 0.8,
+          dashArray: "10, 6",
         }).addTo(mapInstance.current);
       }
     }
@@ -134,7 +136,15 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
       .filter(Boolean) as L.Marker[];
     if (markers.length >= 2) {
       const group = L.featureGroup(markers);
-      mapInstance.current.fitBounds(group.getBounds().pad(0.2), { animate: true });
+      mapInstance.current.fitBounds(group.getBounds().pad(0.3), { animate: true, maxZoom: 16 });
+    } else if (markers.length === 1) {
+      mapInstance.current.setView(markers[0].getLatLng(), 15, { animate: true });
+    }
+  };
+
+  const centerOnDriver = () => {
+    if (mapInstance.current && driverLatLng) {
+      mapInstance.current.setView(driverLatLng, 16, { animate: true });
     }
   };
 
@@ -144,15 +154,19 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
     mapInstance.current = L.map(mapRef.current, {
       center: [6.8013, -58.1551],
       zoom: 14,
-      zoomControl: false,
+      zoomControl: true,
       attributionControl: false,
+      dragging: true,
+      touchZoom: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: true,
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '© OpenStreetMap',
+      maxZoom: 19,
     }).addTo(mapInstance.current);
-
-    L.control.zoom({ position: "bottomright" }).addTo(mapInstance.current);
 
     return () => {
       mapInstance.current?.remove();
@@ -165,6 +179,13 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
     };
   }, []);
 
+  // Invalidate size when expanded/collapsed
+  useEffect(() => {
+    if (mapInstance.current) {
+      setTimeout(() => mapInstance.current?.invalidateSize(), 100);
+    }
+  }, [expanded]);
+
   // Place pickup/dropoff/customer pins
   useEffect(() => {
     if (!mapInstance.current) return;
@@ -176,7 +197,7 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
           if (pickupMarkerRef.current) pickupMarkerRef.current.setLatLng(coords);
           else {
             pickupMarkerRef.current = L.marker(coords, { icon: PICKUP_ICON }).addTo(mapInstance.current);
-            pickupMarkerRef.current.bindTooltip("Pickup", { direction: "top", offset: [0, -16], permanent: true });
+            pickupMarkerRef.current.bindPopup(`<b>📦 Pickup</b><br/>${pickupAddress}`);
           }
         }
       }
@@ -187,18 +208,17 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
           if (dropoffMarkerRef.current) dropoffMarkerRef.current.setLatLng(coords);
           else {
             dropoffMarkerRef.current = L.marker(coords, { icon: DROPOFF_ICON }).addTo(mapInstance.current);
-            dropoffMarkerRef.current.bindTooltip("Dropoff", { direction: "top", offset: [0, -16], permanent: true });
+            dropoffMarkerRef.current.bindPopup(`<b>📍 Dropoff</b><br/>${dropoffAddress}`);
           }
           setDropoffLatLng(coords);
         }
       }
 
-      // Customer pin
       if (customerLat && customerLng && mapInstance.current) {
         if (customerMarkerRef.current) customerMarkerRef.current.setLatLng([customerLat, customerLng]);
         else {
           customerMarkerRef.current = L.marker([customerLat, customerLng], { icon: CUSTOMER_ICON }).addTo(mapInstance.current);
-          customerMarkerRef.current.bindTooltip("Customer", { direction: "top", offset: [0, -16], permanent: true });
+          customerMarkerRef.current.bindPopup("<b>👤 Customer</b>");
         }
       }
 
@@ -245,10 +265,39 @@ const DriverMap = ({ driverId, pickupAddress, dropoffAddress, onEtaChange, custo
   }, [driverId]);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-border">
-      <div ref={mapRef} className="h-52 w-full" />
+    <div className={`relative rounded-2xl overflow-hidden border border-border transition-all ${expanded ? "h-[70vh]" : ""}`}>
+      <div ref={mapRef} className={`w-full transition-all ${expanded ? "h-full" : "h-60 sm:h-72"}`} />
+
+      {/* Map Controls */}
+      <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5">
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-8 w-8 rounded-lg shadow-lg bg-card/90 backdrop-blur-sm border border-border/50"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-8 w-8 rounded-lg shadow-lg bg-card/90 backdrop-blur-sm border border-border/50"
+          onClick={centerOnDriver}
+        >
+          <Navigation className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="h-8 w-8 rounded-lg shadow-lg bg-card/90 backdrop-blur-sm border border-border/50"
+          onClick={fitAllMarkers}
+        >
+          <Layers className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
       {noLocation && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted/80 text-muted-foreground text-xs">
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/80 text-muted-foreground text-xs z-[999]">
           Waiting for driver location...
         </div>
       )}

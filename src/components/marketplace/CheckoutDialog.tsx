@@ -214,14 +214,9 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
               onChange={(e) => setDeliveryAddress(e.target.value)}
               className="rounded-xl"
             />
-            {calculatingFee && (
+            {deliveryFee !== null && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" /> Calculating delivery fee...
-              </p>
-            )}
-            {distanceKm !== null && deliveryFee !== null && !calculatingFee && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Navigation className="h-3 w-3" /> ~{distanceKm} km • Delivery fee: {formatPrice(deliveryFee)} GYD
+                <Navigation className="h-3 w-3" /> Standard delivery fee: {formatPrice(STANDARD_DELIVERY_FEE)} GYD
               </p>
             )}
           </div>

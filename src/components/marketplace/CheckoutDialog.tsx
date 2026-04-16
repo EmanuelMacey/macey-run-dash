@@ -18,29 +18,6 @@ interface CheckoutDialogProps {
   onOrderPlaced?: () => void;
 }
 
-// Haversine distance in km
-const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
-
-// Geocode using Nominatim
-const geocode = async (address: string): Promise<{ lat: number; lon: number } | null> => {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gy&limit=1`
-    );
-    const data = await res.json();
-    if (data.length > 0) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-  } catch {}
-  return null;
-};
-
 // Pricing: flat delivery fee (GYD)
 const STANDARD_DELIVERY_FEE = 1000;
 const SERVICE_FEE = 100;

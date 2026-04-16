@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,40 +18,9 @@ interface CheckoutDialogProps {
   onOrderPlaced?: () => void;
 }
 
-// Haversine distance in km
-const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
-
-// Geocode using Nominatim
-const geocode = async (address: string): Promise<{ lat: number; lon: number } | null> => {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=gy&limit=1`
-    );
-    const data = await res.json();
-    if (data.length > 0) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-  } catch {}
-  return null;
-};
-
-// Pricing: base + per-km rate (GYD)
-const BASE_FEE = 300;
-const PER_KM_RATE = 150;
-const MIN_FEE = 700;
-const MAX_FEE = 5000;
+// Pricing: flat delivery fee (GYD)
+const STANDARD_DELIVERY_FEE = 1000;
 const SERVICE_FEE = 100;
-
-const calculateDeliveryFee = (distanceKm: number) => {
-  const fee = Math.round(BASE_FEE + distanceKm * PER_KM_RATE);
-  return Math.max(MIN_FEE, Math.min(MAX_FEE, fee));
-};
 
 const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogProps) => {
   const { items, total, storeName, storeId, clearCart } = useCart();
@@ -62,7 +31,6 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const [loading, setLoading] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
-  const [calculatingFee, setCalculatingFee] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<any>(null);
   const [completedItems, setCompletedItems] = useState<any[]>([]);
   const [customerName, setCustomerName] = useState("");
@@ -82,43 +50,19 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
       });
   }, [user]);
 
-  const grandTotal = total + (deliveryFee ?? 0) + SERVICE_FEE;
+  const grandTotal = total + STANDARD_DELIVERY_FEE + SERVICE_FEE;
   const formatPrice = (price: number) => `$${price.toLocaleString()}`;
 
-  // Debounced distance calculation
+  // Set flat delivery fee when address is entered
   useEffect(() => {
-    if (!deliveryAddress.trim() || !storeName) {
+    if (!deliveryAddress.trim()) {
       setDeliveryFee(null);
       setDistanceKm(null);
       return;
     }
-
-    const timer = setTimeout(async () => {
-      setCalculatingFee(true);
-      try {
-        const [storeCoords, dropCoords] = await Promise.all([
-          geocode(`${storeName}, Georgetown, Guyana`),
-          geocode(`${deliveryAddress}, Guyana`),
-        ]);
-
-        if (storeCoords && dropCoords) {
-          const dist = haversineKm(storeCoords.lat, storeCoords.lon, dropCoords.lat, dropCoords.lon);
-          setDistanceKm(Math.round(dist * 10) / 10);
-          setDeliveryFee(calculateDeliveryFee(dist));
-        } else {
-          setDistanceKm(null);
-          setDeliveryFee(MIN_FEE);
-        }
-      } catch {
-        setDeliveryFee(MIN_FEE);
-        setDistanceKm(null);
-      } finally {
-        setCalculatingFee(false);
-      }
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [deliveryAddress, storeName]);
+    setDeliveryFee(STANDARD_DELIVERY_FEE);
+    setDistanceKm(null);
+  }, [deliveryAddress]);
 
   const buildDescription = () => {
     const itemLines = items.map((i) => `${i.quantity}x ${i.name}`).join(", ");
@@ -246,14 +190,9 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
               onChange={(e) => setDeliveryAddress(e.target.value)}
               className="rounded-xl"
             />
-            {calculatingFee && (
+            {deliveryFee !== null && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" /> Calculating delivery fee...
-              </p>
-            )}
-            {distanceKm !== null && deliveryFee !== null && !calculatingFee && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Navigation className="h-3 w-3" /> ~{distanceKm} km • Delivery fee: {formatPrice(deliveryFee)} GYD
+                <Navigation className="h-3 w-3" /> Standard delivery fee: {formatPrice(STANDARD_DELIVERY_FEE)} GYD
               </p>
             )}
           </div>
@@ -273,9 +212,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
                 <span className="font-medium text-foreground">{formatPrice(total)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Delivery fee {distanceKm !== null ? `(${distanceKm} km)` : ""}
-                </span>
+                <span className="text-muted-foreground">Delivery fee</span>
                 <span className="font-medium text-foreground">
                   {deliveryFee !== null ? formatPrice(deliveryFee) : "—"}
                 </span>
@@ -377,7 +314,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           <Button
             className="w-full h-12 rounded-full text-base font-bold"
             onClick={handlePlaceOrder}
-            disabled={loading || items.length === 0 || deliveryFee === null || calculatingFee}
+            disabled={loading || items.length === 0 || deliveryFee === null}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             {deliveryFee !== null ? `Place Order — ${formatPrice(grandTotal)} GYD` : "Enter address to see total"}

@@ -31,7 +31,6 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   const [loading, setLoading] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
-  const [calculatingFee, setCalculatingFee] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<any>(null);
   const [completedItems, setCompletedItems] = useState<any[]>([]);
   const [customerName, setCustomerName] = useState("");

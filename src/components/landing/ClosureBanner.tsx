@@ -1,26 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Clock, Mail, MessageCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { isWithinClosure, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
+import { CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
+import { useServiceStatus } from "@/hooks/useServiceStatus";
 import logo from "@/assets/logo.png";
 
-const checkClosure = () => {
-  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("closure") === "1") {
-    return true;
-  }
-  return isWithinClosure();
-};
-
 const ClosureBanner = () => {
-  const [closed, setClosed] = useState(checkClosure());
+  const { isClosed, loading } = useServiceStatus();
 
   useEffect(() => {
-    const interval = setInterval(() => setClosed(checkClosure()), 30_000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (closed) {
+    if (isClosed && !loading) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -28,9 +17,9 @@ const ClosureBanner = () => {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [closed]);
+  }, [isClosed, loading]);
 
-  if (!closed) return null;
+  if (loading || !isClosed) return null;
 
   return (
     <AnimatePresence>
@@ -46,7 +35,6 @@ const ClosureBanner = () => {
           transition={{ type: "spring", stiffness: 200, damping: 22 }}
           className="relative w-full max-w-lg rounded-3xl bg-gradient-to-br from-primary via-primary to-accent text-primary-foreground shadow-2xl overflow-hidden"
         >
-          {/* Decorative glow */}
           <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary-foreground/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-accent-foreground/10 blur-3xl" />
 

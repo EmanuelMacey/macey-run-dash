@@ -5,7 +5,8 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail } from "lucide-react";
+import { isWithinClosure, CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";

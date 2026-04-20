@@ -5,7 +5,8 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail } from "lucide-react";
+import { isWithinClosure, CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -191,6 +192,10 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
 
   const onSubmit = async (values: OrderFormValues) => {
     if (!user) return;
+    if (isWithinClosure()) {
+      toast.error(CLOSURE_MESSAGE);
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -244,6 +249,24 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         <DialogHeader>
           <DialogTitle className="font-display text-xl">Place New Order</DialogTitle>
         </DialogHeader>
+
+        {isWithinClosure() && (
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10 p-4 space-y-2">
+            <div className="flex items-start gap-2">
+              <Clock className="h-4 w-4 text-primary mt-0.5 shrink-0 animate-pulse" />
+              <p className="text-sm font-semibold text-foreground leading-tight">{CLOSURE_MESSAGE}</p>
+            </div>
+            <p className="text-xs text-muted-foreground">For urgent matters, contact us:</p>
+            <div className="flex flex-col gap-1.5 text-xs">
+              <a href={`mailto:${CLOSURE_EMAIL}`} className="flex items-center gap-1.5 text-primary hover:underline">
+                <Mail className="h-3 w-3" /> {CLOSURE_EMAIL}
+              </a>
+              <a href={CLOSURE_WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:underline">
+                <MessageCircle className="h-3 w-3" /> WhatsApp {CLOSURE_WHATSAPP}
+              </a>
+            </div>
+          </div>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -482,9 +505,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full" disabled={submitting || isWithinClosure()}>
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Place Order — ${finalPrice.toLocaleString()} GYD
+              {isWithinClosure() ? "Closed — Reopens 3:30 PM" : `Place Order — $${finalPrice.toLocaleString()} GYD`}
             </Button>
           </form>
         </Form>

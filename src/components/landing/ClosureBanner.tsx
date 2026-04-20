@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { Clock, Mail, MessageCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const isWithinClosure = () => {
-  const now = new Date();
-  const minutes = now.getHours() * 60 + now.getMinutes();
-  return minutes >= 7 * 60 && minutes < 15 * 60 + 30;
-};
+import { isWithinClosure, CLOSURE_EMAIL, CLOSURE_WHATSAPP_LINK, CLOSURE_WHATSAPP } from "@/lib/closure";
 
 const ClosureBanner = () => {
   const [closed, setClosed] = useState(isWithinClosure());

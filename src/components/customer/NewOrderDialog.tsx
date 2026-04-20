@@ -250,6 +250,24 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
           <DialogTitle className="font-display text-xl">Place New Order</DialogTitle>
         </DialogHeader>
 
+        {isWithinClosure() && (
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10 p-4 space-y-2">
+            <div className="flex items-start gap-2">
+              <Clock className="h-4 w-4 text-primary mt-0.5 shrink-0 animate-pulse" />
+              <p className="text-sm font-semibold text-foreground leading-tight">{CLOSURE_MESSAGE}</p>
+            </div>
+            <p className="text-xs text-muted-foreground">For urgent matters, contact us:</p>
+            <div className="flex flex-col gap-1.5 text-xs">
+              <a href={`mailto:${CLOSURE_EMAIL}`} className="flex items-center gap-1.5 text-primary hover:underline">
+                <Mail className="h-3 w-3" /> {CLOSURE_EMAIL}
+              </a>
+              <a href={CLOSURE_WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:underline">
+                <MessageCircle className="h-3 w-3" /> WhatsApp {CLOSURE_WHATSAPP}
+              </a>
+            </div>
+          </div>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Order Type */}

@@ -192,6 +192,10 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
 
   const onSubmit = async (values: OrderFormValues) => {
     if (!user) return;
+    if (isWithinClosure()) {
+      toast.error(CLOSURE_MESSAGE);
+      return;
+    }
     setSubmitting(true);
 
     try {

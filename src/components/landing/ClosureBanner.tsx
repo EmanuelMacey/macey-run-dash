@@ -4,11 +4,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { isWithinClosure, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
 import logo from "@/assets/logo.png";
 
+const checkClosure = () => {
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("closure") === "1") {
+    return true;
+  }
+  return isWithinClosure();
+};
+
 const ClosureBanner = () => {
-  const [closed, setClosed] = useState(isWithinClosure());
+  const [closed, setClosed] = useState(checkClosure());
 
   useEffect(() => {
-    const interval = setInterval(() => setClosed(isWithinClosure()), 30_000);
+    const interval = setInterval(() => setClosed(checkClosure()), 30_000);
     return () => clearInterval(interval);
   }, []);
 

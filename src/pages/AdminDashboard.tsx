@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, Radio } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, Radio, Power } from "lucide-react";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -18,6 +18,7 @@ import AdminInvoices from "@/components/admin/AdminInvoices";
 import AdminPromotions from "@/components/admin/AdminPromotions";
 import AdminLeadership from "@/components/admin/AdminLeadership";
 import AdminDriverStatus from "@/components/admin/AdminDriverStatus";
+import AdminServiceStatus from "@/components/admin/AdminServiceStatus";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const AdminDashboard = () => {
@@ -90,7 +91,12 @@ const AdminDashboard = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="analytics"><AdminAnalytics /></TabsContent>
+          <TabsContent value="analytics">
+            <div className="space-y-4 sm:space-y-6">
+              <AdminServiceStatus />
+              <AdminAnalytics />
+            </div>
+          </TabsContent>
           <TabsContent value="live"><AdminDriverStatus /></TabsContent>
           <TabsContent value="orders"><AdminOrders /></TabsContent>
           <TabsContent value="invoices"><AdminInvoices /></TabsContent>

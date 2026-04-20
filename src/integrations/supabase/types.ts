@@ -820,6 +820,27 @@ export type Database = {
         }
         Relationships: []
       }
+      service_status: {
+        Row: {
+          id: boolean
+          override_mode: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: boolean
+          override_mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: boolean
+          override_mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       testimonials: {
         Row: {
           created_at: string

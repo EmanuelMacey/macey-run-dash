@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail } from "lucide-react";
-import { isWithinClosure, CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
+import { CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
+import { useServiceStatus } from "@/hooks/useServiceStatus";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -70,6 +71,8 @@ interface NewOrderDialogProps {
 
 const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const { user } = useAuth();
+  const { isClosed: closed } = useServiceStatus();
+  const isWithinClosure = () => closed;
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [discount, setDiscount] = useState(0);

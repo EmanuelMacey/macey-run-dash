@@ -505,9 +505,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full" disabled={submitting || isWithinClosure()}>
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Place Order — ${finalPrice.toLocaleString()} GYD
+              {isWithinClosure() ? "Closed — Reopens 3:30 PM" : `Place Order — $${finalPrice.toLocaleString()} GYD`}
             </Button>
           </form>
         </Form>

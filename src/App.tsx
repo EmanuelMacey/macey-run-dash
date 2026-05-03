@@ -86,6 +86,14 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/ledger"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <FinancePortal />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportChatWidget />

@@ -213,6 +213,75 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_logs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_name: string
+          customer_phone: string | null
+          distance_km: number | null
+          driver_name: string | null
+          driver_payout: number
+          dropoff_address: string | null
+          gross_amount: number
+          id: string
+          log_date: string
+          log_type: string
+          net_profit: number
+          notes: string | null
+          payment_method: string
+          payment_status: string
+          pickup_address: string | null
+          platform_fee: number
+          trace_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          distance_km?: number | null
+          driver_name?: string | null
+          driver_payout?: number
+          dropoff_address?: string | null
+          gross_amount?: number
+          id?: string
+          log_date?: string
+          log_type?: string
+          net_profit?: number
+          notes?: string | null
+          payment_method?: string
+          payment_status?: string
+          pickup_address?: string | null
+          platform_fee?: number
+          trace_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          distance_km?: number | null
+          driver_name?: string | null
+          driver_payout?: number
+          dropoff_address?: string | null
+          gross_amount?: number
+          id?: string
+          log_date?: string
+          log_type?: string
+          net_profit?: number
+          notes?: string | null
+          payment_method?: string
+          payment_status?: string
+          pickup_address?: string | null
+          platform_fee?: number
+          trace_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number

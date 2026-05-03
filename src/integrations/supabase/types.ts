@@ -233,6 +233,7 @@ export type Database = {
           payment_status: string
           pickup_address: string | null
           platform_fee: number
+          source_order_id: string | null
           trace_code: string
           updated_at: string
         }
@@ -255,6 +256,7 @@ export type Database = {
           payment_status?: string
           pickup_address?: string | null
           platform_fee?: number
+          source_order_id?: string | null
           trace_code: string
           updated_at?: string
         }
@@ -277,6 +279,7 @@ export type Database = {
           payment_status?: string
           pickup_address?: string | null
           platform_fee?: number
+          source_order_id?: string | null
           trace_code?: string
           updated_at?: string
         }

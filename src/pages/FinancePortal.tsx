@@ -147,7 +147,7 @@ export default function FinancePortal() {
       driver_name: form.driver_name.trim(),
       notes: form.notes.trim(),
       created_by: user?.id,
-    });
+    }]);
     setBusy(false);
     if (error) {
       toast.error(error.message);

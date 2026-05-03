@@ -23,6 +23,7 @@ import Support from "./pages/Support";
 import OurValues from "./pages/OurValues";
 import BusinessPlan from "./pages/BusinessPlan";
 import RiderAgreement from "./pages/RiderAgreement";
+import FinancePortal from "./pages/FinancePortal";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 
@@ -82,6 +83,14 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ledger"
+                element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <FinancePortal />
                   </ProtectedRoute>
                 }
               />

@@ -131,6 +131,7 @@ export default function FinancePortal() {
     const net = gross - payout;
 
     const { error } = await supabase.from("finance_logs").insert([{
+      trace_code: "",
       log_type: form.log_type,
       log_date: form.log_date,
       customer_name: form.customer_name.trim(),

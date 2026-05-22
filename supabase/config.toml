@@ -3,6 +3,10 @@ project_id = "aczkjkkiiqrvljlrkccw"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+  [functions.partner-api]
+    verify_jwt = false
+  [functions.partner-webhook-dispatch]
+    verify_jwt = false
   [functions.delete-account]
     verify_jwt = false
   [functions.retry-notifications]

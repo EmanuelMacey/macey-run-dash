@@ -26,10 +26,10 @@ const MIN_PRICES: Record<string, number> = { delivery: 700, errand: 1000 };
 const MAX_FEE = 5000;
 const SERVICE_FEE = 100;
 
-function json(body: unknown, status = 200) {
+function json(body: unknown, status = 200, extra: Record<string,string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, ...rateHeaders, ...extra, "Content-Type": "application/json" },
   });
 }
 

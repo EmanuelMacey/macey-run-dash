@@ -571,6 +571,7 @@ export type Database = {
           driver_id: string | null
           dropoff_address: string
           id: string
+          idempotency_key: string | null
           image_url: string | null
           order_number: number | null
           order_type: Database["public"]["Enums"]["order_type"]
@@ -590,6 +591,7 @@ export type Database = {
           driver_id?: string | null
           dropoff_address: string
           id?: string
+          idempotency_key?: string | null
           image_url?: string | null
           order_number?: number | null
           order_type: Database["public"]["Enums"]["order_type"]
@@ -609,6 +611,7 @@ export type Database = {
           driver_id?: string | null
           dropoff_address?: string
           id?: string
+          idempotency_key?: string | null
           image_url?: string | null
           order_number?: number | null
           order_type?: Database["public"]["Enums"]["order_type"]

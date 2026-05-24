@@ -159,27 +159,56 @@ Deno.serve(async (req) => {
       const body = await req.json().catch(() => null);
       if (!body) return err("invalid_request", "JSON body required");
       const orderType = body.order_type === "errand" ? "errand" : "delivery";
-      const pickup = await resolveLocation(body.pickup);
+
+      // Multi-pickup support: accept `pickups: [...]` array OR single `pickup`
+      const pickupInputs: any[] = Array.isArray(body.pickups) && body.pickups.length
+        ? body.pickups
+        : (body.pickup ? [body.pickup] : []);
+      if (!pickupInputs.length) return err("invalid_request", "pickup or pickups[] is required");
+      const pickups = await Promise.all(pickupInputs.map(resolveLocation));
+      if (pickups.some(p => !p)) return err("invalid_request", "one or more pickup locations could not be resolved");
       const dropoff = await resolveLocation(body.dropoff);
-      if (!pickup || !dropoff) return err("invalid_request", "pickup and dropoff are required");
+      if (!dropoff) return err("invalid_request", "dropoff is required");
       if (!body.customer?.name || !body.customer?.phone) return err("invalid_request", "customer.name and customer.phone are required");
+
+      // Idempotency: header `Idempotency-Key` (preferred) or body.idempotency_key
+      const idemKey = req.headers.get("idempotency-key") || body.idempotency_key || null;
 
       let price = body.price;
       if (typeof price !== "number") {
-        const km = pickup.coord && dropoff.coord ? haversineKm(pickup.coord, dropoff.coord) : 0;
+        // For multi-pickup, sum pickup-to-pickup legs then last-pickup-to-dropoff
+        let km = 0;
+        for (let i = 1; i < pickups.length; i++) {
+          if (pickups[i-1]!.coord && pickups[i]!.coord) km += haversineKm(pickups[i-1]!.coord!, pickups[i]!.coord!);
+        }
+        const last = pickups[pickups.length - 1]!;
+        if (last.coord && dropoff.coord) km += haversineKm(last.coord, dropoff.coord);
         price = computePrice(orderType, km).total;
       }
 
-      // Need a customer_id for orders (FK to auth). Create or reuse a placeholder partner customer.
-      // Strategy: store the partner customer info in description; use the api key creator as customer_id if present, else service-bot.
       const { data: keyRow } = await supabase
         .from("partner_api_keys").select("created_by").eq("id", auth.id).single();
       const customerId = keyRow?.created_by;
       if (!customerId) return err("server_error", "Partner key has no associated owner user", 500);
 
+      // Idempotency replay
+      if (idemKey) {
+        const { data: existing } = await supabase
+          .from("orders")
+          .select("id, status, order_type, price, pickup_address, dropoff_address, created_at")
+          .eq("partner_api_key_id", auth.id)
+          .eq("idempotency_key", idemKey)
+          .maybeSingle();
+        if (existing) return json({ delivery: existing, idempotent_replay: true }, 200);
+      }
+
+      const primaryPickup = pickups[0]!;
+      const extraPickups = pickups.slice(1).map((p, i) => `Stop ${i+2}: ${p!.address}`).join("\n");
+
       const description = [
         `[Partner Order]`,
         `Customer: ${body.customer.name} (${body.customer.phone})`,
+        extraPickups || "",
         body.notes ? `Notes: ${body.notes}` : "",
         body.external_id ? `External ID: ${body.external_id}` : "",
       ].filter(Boolean).join("\n");
@@ -189,7 +218,7 @@ Deno.serve(async (req) => {
         .insert({
           customer_id: customerId,
           order_type: orderType,
-          pickup_address: pickup.address,
+          pickup_address: primaryPickup.address,
           dropoff_address: dropoff.address,
           price,
           description,
@@ -197,12 +226,23 @@ Deno.serve(async (req) => {
           payment_status: "pending",
           status: "pending",
           partner_api_key_id: auth.id,
+          idempotency_key: idemKey,
         } as any)
         .select("id, status, order_type, price, pickup_address, dropoff_address, created_at")
         .single();
-      if (insErr) return err("server_error", insErr.message, 500);
+      if (insErr) {
+        // unique violation -> race on idempotency
+        if ((insErr as any).code === "23505" && idemKey) {
+          const { data: existing } = await supabase
+            .from("orders").select("id, status, order_type, price, pickup_address, dropoff_address, created_at")
+            .eq("partner_api_key_id", auth.id).eq("idempotency_key", idemKey).maybeSingle();
+          if (existing) return json({ delivery: existing, idempotent_replay: true }, 200);
+        }
+        return err("server_error", insErr.message, 500);
+      }
       return json({ delivery: order }, 201);
     }
+
 
     // GET /deliveries/:id
     const getMatch = path.match(/^\/deliveries\/([0-9a-f-]+)$/i);

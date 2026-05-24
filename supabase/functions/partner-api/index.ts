@@ -5,8 +5,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, idempotency-key",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+};
+
+// Documented per-key rate limit (soft cap; platform also enforces upstream limits)
+const RATE_LIMIT_PER_MIN = 120;
+const rateHeaders = {
+  "X-RateLimit-Limit": String(RATE_LIMIT_PER_MIN),
+  "X-RateLimit-Window": "60",
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;

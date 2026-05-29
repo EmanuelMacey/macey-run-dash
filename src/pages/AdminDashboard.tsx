@@ -90,6 +90,9 @@ const AdminDashboard = () => {
               <TabsTrigger value="leadership" className="gap-1 sm:gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
                 <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Team
               </TabsTrigger>
+              <TabsTrigger value="reports" className="gap-1 sm:gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
+                <FileBarChart className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Reports
+              </TabsTrigger>
               <TabsTrigger value="api" className="gap-1 sm:gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
                 <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> API
               </TabsTrigger>

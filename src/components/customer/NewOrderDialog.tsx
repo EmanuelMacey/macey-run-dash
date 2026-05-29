@@ -215,6 +215,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         scheduledFor = new Date(`${values.scheduled_date}T${values.scheduled_time}`).toISOString();
       }
 
+      const weightCat = values.weight_category;
+      const requiresCar = weightCat === "over_40lbs" || values.is_fragile || values.is_hazardous || values.is_easy_break;
+
       const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: values.order_type,
@@ -226,6 +229,11 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         status: "pending",
         payment_status: "pending",
         scheduled_for: scheduledFor,
+        weight_category: weightCat,
+        is_fragile: values.is_fragile,
+        is_hazardous: values.is_hazardous,
+        is_easy_break: values.is_easy_break,
+        required_vehicle: requiresCar ? "car" : "bike",
       } as any).select("id").single();
 
       if (error) throw error;

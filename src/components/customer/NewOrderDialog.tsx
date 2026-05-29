@@ -373,6 +373,55 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
               </p>
             )}
 
+            {/* Package weight & special handling */}
+            <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Package Weight</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["under_40lbs", "over_40lbs"] as const).map((w) => {
+                    const selected = form.watch("weight_category") === w;
+                    return (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => form.setValue("weight_category", w, { shouldDirty: true })}
+                        className={`rounded-xl border-2 px-3 py-2 text-left transition-all ${selected ? "border-primary bg-primary/5" : "border-border"}`}
+                      >
+                        <div className="text-sm font-semibold">{w === "under_40lbs" ? "Under 40 lbs" : "Over 40 lbs"}</div>
+                        <div className="text-[11px] text-muted-foreground">{w === "under_40lbs" ? "🛵 Bike delivery" : "🚗 Car delivery"}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Special Handling (auto-routes to car)</Label>
+                <div className="grid grid-cols-1 gap-1.5 text-sm">
+                  {([
+                    ["is_fragile", "Fragile"],
+                    ["is_easy_break", "Easy to break"],
+                    ["is_hazardous", "Hazardous"],
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!form.watch(key)}
+                        onChange={(e) => form.setValue(key, e.target.checked, { shouldDirty: true })}
+                        className="h-4 w-4 rounded border-border accent-primary"
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {(form.watch("weight_category") === "over_40lbs" || form.watch("is_fragile") || form.watch("is_hazardous") || form.watch("is_easy_break")) && (
+                <div className="text-xs text-primary font-medium flex items-center gap-1">
+                  <Info className="h-3 w-3" /> This package will be assigned to a car driver.
+                </div>
+              )}
+            </div>
+
+
             {/* Description */}
             <FormField
               control={form.control}

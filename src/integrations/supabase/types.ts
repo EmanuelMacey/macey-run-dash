@@ -573,6 +573,9 @@ export type Database = {
           id: string
           idempotency_key: string | null
           image_url: string | null
+          is_easy_break: boolean
+          is_fragile: boolean
+          is_hazardous: boolean
           order_number: number | null
           order_type: Database["public"]["Enums"]["order_type"]
           partner_api_key_id: string | null
@@ -580,9 +583,11 @@ export type Database = {
           payment_status: Database["public"]["Enums"]["payment_status"]
           pickup_address: string
           price: number
+          required_vehicle: string
           scheduled_for: string | null
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
+          weight_category: string
         }
         Insert: {
           created_at?: string
@@ -593,6 +598,9 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           image_url?: string | null
+          is_easy_break?: boolean
+          is_fragile?: boolean
+          is_hazardous?: boolean
           order_number?: number | null
           order_type: Database["public"]["Enums"]["order_type"]
           partner_api_key_id?: string | null
@@ -600,9 +608,11 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pickup_address: string
           price: number
+          required_vehicle?: string
           scheduled_for?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
+          weight_category?: string
         }
         Update: {
           created_at?: string
@@ -613,6 +623,9 @@ export type Database = {
           id?: string
           idempotency_key?: string | null
           image_url?: string | null
+          is_easy_break?: boolean
+          is_fragile?: boolean
+          is_hazardous?: boolean
           order_number?: number | null
           order_type?: Database["public"]["Enums"]["order_type"]
           partner_api_key_id?: string | null
@@ -620,9 +633,11 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           pickup_address?: string
           price?: number
+          required_vehicle?: string
           scheduled_for?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
+          weight_category?: string
         }
         Relationships: [
           {

@@ -31,6 +31,10 @@ const orderSchema = z.object({
   promo_code: z.string().trim().max(50).optional(),
   scheduled_date: z.string().optional(),
   scheduled_time: z.string().optional(),
+  weight_category: z.enum(["under_40lbs", "over_40lbs"]).default("under_40lbs"),
+  is_fragile: z.boolean().default(false),
+  is_hazardous: z.boolean().default(false),
+  is_easy_break: z.boolean().default(false),
 });
 
 type OrderFormValues = z.infer<typeof orderSchema>;

@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, Radio, Power, Key } from "lucide-react";
+import { LogOut, BarChart3, ShoppingBag, Users, Tag, Store, Shield, Megaphone, MessageSquare, FileText, Bell, Crown, Radio, Power, Key, FileBarChart } from "lucide-react";
 import AdminApiKeys from "@/components/admin/AdminApiKeys";
+import AdminReports from "@/components/admin/AdminReports";
 import { unlockAudio } from "@/lib/notifications";
 import logo from "@/assets/logo.png";
 import NotificationBell from "@/components/customer/NotificationBell";
@@ -89,6 +90,9 @@ const AdminDashboard = () => {
               <TabsTrigger value="leadership" className="gap-1 sm:gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
                 <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Team
               </TabsTrigger>
+              <TabsTrigger value="reports" className="gap-1 sm:gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
+                <FileBarChart className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Reports
+              </TabsTrigger>
               <TabsTrigger value="api" className="gap-1 sm:gap-1.5 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 whitespace-nowrap">
                 <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> API
               </TabsTrigger>
@@ -112,6 +116,7 @@ const AdminDashboard = () => {
           <TabsContent value="testimonials"><AdminTestimonials /></TabsContent>
           <TabsContent value="promotions"><AdminPromotions /></TabsContent>
           <TabsContent value="leadership"><AdminLeadership /></TabsContent>
+          <TabsContent value="reports"><AdminReports /></TabsContent>
           <TabsContent value="api"><AdminApiKeys /></TabsContent>
         </Tabs>
       </main>

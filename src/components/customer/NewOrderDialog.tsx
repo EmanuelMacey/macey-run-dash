@@ -31,6 +31,10 @@ const orderSchema = z.object({
   promo_code: z.string().trim().max(50).optional(),
   scheduled_date: z.string().optional(),
   scheduled_time: z.string().optional(),
+  weight_category: z.enum(["under_40lbs", "over_40lbs"]).default("under_40lbs"),
+  is_fragile: z.boolean().default(false),
+  is_hazardous: z.boolean().default(false),
+  is_easy_break: z.boolean().default(false),
 });
 
 type OrderFormValues = z.infer<typeof orderSchema>;
@@ -93,6 +97,10 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
       promo_code: "",
       scheduled_date: "",
       scheduled_time: "",
+      weight_category: "under_40lbs",
+      is_fragile: false,
+      is_hazardous: false,
+      is_easy_break: false,
     },
   });
 
@@ -207,6 +215,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         scheduledFor = new Date(`${values.scheduled_date}T${values.scheduled_time}`).toISOString();
       }
 
+      const weightCat = values.weight_category;
+      const requiresCar = weightCat === "over_40lbs" || values.is_fragile || values.is_hazardous || values.is_easy_break;
+
       const { data: orderData, error } = await supabase.from("orders").insert({
         customer_id: user.id,
         order_type: values.order_type,
@@ -218,6 +229,11 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         status: "pending",
         payment_status: "pending",
         scheduled_for: scheduledFor,
+        weight_category: weightCat,
+        is_fragile: values.is_fragile,
+        is_hazardous: values.is_hazardous,
+        is_easy_break: values.is_easy_break,
+        required_vehicle: requiresCar ? "car" : "bike",
       } as any).select("id").single();
 
       if (error) throw error;
@@ -356,6 +372,55 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                 <Navigation className="h-3 w-3" /> ~{distanceKm} km estimated distance
               </p>
             )}
+
+            {/* Package weight & special handling */}
+            <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Package Weight</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["under_40lbs", "over_40lbs"] as const).map((w) => {
+                    const selected = form.watch("weight_category") === w;
+                    return (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => form.setValue("weight_category", w, { shouldDirty: true })}
+                        className={`rounded-xl border-2 px-3 py-2 text-left transition-all ${selected ? "border-primary bg-primary/5" : "border-border"}`}
+                      >
+                        <div className="text-sm font-semibold">{w === "under_40lbs" ? "Under 40 lbs" : "Over 40 lbs"}</div>
+                        <div className="text-[11px] text-muted-foreground">{w === "under_40lbs" ? "🛵 Bike delivery" : "🚗 Car delivery"}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Special Handling (auto-routes to car)</Label>
+                <div className="grid grid-cols-1 gap-1.5 text-sm">
+                  {([
+                    ["is_fragile", "Fragile"],
+                    ["is_easy_break", "Easy to break"],
+                    ["is_hazardous", "Hazardous"],
+                  ] as const).map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!form.watch(key)}
+                        onChange={(e) => form.setValue(key, e.target.checked, { shouldDirty: true })}
+                        className="h-4 w-4 rounded border-border accent-primary"
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {(form.watch("weight_category") === "over_40lbs" || form.watch("is_fragile") || form.watch("is_hazardous") || form.watch("is_easy_break")) && (
+                <div className="text-xs text-primary font-medium flex items-center gap-1">
+                  <Info className="h-3 w-3" /> This package will be assigned to a car driver.
+                </div>
+              )}
+            </div>
+
 
             {/* Description */}
             <FormField

@@ -116,6 +116,7 @@ const AdminDashboard = () => {
           <TabsContent value="testimonials"><AdminTestimonials /></TabsContent>
           <TabsContent value="promotions"><AdminPromotions /></TabsContent>
           <TabsContent value="leadership"><AdminLeadership /></TabsContent>
+          <TabsContent value="reports"><AdminReports /></TabsContent>
           <TabsContent value="api"><AdminApiKeys /></TabsContent>
         </Tabs>
       </main>

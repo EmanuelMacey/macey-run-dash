@@ -97,6 +97,10 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
       promo_code: "",
       scheduled_date: "",
       scheduled_time: "",
+      weight_category: "under_40lbs",
+      is_fragile: false,
+      is_hazardous: false,
+      is_easy_break: false,
     },
   });
 

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, User, Car, MapPin, Shield, Wifi, WifiOff } from "lucide-react";
 import { motion } from "framer-motion";
@@ -18,6 +19,7 @@ type Driver = Tables<"drivers"> & {
 const AdminDrivers = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tipFilter, setTipFilter] = useState<string>("all");
 
   const fetchDrivers = async () => {
     const { data: driversData } = await supabase.from("drivers").select("*").order("created_at", { ascending: false });
@@ -87,9 +89,28 @@ const AdminDrivers = () => {
           <Shield className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs font-medium text-muted-foreground">{approvedCount} Approved</span>
         </div>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Tip:</span>
+          <Select value={tipFilter} onValueChange={setTipFilter}>
+            <SelectTrigger className="w-36 h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All drivers</SelectItem>
+              <SelectItem value="paid">💚 Has paid tips</SelectItem>
+              <SelectItem value="none">No tips yet</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {drivers.length === 0 ? (
+      {(() => {
+        const filtered = drivers.filter((d) => {
+          if (tipFilter === "paid") return (d.tip_total || 0) > 0;
+          if (tipFilter === "none") return (d.tip_total || 0) === 0;
+          return true;
+        });
+        return filtered.length === 0 ? (
         <Card className="p-10 text-center border-dashed">
           <User className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-muted-foreground font-medium">No drivers registered yet</p>
@@ -97,7 +118,7 @@ const AdminDrivers = () => {
         </Card>
       ) : (
         <div className="space-y-3">
-          {drivers.map((driver, i) => (
+          {filtered.map((driver, i) => (
             <motion.div
               key={driver.id}
               initial={{ opacity: 0, y: 8 }}

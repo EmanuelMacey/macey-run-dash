@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { isMaintenanceClosureActive, MAINTENANCE_CLOSURE_MESSAGE } from "@/lib/closure";
+import { MAINTENANCE_CLOSURE_MESSAGE } from "@/lib/closure";
+import { useServiceStatus } from "@/hooks/useServiceStatus";
 import { Package, MapPin, CheckCircle2, Loader2, Navigation, ShoppingBag, User, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,8 @@ interface DriverOrderCardProps {
 
 const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderCardProps) => {
   const { user } = useAuth();
+  const { isClosed: serviceClosed } = useServiceStatus();
+  const isMaintenanceClosureActive = () => serviceClosed;
   const [loading, setLoading] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [customer, setCustomer] = useState<CustomerInfo | null>(null);

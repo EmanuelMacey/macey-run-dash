@@ -1,27 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Calendar, Mail, MessageCircle, Wrench } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
+import { useServiceStatus } from "@/hooks/useServiceStatus";
 import logo from "@/assets/logo.png";
 
-// Scheduled long-term maintenance closure
-const MAINTENANCE_START = new Date("2026-06-08T00:00:00-04:00"); // Guyana time
-const MAINTENANCE_END: Date | null = null; // null = until further notice
-
-const isWithinMaintenance = () => {
-  const now = new Date();
-  if (now < MAINTENANCE_START) return false;
-  if (MAINTENANCE_END && now > MAINTENANCE_END) return false;
-  return true;
-};
-
 const MaintenanceClosureBanner = () => {
-  const [active, setActive] = useState(isWithinMaintenance());
-
-  useEffect(() => {
-    const i = setInterval(() => setActive(isWithinMaintenance()), 60_000);
-    return () => clearInterval(i);
-  }, []);
+  const { isMaintenance: active } = useServiceStatus();
 
   useEffect(() => {
     document.body.style.overflow = active ? "hidden" : "";
@@ -31,6 +16,7 @@ const MaintenanceClosureBanner = () => {
   }, [active]);
 
   if (!active) return null;
+
 
   return (
     <AnimatePresence>
@@ -75,7 +61,7 @@ const MaintenanceClosureBanner = () => {
             <div className="inline-flex items-center gap-2 rounded-2xl bg-primary-foreground/15 px-4 py-2 mb-4">
               <Calendar className="h-4 w-4" />
               <span className="text-sm font-semibold">
-                Effective June 8th, 2026 — Until Further Notice
+                Effective Immediately — Until Further Notice
               </span>
             </div>
 

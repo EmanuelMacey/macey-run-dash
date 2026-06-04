@@ -9,7 +9,8 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { isMaintenanceClosureActive, MAINTENANCE_CLOSURE_MESSAGE } from "@/lib/closure";
+import { MAINTENANCE_CLOSURE_MESSAGE } from "@/lib/closure";
+import { useServiceStatus } from "@/hooks/useServiceStatus";
 import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle, CalendarClock, Info } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 
@@ -26,6 +27,7 @@ const SERVICE_FEE = 100;
 const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogProps) => {
   const { items, total, storeName, storeId, clearCart } = useCart();
   const { user } = useAuth();
+  const { isClosed: serviceClosed } = useServiceStatus();
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "mmg">("cash");
@@ -71,7 +73,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   };
 
   const handlePlaceOrder = async () => {
-    if (isMaintenanceClosureActive()) {
+    if (serviceClosed) {
       toast({ title: "Temporarily Closed", description: MAINTENANCE_CLOSURE_MESSAGE, variant: "destructive" });
       return;
     }
@@ -319,10 +321,10 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           <Button
             className="w-full h-12 rounded-full text-base font-bold"
             onClick={handlePlaceOrder}
-            disabled={loading || items.length === 0 || deliveryFee === null || isMaintenanceClosureActive()}
+            disabled={loading || items.length === 0 || deliveryFee === null || serviceClosed}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {isMaintenanceClosureActive()
+            {serviceClosed
               ? "Temporarily Closed"
               : deliveryFee !== null
               ? `Place Order — ${formatPrice(grandTotal)} GYD`

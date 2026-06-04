@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { isWithinClosure } from "@/lib/closure";
+import { isWithinClosure, isMaintenanceClosureActive } from "@/lib/closure";
 
 export type OverrideMode = "auto" | "force_open" | "force_closed";
 
 export interface ServiceStatus {
   override_mode: OverrideMode;
   isClosed: boolean;
+  isMaintenance: boolean;
   loading: boolean;
 }
 
 const computeClosed = (mode: OverrideMode) => {
   if (mode === "force_closed") return true;
   if (mode === "force_open") return false;
-  return isWithinClosure();
+  return isWithinClosure() || isMaintenanceClosureActive();
 };
+
 
 export const useServiceStatus = (): ServiceStatus => {
   const [mode, setMode] = useState<OverrideMode>("auto");
@@ -61,6 +63,7 @@ export const useServiceStatus = (): ServiceStatus => {
   return {
     override_mode: mode,
     isClosed: computeClosed(mode),
+    isMaintenance: mode === "force_closed" || (mode === "auto" && isMaintenanceClosureActive()),
     loading,
   };
 };

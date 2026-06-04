@@ -63,6 +63,7 @@ export const useServiceStatus = (): ServiceStatus => {
   return {
     override_mode: mode,
     isClosed: computeClosed(mode),
+    isMaintenance: mode === "force_closed" || (mode === "auto" && isMaintenanceClosureActive()),
     loading,
   };
 };

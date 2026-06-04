@@ -275,11 +275,11 @@ const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderC
           </div>
 
           {isAvailable ? (
-            <Button onClick={acceptOrder} disabled={loading} size="sm" className="gradient-primary text-primary-foreground rounded-full font-semibold px-5">
+            <Button onClick={acceptOrder} disabled={loading || isMaintenanceClosureActive()} size="sm" className="gradient-primary text-primary-foreground rounded-full font-semibold px-5">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
                 <>
                   <CheckCircle2 className="h-4 w-4 mr-1" />
-                  Accept
+                  {isMaintenanceClosureActive() ? "Closed" : "Accept"}
                 </>
               )}
             </Button>

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Calendar, Mail, MessageCircle, Wrench } from "lucide-react";
+import { Mail, MessageCircle, Wrench } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
 import { useServiceStatus } from "@/hooks/useServiceStatus";

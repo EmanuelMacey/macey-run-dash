@@ -5,9 +5,10 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail, Zap, Heart } from "lucide-react";
 import { CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
 import { useServiceStatus } from "@/hooks/useServiceStatus";
+import { useSurge } from "@/hooks/useSurge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -76,6 +77,7 @@ interface NewOrderDialogProps {
 const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const { user } = useAuth();
   const { isClosed: closed } = useServiceStatus();
+  const surge = useSurge();
   const isWithinClosure = () => closed;
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -85,6 +87,8 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
+  const [tipAmount, setTipAmount] = useState(0);
+  const [customTip, setCustomTip] = useState("");
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
@@ -146,9 +150,12 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
     return () => clearTimeout(timer);
   }, [pickupAddress, dropoffAddress, minPrice]);
 
-  const deliveryPrice = calculatedPrice ?? minPrice;
+  const baseDeliveryPrice = calculatedPrice ?? minPrice;
+  const surgeMult = surge.isActive ? surge.multiplier : 1;
+  const deliveryPrice = Math.round(baseDeliveryPrice * surgeMult);
+  const surgeAddOn = deliveryPrice - baseDeliveryPrice;
   const totalBeforeDiscount = deliveryPrice + SERVICE_FEE;
-  const finalPrice = Math.max(0, totalBeforeDiscount - discount);
+  const finalPrice = Math.max(0, totalBeforeDiscount - discount) + tipAmount;
 
   const applyPromo = async () => {
     const code = form.getValues("promo_code")?.trim();

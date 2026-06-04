@@ -25,6 +25,7 @@ import BusinessPlan from "./pages/BusinessPlan";
 import RiderAgreement from "./pages/RiderAgreement";
 import FinancePortal from "./pages/FinancePortal";
 import ApiDocs from "./pages/ApiDocs";
+import Unsubscribe from "./pages/Unsubscribe";
 import SupportChatWidget from "./components/support/SupportChatWidget";
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/support" element={<Support />} />
               <Route path="/our-values" element={<OurValues />} />
               <Route path="/api-docs" element={<ApiDocs />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route
                 path="/business-plan"
                 element={

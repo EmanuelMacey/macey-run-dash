@@ -76,9 +76,10 @@ interface NewOrderDialogProps {
 
 const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const { user } = useAuth();
-  const { isClosed: closed } = useServiceStatus();
+  const { isClosed: closed, isMaintenance } = useServiceStatus();
   const surge = useSurge();
   const isWithinClosure = () => closed;
+  const isMaintenanceClosureActive = () => isMaintenance;
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [discount, setDiscount] = useState(0);

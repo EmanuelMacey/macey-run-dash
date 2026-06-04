@@ -79,6 +79,10 @@ const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderC
 
   const acceptOrder = async () => {
     if (!user) return;
+    if (isMaintenanceClosureActive()) {
+      toast.error(MAINTENANCE_CLOSURE_MESSAGE);
+      return;
+    }
     setLoading(true);
     try {
       const { error } = await supabase.from("orders").update({ driver_id: user.id, status: "accepted" }).eq("id", order.id);

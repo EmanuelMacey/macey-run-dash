@@ -71,6 +71,10 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   };
 
   const handlePlaceOrder = async () => {
+    if (isMaintenanceClosureActive()) {
+      toast({ title: "Temporarily Closed", description: MAINTENANCE_CLOSURE_MESSAGE, variant: "destructive" });
+      return;
+    }
     if (!deliveryAddress.trim()) {
       toast({ title: "Missing address", description: "Please enter a delivery address.", variant: "destructive" });
       return;
@@ -315,10 +319,14 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           <Button
             className="w-full h-12 rounded-full text-base font-bold"
             onClick={handlePlaceOrder}
-            disabled={loading || items.length === 0 || deliveryFee === null}
+            disabled={loading || items.length === 0 || deliveryFee === null || isMaintenanceClosureActive()}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {deliveryFee !== null ? `Place Order — ${formatPrice(grandTotal)} GYD` : "Enter address to see total"}
+            {isMaintenanceClosureActive()
+              ? "Temporarily Closed"
+              : deliveryFee !== null
+              ? `Place Order — ${formatPrice(grandTotal)} GYD`
+              : "Enter address to see total"}
           </Button>
         </div>
       </DialogContent>

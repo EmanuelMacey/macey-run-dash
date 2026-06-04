@@ -1174,6 +1174,10 @@ export type Database = {
     }
     Functions: {
       auto_cancel_unverified_mmg_orders: { Args: never; Returns: undefined }
+      customer_add_tip: {
+        Args: { p_amount: number; p_order_id: string }
+        Returns: undefined
+      }
       driver_update_order_status: {
         Args: {
           p_new_status: Database["public"]["Enums"]["order_status"]

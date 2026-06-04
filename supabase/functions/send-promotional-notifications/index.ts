@@ -18,6 +18,16 @@ const DAILY_TIPS = [
   { title: "🚀 Pro Tip", message: "Track your driver in real-time on the map! You'll always know exactly where your delivery is." },
 ];
 
+const esc = (s: unknown): string => {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 function buildEmailHtml(title: string, message: string): string {
   return `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 0;">
@@ -25,8 +35,8 @@ function buildEmailHtml(title: string, message: string): string {
         <h1 style="color: white; margin: 0; font-size: 24px;">🏃 MaceyRunners</h1>
       </div>
       <div style="padding: 32px; background: white;">
-        <h2 style="color: #1e3a5f; margin-top: 0;">${title}</h2>
-        <p style="color: #475569; font-size: 16px; line-height: 1.6;">${message}</p>
+        <h2 style="color: #1e3a5f; margin-top: 0;">${esc(title)}</h2>
+        <p style="color: #475569; font-size: 16px; line-height: 1.6;">${esc(message)}</p>
         <div style="text-align: center; margin-top: 24px;">
           <a href="https://macey-run-dash.lovable.app/dashboard" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block;">Open MaceyRunners</a>
         </div>
@@ -45,6 +55,7 @@ function buildEmailHtml(title: string, message: string): string {
   `;
 }
 
+
 // Helper to delay execution
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -61,11 +72,46 @@ Deno.serve(async (req) => {
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // Require an authenticated admin (or internal trusted job) to dispatch mass notifications
+    const internalSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
+    const callerSecret = req.headers.get('x-internal-secret');
+    const isInternal = !!internalSecret && callerSecret === internalSecret;
+
+    if (!isInternal) {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const authedClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
+      const { data: userData, error: userErr } = await authedClient.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+      if (userErr || !userData?.user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const { data: roleRow } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userData.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      if (!roleRow) {
+        return new Response(JSON.stringify({ error: 'Admin role required' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     const body = await req.json();
     const { type, title, message, target } = body;
 
     // Get target user IDs
     let userIds: string[] = [];
+
 
     if (target === 'all' || !target) {
       const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'customer');

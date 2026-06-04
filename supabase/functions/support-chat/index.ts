@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.8";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,11 +37,44 @@ Tone: Professional, warm, concise. Keep responses under 150 words unless complex
 
 If asked about something you don't know, say "I'd recommend reaching out to our team for more details on that! Is there anything else I can help with?"`;
 
+const MAX_MESSAGES = 30;
+const MAX_MESSAGE_CHARS = 4000;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Require authenticated user to prevent quota abuse
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+    );
+    const { data: userData, error: userErr } = await supabase.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { messages } = await req.json();
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
+      return new Response(JSON.stringify({ error: "Invalid messages payload" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const safeMessages = messages.map((m: any) => ({
+      role: m?.role === "assistant" ? "assistant" : "user",
+      content: typeof m?.content === "string" ? m.content.slice(0, MAX_MESSAGE_CHARS) : "",
+    })).filter((m) => m.content.length > 0);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -54,7 +88,7 @@ serve(async (req) => {
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
+          ...safeMessages,
         ],
         stream: true,
       }),
@@ -83,7 +117,7 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("support-chat error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Unexpected error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

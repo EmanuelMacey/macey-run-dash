@@ -5,9 +5,10 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail } from "lucide-react";
+import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail, Zap, Heart } from "lucide-react";
 import { CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
 import { useServiceStatus } from "@/hooks/useServiceStatus";
+import { useSurge } from "@/hooks/useSurge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -76,6 +77,7 @@ interface NewOrderDialogProps {
 const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const { user } = useAuth();
   const { isClosed: closed } = useServiceStatus();
+  const surge = useSurge();
   const isWithinClosure = () => closed;
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -85,6 +87,8 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
+  const [tipAmount, setTipAmount] = useState(0);
+  const [customTip, setCustomTip] = useState("");
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
@@ -146,9 +150,12 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
     return () => clearTimeout(timer);
   }, [pickupAddress, dropoffAddress, minPrice]);
 
-  const deliveryPrice = calculatedPrice ?? minPrice;
+  const baseDeliveryPrice = calculatedPrice ?? minPrice;
+  const surgeMult = surge.isActive ? surge.multiplier : 1;
+  const deliveryPrice = Math.round(baseDeliveryPrice * surgeMult);
+  const surgeAddOn = deliveryPrice - baseDeliveryPrice;
   const totalBeforeDiscount = deliveryPrice + SERVICE_FEE;
-  const finalPrice = Math.max(0, totalBeforeDiscount - discount);
+  const finalPrice = Math.max(0, totalBeforeDiscount - discount) + tipAmount;
 
   const applyPromo = async () => {
     const code = form.getValues("promo_code")?.trim();
@@ -234,6 +241,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         is_hazardous: values.is_hazardous,
         is_easy_break: values.is_easy_break,
         required_vehicle: requiresCar ? "car" : "bike",
+        tip_amount: tipAmount,
+        surge_multiplier: surgeMult,
+        surge_reason: surge.isActive ? surge.reason : null,
       } as any).select("id").single();
 
       if (error) throw error;
@@ -546,6 +556,52 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
               </div>
             </div>
 
+            {/* Surge banner */}
+            {surge.isActive && surgeMult > 1 && (
+              <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
+                <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span className="text-foreground">
+                  <strong>{surgeMult}x surge</strong> in effect{surge.reason ? ` — ${surge.reason}` : ""}.
+                </span>
+              </div>
+            )}
+
+            {/* Tip your driver */}
+            <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+              <Label className="flex items-center gap-1.5 text-sm font-semibold">
+                <Heart className="h-3.5 w-3.5 text-primary" /> Tip your driver (100% goes to them)
+              </Label>
+              <div className="grid grid-cols-4 gap-2">
+                {[0, 200, 500, 1000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => { setTipAmount(amt); setCustomTip(""); }}
+                    className={`rounded-xl border-2 py-2 text-sm font-semibold transition-all ${
+                      tipAmount === amt && !customTip
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    {amt === 0 ? "None" : `$${amt}`}
+                  </button>
+                ))}
+              </div>
+              <Input
+                type="number"
+                min={0}
+                placeholder="Custom tip amount (GYD)"
+                value={customTip}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCustomTip(v);
+                  const n = Math.max(0, Math.floor(Number(v) || 0));
+                  setTipAmount(n);
+                }}
+                className="text-sm"
+              />
+            </div>
+
             {/* Price Summary */}
             <div className="bg-muted/50 rounded-xl p-4 space-y-1">
               <div className="flex justify-between text-sm">
@@ -553,8 +609,14 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                   {orderType === "delivery" ? "Delivery" : "Errand"} fee
                   {distanceKm !== null ? ` (${distanceKm} km)` : ""}
                 </span>
-                <span>${deliveryPrice.toLocaleString()} GYD</span>
+                <span>${baseDeliveryPrice.toLocaleString()} GYD</span>
               </div>
+              {surgeAddOn > 0 && (
+                <div className="flex justify-between text-sm text-amber-600 dark:text-amber-400">
+                  <span className="flex items-center gap-1"><Zap className="h-3 w-3" /> Surge {surgeMult}x</span>
+                  <span>+${surgeAddOn.toLocaleString()} GYD</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground flex items-center gap-1">
                   Service fee <Info className="h-3 w-3" />
@@ -565,6 +627,12 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
                 <div className="flex justify-between text-sm text-green-600">
                   <span>Discount</span>
                   <span>-${discount.toLocaleString()} GYD</span>
+                </div>
+              )}
+              {tipAmount > 0 && (
+                <div className="flex justify-between text-sm text-primary">
+                  <span className="flex items-center gap-1"><Heart className="h-3 w-3" /> Driver tip</span>
+                  <span>+${tipAmount.toLocaleString()} GYD</span>
                 </div>
               )}
               <div className="flex justify-between font-display font-bold text-lg pt-1 border-t border-border">

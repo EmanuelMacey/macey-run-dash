@@ -586,6 +586,9 @@ export type Database = {
           required_vehicle: string
           scheduled_for: string | null
           status: Database["public"]["Enums"]["order_status"]
+          surge_multiplier: number
+          surge_reason: string | null
+          tip_amount: number
           updated_at: string
           weight_category: string
         }
@@ -611,6 +614,9 @@ export type Database = {
           required_vehicle?: string
           scheduled_for?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          surge_multiplier?: number
+          surge_reason?: string | null
+          tip_amount?: number
           updated_at?: string
           weight_category?: string
         }
@@ -636,6 +642,9 @@ export type Database = {
           required_vehicle?: string
           scheduled_for?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          surge_multiplier?: number
+          surge_reason?: string | null
+          tip_amount?: number
           updated_at?: string
           weight_category?: string
         }
@@ -1070,6 +1079,36 @@ export type Database = {
         Update: {
           id?: boolean
           override_mode?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      surge_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          multiplier: number
+          reason: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          multiplier?: number
+          reason?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          multiplier?: number
+          reason?: string | null
           updated_at?: string
           updated_by?: string | null
         }

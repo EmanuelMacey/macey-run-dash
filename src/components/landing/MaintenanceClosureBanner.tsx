@@ -58,12 +58,6 @@ const MaintenanceClosureBanner = () => {
               Operations Temporarily Closed
             </h2>
 
-            <div className="inline-flex items-center gap-2 rounded-2xl bg-primary-foreground/15 px-4 py-2 mb-4">
-              <Calendar className="h-4 w-4" />
-              <span className="text-sm font-semibold">
-                Effective Immediately — Until Further Notice
-              </span>
-            </div>
 
             <p className="text-sm sm:text-base opacity-95 leading-relaxed mb-6">
               We're temporarily pausing operations to prepare for new system

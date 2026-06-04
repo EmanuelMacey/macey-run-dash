@@ -53,6 +53,7 @@ const AdminOrders = () => {
   const [drivers, setDrivers] = useState<DriverInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [tipFilter, setTipFilter] = useState<string>("all");
 
   const fetchDrivers = async () => {
     const { data: driverRecords } = await supabase
@@ -171,12 +172,21 @@ const AdminOrders = () => {
     return idx >= 0 ? ((idx + 1) / STATUS_STEPS.length) * 100 : 0;
   };
 
+  const filteredOrders = orders.filter((o) => {
+    const tip = (o as any).tip_amount ?? 0;
+    if (tipFilter === "paid") return tip > 0 && o.status !== "cancelled";
+    if (tipFilter === "refunded") return tip > 0 && o.status === "cancelled";
+    if (tipFilter === "tipped") return tip > 0;
+    if (tipFilter === "none") return tip === 0;
+    return true;
+  });
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Filter:</span>
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-sm text-muted-foreground">Status:</span>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -186,14 +196,27 @@ const AdminOrders = () => {
             ))}
           </SelectContent>
         </Select>
-        <span className="text-sm text-muted-foreground ml-auto">{orders.length} orders</span>
+        <span className="text-sm text-muted-foreground">Tip:</span>
+        <Select value={tipFilter} onValueChange={setTipFilter}>
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="tipped">Any tip</SelectItem>
+            <SelectItem value="paid">💚 Paid</SelectItem>
+            <SelectItem value="refunded">↩ Refunded</SelectItem>
+            <SelectItem value="none">No tip</SelectItem>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground ml-auto">{filteredOrders.length} orders</span>
       </div>
 
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
         <Card className="p-8 text-center text-muted-foreground">No orders found.</Card>
       ) : (
         <div className="space-y-3">
-          {orders.map((order) => {
+          {filteredOrders.map((order) => {
             const customer = customerMap[order.customer_id];
             const assignedDriver = drivers.find(d => d.user_id === order.driver_id);
             const isActive = ["accepted", "picked_up", "on_the_way"].includes(order.status);

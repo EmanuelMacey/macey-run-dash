@@ -23,12 +23,19 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}))
     const orderId = String(body?.orderId || '')
-    const tipAmount = Math.floor(Number(body?.tipAmount || 0))
-    if (!orderId || !tipAmount || tipAmount <= 0) {
-      return json({ error: 'Invalid input' }, 400)
-    }
+    const isResend = Boolean(body?.resend)
+    if (!orderId) return json({ error: 'Invalid input' }, 400)
 
     const admin = createClient(supabaseUrl, serviceKey)
+
+    // Check if caller is admin (for resend action)
+    const { data: roleRow } = await admin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', callerId)
+      .eq('role', 'admin')
+      .maybeSingle()
+    const isAdmin = !!roleRow
 
     const { data: order } = await admin
       .from('orders')
@@ -37,25 +44,34 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (!order) return json({ error: 'Order not found' }, 404)
-    if (order.customer_id !== callerId) return json({ error: 'Forbidden' }, 403)
+
+    // Admins can resend; otherwise caller must be the customer
+    if (!isAdmin && order.customer_id !== callerId) {
+      return json({ error: 'Forbidden' }, 403)
+    }
     if (order.status !== 'delivered') return json({ error: 'Order not delivered' }, 400)
     if (!order.driver_id) return json({ ok: true, skipped: 'no_driver' })
+
+    const tipAmount = Math.floor(Number(body?.tipAmount ?? order.tip_amount ?? 0))
+    if (!tipAmount || tipAmount <= 0) return json({ error: 'No tip on order' }, 400)
 
     const [{ data: driverUser }, { data: driverProfile }, { data: customerProfile }] =
       await Promise.all([
         admin.auth.admin.getUserById(order.driver_id),
         admin.from('profiles').select('full_name').eq('user_id', order.driver_id).maybeSingle(),
-        admin.from('profiles').select('full_name').eq('user_id', callerId).maybeSingle(),
+        admin.from('profiles').select('full_name').eq('user_id', order.customer_id).maybeSingle(),
       ])
 
     const driverEmail = driverUser?.user?.email
     if (!driverEmail) return json({ ok: true, skipped: 'no_email' })
 
+    // Unique idempotency key for resends so the queue does not dedupe
+    const idemSuffix = isResend ? `-resend-${Date.now()}` : ''
     const { error: sendErr } = await admin.functions.invoke('send-transactional-email', {
       body: {
         templateName: 'driver-tip-received',
         recipientEmail: driverEmail,
-        idempotencyKey: `driver-tip-${orderId}-${tipAmount}`,
+        idempotencyKey: `driver-tip-${orderId}-${tipAmount}${idemSuffix}`,
         templateData: {
           driverName: driverProfile?.full_name ?? undefined,
           tipAmount,
@@ -66,7 +82,7 @@ Deno.serve(async (req) => {
     })
 
     if (sendErr) return json({ error: sendErr.message }, 500)
-    return json({ ok: true })
+    return json({ ok: true, resent: isResend })
   } catch (e) {
     return json({ error: (e as Error).message }, 500)
   }

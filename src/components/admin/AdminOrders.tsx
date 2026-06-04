@@ -6,7 +6,8 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
-import { User, Package, MapPin, Clock, Truck } from "lucide-react";
+import { User, Package, MapPin, Clock, Truck, Mail, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
@@ -54,6 +55,29 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [tipFilter, setTipFilter] = useState<string>("all");
+  const [resendingTip, setResendingTip] = useState<string | null>(null);
+
+  const resendTipEmail = async (order: Order) => {
+    const tip = (order as any).tip_amount ?? 0;
+    if (!tip || !order.driver_id) return;
+    setResendingTip(order.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("notify-driver-tip", {
+        body: { orderId: order.id, tipAmount: tip, resend: true },
+      });
+      if (error || (data as any)?.error) {
+        toast.error(`Resend failed: ${error?.message || (data as any)?.error}`);
+      } else if ((data as any)?.skipped) {
+        toast.warning(`Skipped: ${(data as any).skipped.replace("_", " ")}`);
+      } else {
+        toast.success("Tip email resent to driver");
+      }
+    } catch (e: any) {
+      toast.error(`Resend failed: ${e?.message || "unknown error"}`);
+    } finally {
+      setResendingTip(null);
+    }
+  };
 
   const fetchDrivers = async () => {
     const { data: driverRecords } = await supabase
@@ -257,13 +281,31 @@ const AdminOrders = () => {
                       <p className="font-display font-bold text-lg text-primary">${order.price.toLocaleString()}</p>
                       <p className="text-[10px] text-muted-foreground">GYD</p>
                       {((order as any).tip_amount ?? 0) > 0 && (
-                        <div className="flex items-center justify-end gap-1 mt-1">
-                          <Badge variant="outline" className="text-[10px] gap-1 border-primary/40 text-primary">
-                            💚 Tip ${((order as any).tip_amount).toLocaleString()}
-                          </Badge>
-                          <Badge className="text-[10px] bg-success/15 text-success border-0">
-                            {order.status === "cancelled" ? "Refunded" : "Paid"}
-                          </Badge>
+                        <div className="flex flex-col items-end gap-1 mt-1">
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="text-[10px] gap-1 border-primary/40 text-primary">
+                              💚 Tip ${((order as any).tip_amount).toLocaleString()}
+                            </Badge>
+                            <Badge className="text-[10px] bg-success/15 text-success border-0">
+                              {order.status === "cancelled" ? "Refunded" : "Paid"}
+                            </Badge>
+                          </div>
+                          {order.status === "delivered" && order.driver_id && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2 text-[10px] gap-1"
+                              disabled={resendingTip === order.id}
+                              onClick={() => resendTipEmail(order)}
+                            >
+                              {resendingTip === order.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Mail className="h-3 w-3" />
+                              )}
+                              Resend tip email
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>

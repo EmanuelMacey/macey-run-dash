@@ -22,19 +22,44 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Restrict to internal callers (DB triggers / trusted server jobs) via shared secret.
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const internalSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
+
+    // Accept either an internal trusted caller (DB triggers via x-internal-secret)
+    // or an authenticated admin user (admin dashboard actions).
     const callerSecret = req.headers.get('x-internal-secret');
-    if (!internalSecret || callerSecret !== internalSecret) {
+    const isInternal = !!internalSecret && callerSecret === internalSecret;
+    let isAuthorized = isInternal;
+
+    if (!isAuthorized) {
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        const authedClient = createClient(supabaseUrl, anonKey);
+        const { data: userData } = await authedClient.auth.getUser(
+          authHeader.replace('Bearer ', '')
+        );
+        if (userData?.user) {
+          const adminCheck = createClient(supabaseUrl, serviceRoleKey);
+          const { data: roleRow } = await adminCheck
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userData.user.id)
+            .eq('role', 'admin')
+            .maybeSingle();
+          if (roleRow) isAuthorized = true;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!RESEND_API_KEY) {
       return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured' }), {
@@ -46,6 +71,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     const body = await req.json();
     const { type, order_id, invoice_id, user_id, title, message } = body;
+
 
 
     // Helper to send email via Resend

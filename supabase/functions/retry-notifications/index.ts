@@ -58,7 +58,10 @@ Deno.serve(async (req) => {
       try {
         await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-internal-secret': Deno.env.get('INTERNAL_WEBHOOK_SECRET') ?? '',
+          },
           body: JSON.stringify({
             user_id: notif.user_id,
             title: `🔔 ${notif.title}`,

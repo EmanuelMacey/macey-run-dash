@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Heart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface TipDialogProps {
 const PRESETS = [200, 500, 1000, 2000];
 
 const TipDialog = ({ orderId, initialTip = 0, autoOpen = false, onTipped }: TipDialogProps) => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<number>(initialTip > 0 ? initialTip : 500);
   const [custom, setCustom] = useState("");
@@ -41,6 +43,52 @@ const TipDialog = ({ orderId, initialTip = 0, autoOpen = false, onTipped }: TipD
     }
   }, [autoOpen, currentTip]);
 
+  const sendConfirmationEmail = async (newTip: number) => {
+    if (!user?.email || newTip <= 0) return;
+    try {
+      // Pull order + driver context for the email
+      const { data: order } = await (supabase as any)
+        .from("orders")
+        .select("order_number, price, driver_id")
+        .eq("id", orderId)
+        .maybeSingle();
+
+      let driverName: string | undefined;
+      if (order?.driver_id) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", order.driver_id)
+          .maybeSingle();
+        driverName = prof?.full_name ?? undefined;
+      }
+
+      const { data: me } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "tip-confirmation",
+          recipientEmail: user.email,
+          idempotencyKey: `tip-confirm-${orderId}-${newTip}`,
+          templateData: {
+            customerName: me?.full_name ?? undefined,
+            driverName,
+            tipAmount: newTip,
+            orderNumber: order?.order_number ?? orderId.slice(0, 8),
+            orderTotal: order?.price ?? undefined,
+          },
+        },
+      });
+    } catch (err) {
+      // Non-fatal — tip already saved
+      console.warn("Tip confirmation email failed", err);
+    }
+  };
+
   const submit = async () => {
     if (amount < 0) return;
     setSubmitting(true);
@@ -57,6 +105,7 @@ const TipDialog = ({ orderId, initialTip = 0, autoOpen = false, onTipped }: TipD
     onTipped?.(amount);
     toast.success(amount > 0 ? `Thanks! $${amount.toLocaleString()} GYD tip sent 💚` : "Tip removed");
     setOpen(false);
+    if (amount > 0) sendConfirmationEmail(amount);
   };
 
   if (currentTip > 0) {

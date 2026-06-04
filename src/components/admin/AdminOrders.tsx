@@ -233,6 +233,16 @@ const AdminOrders = () => {
                     <div className="text-right">
                       <p className="font-display font-bold text-lg text-primary">${order.price.toLocaleString()}</p>
                       <p className="text-[10px] text-muted-foreground">GYD</p>
+                      {((order as any).tip_amount ?? 0) > 0 && (
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                          <Badge variant="outline" className="text-[10px] gap-1 border-primary/40 text-primary">
+                            💚 Tip ${((order as any).tip_amount).toLocaleString()}
+                          </Badge>
+                          <Badge className="text-[10px] bg-success/15 text-success border-0">
+                            {order.status === "cancelled" ? "Refunded" : "Paid"}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </div>
 

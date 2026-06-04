@@ -241,6 +241,9 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
         is_hazardous: values.is_hazardous,
         is_easy_break: values.is_easy_break,
         required_vehicle: requiresCar ? "car" : "bike",
+        tip_amount: tipAmount,
+        surge_multiplier: surgeMult,
+        surge_reason: surge.isActive ? surge.reason : null,
       } as any).select("id").single();
 
       if (error) throw error;

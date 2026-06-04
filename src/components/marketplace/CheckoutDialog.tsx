@@ -27,6 +27,7 @@ const SERVICE_FEE = 100;
 const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogProps) => {
   const { items, total, storeName, storeId, clearCart } = useCart();
   const { user } = useAuth();
+  const { isClosed: serviceClosed } = useServiceStatus();
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "mmg">("cash");

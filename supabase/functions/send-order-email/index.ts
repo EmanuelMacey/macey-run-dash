@@ -130,13 +130,13 @@ Deno.serve(async (req) => {
 
       const orderEmailHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">Order Update ${orderNum}</h2>
-        <p style="font-size: 15px; color: #334155;">Hi <strong>${customerName}</strong>,</p>
+        <p style="font-size: 15px; color: #334155;">Hi <strong>${esc(customerName)}</strong>,</p>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Status:</strong> <span style="color: #2563eb; font-weight: 600;">${statusLabel}</span></p>
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${order.order_type}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${esc(order.order_type)}</p>
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Amount:</strong> $${order.price.toLocaleString()} GYD</p>
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${esc(order.pickup_address)}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${esc(order.dropoff_address)}</p>
         </div>
         <p style="color: #64748b; font-size: 13px;">You can track your order in the MaceyRunners app.</p>
         <div style="text-align: center; margin-top: 20px;">
@@ -188,13 +188,13 @@ Deno.serve(async (req) => {
 
       const newOrderHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">🚀 New Order ${orderNum}!</h2>
-        <p style="font-size: 15px; color: #334155;"><strong>${custName}</strong> placed a new order.</p>
+        <p style="font-size: 15px; color: #334155;"><strong>${esc(custName)}</strong> placed a new order.</p>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${order.order_type}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${esc(order.order_type)}</p>
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Amount:</strong> $${order.price.toLocaleString()} GYD</p>
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
-          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${order.description}</p>` : ''}
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${esc(order.pickup_address)}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${esc(order.dropoff_address)}</p>
+          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${esc(order.description)}</p>` : ''}
         </div>
         <p style="color: #64748b; font-size: 13px;">Open the MaceyRunners app to accept this order.</p>
       `);
@@ -270,7 +270,7 @@ Deno.serve(async (req) => {
             <tbody>
               ${items.map((i: any) => `
                 <tr style="border-bottom: 1px solid #f1f5f9;">
-                  <td style="padding: 8px; font-size: 14px;">${i.product_name}</td>
+                  <td style="padding: 8px; font-size: 14px;">${esc(i.product_name)}</td>
                   <td style="padding: 8px; text-align: center; font-size: 14px;">${i.quantity}</td>
                   <td style="padding: 8px; text-align: right; font-size: 14px;">$${(i.unit_price * i.quantity).toLocaleString()}</td>
                 </tr>
@@ -286,9 +286,9 @@ Deno.serve(async (req) => {
           <tr>
             <td style="vertical-align: top;">
               <p style="margin: 0; font-size: 13px; color: #64748b;">Bill To:</p>
-              <p style="margin: 4px 0 0; font-size: 14px; font-weight: 600;">${customerName}</p>
-              ${customerPhone ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">📞 ${customerPhone}</p>` : ''}
-              ${customerAddress ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">📍 ${customerAddress}</p>` : ''}
+              <p style="margin: 4px 0 0; font-size: 14px; font-weight: 600;">${esc(customerName)}</p>
+              ${customerPhone ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">📞 ${esc(customerPhone)}</p>` : ''}
+              ${customerAddress ? `<p style="margin: 2px 0 0; font-size: 13px; color: #64748b;">📍 ${esc(customerAddress)}</p>` : ''}
             </td>
             <td style="vertical-align: top; text-align: right;">
               <p style="margin: 0; font-size: 13px; color: #64748b;">Invoice ${invoiceNum}</p>
@@ -300,10 +300,10 @@ Deno.serve(async (req) => {
 
         ${order ? `
           <div style="background: #f1f5f9; border-radius: 12px; padding: 16px; margin: 16px 0;">
-            <p style="margin: 0 0 4px; font-size: 14px;"><strong>Service:</strong> ${order.order_type}</p>
-            <p style="margin: 0 0 4px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
-            <p style="margin: 0 0 4px; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
-            <p style="margin: 0; font-size: 14px;"><strong>Payment:</strong> ${order.payment_method}</p>
+            <p style="margin: 0 0 4px; font-size: 14px;"><strong>Service:</strong> ${esc(order.order_type)}</p>
+            <p style="margin: 0 0 4px; font-size: 14px;"><strong>Pickup:</strong> ${esc(order.pickup_address)}</p>
+            <p style="margin: 0 0 4px; font-size: 14px;"><strong>Dropoff:</strong> ${esc(order.dropoff_address)}</p>
+            <p style="margin: 0; font-size: 14px;"><strong>Payment:</strong> ${esc(order.payment_method)}</p>
           </div>
         ` : ''}
 
@@ -358,14 +358,14 @@ Deno.serve(async (req) => {
       const signupHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">👤 New Account Created</h2>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Name:</strong> ${user_name || 'Not provided'}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${user_email || 'Unknown'}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Name:</strong> ${esc(user_name || 'Not provided')}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>Email:</strong> ${esc(user_email || 'Unknown')}</p>
         </div>
         <p style="color: #64748b; font-size: 13px;">A new customer has signed up on MaceyRunners. Check the admin dashboard for more details.</p>
       `);
 
       for (const ae of adminEmails) {
-        await sendEmail(ae, `[New Signup] ${user_name || user_email}`, signupHtml);
+        await sendEmail(ae, `[New Signup] ${esc(user_name || user_email || '')}`, signupHtml);
       }
 
       return new Response(JSON.stringify({ sent: true, admins: adminEmails.length }), {
@@ -403,11 +403,11 @@ Deno.serve(async (req) => {
         <h2 style="color: #1e3a5f; margin-top: 0;">🚀 Order Assigned to You!</h2>
         <p style="font-size: 15px; color: #334155;">You have been assigned order <strong>${orderNum}</strong>. Please check your dashboard.</p>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${order.order_type}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Type:</strong> ${esc(order.order_type)}</p>
           <p style="margin: 0 0 8px; font-size: 14px;"><strong>Amount:</strong> $${order.price.toLocaleString()} GYD</p>
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${order.pickup_address}</p>
-          <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${order.dropoff_address}</p>
-          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${order.description}</p>` : ''}
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Pickup:</strong> ${esc(order.pickup_address)}</p>
+          <p style="margin: 0; font-size: 14px;"><strong>Dropoff:</strong> ${esc(order.dropoff_address)}</p>
+          ${order.description ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b;">Note: ${esc(order.description)}</p>` : ''}
         </div>
         <div style="text-align: center; margin-top: 20px;">
           <a href="https://macey-run-dash.lovable.app/driver" style="background: #2563eb; color: white; padding: 12px 32px; border-radius: 24px; text-decoration: none; font-weight: bold; display: inline-block;">Open Dashboard</a>
@@ -450,8 +450,8 @@ Deno.serve(async (req) => {
       const statusHtml = emailTemplate(`
         <h2 style="color: #1e3a5f; margin-top: 0;">Driver Status Change</h2>
         <div style="background: #f1f5f9; border-radius: 12px; padding: 20px; margin: 16px 0;">
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Driver:</strong> ${driverName}</p>
-          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Email:</strong> ${driverEmail}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Driver:</strong> ${esc(driverName)}</p>
+          <p style="margin: 0 0 8px; font-size: 14px;"><strong>Email:</strong> ${esc(driverEmail)}</p>
           <p style="margin: 0; font-size: 16px;"><strong>Status:</strong> <span style="color: ${statusColor}; font-weight: 700;">${statusText}</span></p>
         </div>
         <p style="color: #64748b; font-size: 13px;">${is_online ? 'This driver is now accepting orders.' : 'This driver has gone offline and is no longer accepting orders.'}</p>
@@ -459,7 +459,7 @@ Deno.serve(async (req) => {
       `);
 
       for (const ae of adminEmails) {
-        await sendEmail(ae, `[Driver ${is_online ? 'Online' : 'Offline'}] ${driverName}`, statusHtml);
+        await sendEmail(ae, `[Driver ${is_online ? 'Online' : 'Offline'}] ${esc(driverName)}`, statusHtml);
       }
 
       return new Response(JSON.stringify({ sent: true, admins: adminEmails.length }), {

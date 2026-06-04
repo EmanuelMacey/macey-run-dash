@@ -212,7 +212,8 @@ const AdminDrivers = () => {
             </motion.div>
           ))}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

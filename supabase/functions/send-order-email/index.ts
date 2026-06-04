@@ -5,12 +5,33 @@ const corsHeaders = {
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 
+// HTML-escape user-controlled values before embedding in email templates
+const esc = (s: unknown): string => {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Restrict to internal callers (DB triggers / trusted server jobs) via shared secret.
+    const internalSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
+    const callerSecret = req.headers.get('x-internal-secret');
+    if (!internalSecret || callerSecret !== internalSecret) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -25,6 +46,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
     const body = await req.json();
     const { type, order_id, invoice_id, user_id, title, message } = body;
+
 
     // Helper to send email via Resend
     async function sendEmail(to: string, subject: string, html: string) {

@@ -73,7 +73,7 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
   };
 
   const handlePlaceOrder = async () => {
-    if (isMaintenanceClosureActive()) {
+    if (serviceClosed) {
       toast({ title: "Temporarily Closed", description: MAINTENANCE_CLOSURE_MESSAGE, variant: "destructive" });
       return;
     }
@@ -321,10 +321,10 @@ const CheckoutDialog = ({ open, onOpenChange, onOrderPlaced }: CheckoutDialogPro
           <Button
             className="w-full h-12 rounded-full text-base font-bold"
             onClick={handlePlaceOrder}
-            disabled={loading || items.length === 0 || deliveryFee === null || isMaintenanceClosureActive()}
+            disabled={loading || items.length === 0 || deliveryFee === null || serviceClosed}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {isMaintenanceClosureActive()
+            {serviceClosed
               ? "Temporarily Closed"
               : deliveryFee !== null
               ? `Place Order — ${formatPrice(grandTotal)} GYD`

@@ -32,7 +32,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .select("role")
         .eq("user_id", userId)
         .single();
-      setRole((data?.role as AppRole) ?? "customer");
+      const fetched = (data?.role as AppRole) ?? "customer";
+
+      // Block customer access while service is force-closed
+      if (fetched === "customer") {
+        const { data: status } = await supabase
+          .from("service_status")
+          .select("override_mode")
+          .maybeSingle();
+        if (status?.override_mode === "force_closed") {
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          setRole(null);
+          const { toast } = await import("sonner");
+          toast.error("MaceyRunners is temporarily closed. Customer logins are disabled until we reopen.");
+          return;
+        }
+      }
+
+      setRole(fetched);
     } catch {
       setRole("customer");
     }

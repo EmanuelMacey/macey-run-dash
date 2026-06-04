@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail, Zap, Heart } from "lucide-react";
-import { CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
+import { CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK, isMaintenanceClosureActive, MAINTENANCE_CLOSURE_MESSAGE } from "@/lib/closure";
 import { useServiceStatus } from "@/hooks/useServiceStatus";
 import { useSurge } from "@/hooks/useSurge";
 import {
@@ -210,6 +210,10 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
 
   const onSubmit = async (values: OrderFormValues) => {
     if (!user) return;
+    if (isMaintenanceClosureActive()) {
+      toast.error(MAINTENANCE_CLOSURE_MESSAGE);
+      return;
+    }
     if (isWithinClosure()) {
       toast.error(CLOSURE_MESSAGE);
       return;
@@ -279,11 +283,13 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
           <DialogTitle className="font-display text-xl">Place New Order</DialogTitle>
         </DialogHeader>
 
-        {isWithinClosure() && (
+        {(isWithinClosure() || isMaintenanceClosureActive()) && (
           <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10 p-4 space-y-2">
             <div className="flex items-start gap-2">
               <Clock className="h-4 w-4 text-primary mt-0.5 shrink-0 animate-pulse" />
-              <p className="text-sm font-semibold text-foreground leading-tight">{CLOSURE_MESSAGE}</p>
+              <p className="text-sm font-semibold text-foreground leading-tight">
+                {isMaintenanceClosureActive() ? MAINTENANCE_CLOSURE_MESSAGE : CLOSURE_MESSAGE}
+              </p>
             </div>
             <p className="text-xs text-muted-foreground">For urgent matters, contact us:</p>
             <div className="flex flex-col gap-1.5 text-xs">
@@ -641,9 +647,13 @@ const NewOrderDialog = ({ onOrderCreated, children }: NewOrderDialogProps) => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={submitting || isWithinClosure()}>
+            <Button type="submit" className="w-full" disabled={submitting || isWithinClosure() || isMaintenanceClosureActive()}>
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isWithinClosure() ? "Closed — Reopens 3:30 PM" : `Place Order — $${finalPrice.toLocaleString()} GYD`}
+              {isMaintenanceClosureActive()
+                ? "Temporarily Closed"
+                : isWithinClosure()
+                ? "Closed — Reopens 3:30 PM"
+                : `Place Order — $${finalPrice.toLocaleString()} GYD`}
             </Button>
           </form>
         </Form>

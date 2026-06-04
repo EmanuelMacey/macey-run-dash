@@ -12,3 +12,13 @@ export const CLOSURE_MESSAGE =
 export const CLOSURE_EMAIL = "maceyrunners@gmail.com";
 export const CLOSURE_WHATSAPP = "+592 721 9769";
 export const CLOSURE_WHATSAPP_LINK = "https://wa.me/5927219769";
+
+// Scheduled long-term maintenance closure (June 8, 2026 until further notice)
+const MAINTENANCE_START = new Date("2026-06-08T00:00:00-04:00"); // Guyana time
+
+export const isMaintenanceClosureActive = (date: Date = new Date()) => {
+  return date >= MAINTENANCE_START;
+};
+
+export const MAINTENANCE_CLOSURE_MESSAGE =
+  "MaceyRunners is temporarily closed starting June 8th, 2026 for system upgrades and improvements. We sincerely apologize for any inconvenience and will resume operations soon.";

@@ -61,7 +61,7 @@ const MaintenanceClosureBanner = () => {
             <div className="inline-flex items-center gap-2 rounded-2xl bg-primary-foreground/15 px-4 py-2 mb-4">
               <Calendar className="h-4 w-4" />
               <span className="text-sm font-semibold">
-                Effective June 8th, 2026 — Until Further Notice
+                Effective Immediately — Until Further Notice
               </span>
             </div>
 

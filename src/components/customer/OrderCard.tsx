@@ -5,6 +5,7 @@ import { Package, MapPin, Clock, CheckCircle2, XCircle, Truck, Loader2, Timer, S
 import DriverMap from "./DriverMap";
 import OrderChat from "@/components/chat/OrderChat";
 import RatingDialog from "./RatingDialog";
+import TipDialog from "./TipDialog";
 import OrderReceipt from "./OrderReceipt";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -269,7 +270,14 @@ const OrderCard = ({ order, onUpdated, autoPromptRating = false }: OrderCardProp
         )}
 
         {order.status === "delivered" && order.driver_id && (
-          <RatingDialog orderId={order.id} driverId={order.driver_id} autoOpen={autoPromptRating} />
+          <div className="flex flex-wrap items-center gap-2">
+            <RatingDialog orderId={order.id} driverId={order.driver_id} autoOpen={autoPromptRating} />
+            <TipDialog
+              orderId={order.id}
+              initialTip={(order as any).tip_amount ?? 0}
+              autoOpen={autoPromptRating}
+            />
+          </div>
         )}
 
         {/* Footer */}

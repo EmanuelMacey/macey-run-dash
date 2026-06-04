@@ -108,10 +108,7 @@ const AdminDashboard = () => {
           </div>
 
           <TabsContent value="analytics">
-            <div className="space-y-4 sm:space-y-6">
-              <AdminServiceStatus />
-              <AdminAnalytics />
-            </div>
+            <AdminAnalytics />
           </TabsContent>
           <TabsContent value="live"><AdminDriverStatus /></TabsContent>
           <TabsContent value="orders"><AdminOrders /></TabsContent>

@@ -11,7 +11,6 @@ import PricingSection from "@/components/landing/PricingSection";
 import ContactSection from "@/components/landing/ContactSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
-import ClosureBanner from "@/components/landing/ClosureBanner";
 import MaintenanceClosureBanner from "@/components/landing/MaintenanceClosureBanner";
 
 
@@ -26,7 +25,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <MaintenanceClosureBanner />
-      <ClosureBanner />
       <Navbar />
       <HeroSection />
       <TrustMarquee />

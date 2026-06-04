@@ -224,6 +224,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Restrict to internal callers (DB triggers / trusted server jobs) via shared secret
+    const internalSecret = Deno.env.get('INTERNAL_WEBHOOK_SECRET');
+    const callerSecret = req.headers.get('x-internal-secret');
+    if (!internalSecret || callerSecret !== internalSecret) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { user_id, title, message, order_id } = await req.json();
 
     if (!user_id || !title || !message) {
@@ -232,6 +242,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
 
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')!;
     const vapidPrivateKeyStr = Deno.env.get('VAPID_PRIVATE_KEY')!;

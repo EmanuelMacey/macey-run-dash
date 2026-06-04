@@ -9,7 +9,11 @@ import { CheckCircle, XCircle, User, Car, MapPin, Shield, Wifi, WifiOff } from "
 import { motion } from "framer-motion";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Driver = Tables<"drivers"> & { profile?: { full_name: string; phone: string | null } };
+type Driver = Tables<"drivers"> & {
+  profile?: { full_name: string; phone: string | null };
+  tip_total?: number;
+  tip_count?: number;
+};
 
 const AdminDrivers = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -20,10 +24,32 @@ const AdminDrivers = () => {
     if (!driversData) { setLoading(false); return; }
 
     const userIds = driversData.map((d) => d.user_id);
-    const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, phone").in("user_id", userIds);
+    const [{ data: profiles }, { data: tipOrders }] = await Promise.all([
+      supabase.from("profiles").select("user_id, full_name, phone").in("user_id", userIds),
+      (supabase as any)
+        .from("orders")
+        .select("driver_id, tip_amount, status")
+        .in("driver_id", userIds)
+        .eq("status", "delivered"),
+    ]);
 
     const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
-    const enriched = driversData.map((d) => ({ ...d, profile: profileMap.get(d.user_id) }));
+    const tipMap = new Map<string, { total: number; count: number }>();
+    (tipOrders || []).forEach((o: any) => {
+      const tip = Number(o.tip_amount || 0);
+      if (!tip) return;
+      const cur = tipMap.get(o.driver_id) || { total: 0, count: 0 };
+      cur.total += tip;
+      cur.count += 1;
+      tipMap.set(o.driver_id, cur);
+    });
+
+    const enriched = driversData.map((d) => ({
+      ...d,
+      profile: profileMap.get(d.user_id),
+      tip_total: tipMap.get(d.user_id)?.total || 0,
+      tip_count: tipMap.get(d.user_id)?.count || 0,
+    }));
     setDrivers(enriched);
     setLoading(false);
   };
@@ -116,10 +142,15 @@ const AdminDrivers = () => {
                               )}
                             </span>
                           )}
-                          {driver.profile?.phone && (
-                            <span className="text-xs text-muted-foreground">{driver.profile.phone}</span>
-                          )}
-                        </div>
+                        {driver.profile?.phone && (
+                          <span className="text-xs text-muted-foreground">{driver.profile.phone}</span>
+                        )}
+                        {(driver.tip_total || 0) > 0 && (
+                          <span className="text-[10px] font-semibold text-primary inline-flex items-center gap-1 bg-primary/10 px-1.5 py-0.5 rounded-md">
+                            💚 ${driver.tip_total!.toLocaleString()} tips · {driver.tip_count}
+                          </span>
+                        )}
+                      </div>
                         {driver.current_lat && driver.current_lng && (
                           <span className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1">
                             <MapPin className="h-2.5 w-2.5" />

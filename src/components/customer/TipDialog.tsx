@@ -105,7 +105,13 @@ const TipDialog = ({ orderId, initialTip = 0, autoOpen = false, onTipped }: TipD
     onTipped?.(amount);
     toast.success(amount > 0 ? `Thanks! $${amount.toLocaleString()} GYD tip sent 💚` : "Tip removed");
     setOpen(false);
-    if (amount > 0) sendConfirmationEmail(amount);
+    if (amount > 0) {
+      sendConfirmationEmail(amount);
+      // Notify driver via email (best-effort)
+      supabase.functions
+        .invoke("notify-driver-tip", { body: { orderId, tipAmount: amount } })
+        .catch((err) => console.warn("Driver tip email failed", err));
+    }
   };
 
   if (currentTip > 0) {

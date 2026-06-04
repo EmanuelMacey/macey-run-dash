@@ -9,7 +9,9 @@ export interface TemplateEntry {
 }
 
 import { template as tipConfirmation } from './tip-confirmation.tsx'
+import { template as driverTipReceived } from './driver-tip-received.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'tip-confirmation': tipConfirmation,
+  'driver-tip-received': driverTipReceived,
 }

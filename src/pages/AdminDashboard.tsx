@@ -52,6 +52,10 @@ const AdminDashboard = () => {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl relative">
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-navy dark:text-white mb-4 sm:mb-6">Admin Dashboard</h1>
 
+        <div className="mb-4 sm:mb-6">
+          <AdminServiceStatus />
+        </div>
+
         <Tabs defaultValue="analytics" className="space-y-4 sm:space-y-6">
           <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4 scrollbar-hide">
             <TabsList className="inline-flex w-max sm:flex sm:flex-wrap sm:w-full bg-card/80 dark:bg-white/5 backdrop-blur-sm border border-navy/10 dark:border-white/10 rounded-2xl p-1 gap-0.5 sm:gap-1">

@@ -52,6 +52,8 @@ interface DriverOrderCardProps {
 
 const DriverOrderCard = ({ order, isAvailable = false, onUpdated }: DriverOrderCardProps) => {
   const { user } = useAuth();
+  const { isClosed: serviceClosed } = useServiceStatus();
+  const isMaintenanceClosureActive = () => serviceClosed;
   const [loading, setLoading] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [customer, setCustomer] = useState<CustomerInfo | null>(null);

@@ -9,6 +9,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { isMaintenanceClosureActive, MAINTENANCE_CLOSURE_MESSAGE } from "@/lib/closure";
 import { Loader2, MapPin, Banknote, Navigation, CheckCircle2, MessageCircle, CalendarClock, Info } from "lucide-react";
 import OrderReceipt from "@/components/customer/OrderReceipt";
 

@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Package, MapPin, Loader2, Paperclip, X, MessageCircle, CalendarClock, Navigation, Info, Clock, Mail, Zap, Heart } from "lucide-react";
-import { CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK } from "@/lib/closure";
+import { CLOSURE_MESSAGE, CLOSURE_EMAIL, CLOSURE_WHATSAPP, CLOSURE_WHATSAPP_LINK, isMaintenanceClosureActive, MAINTENANCE_CLOSURE_MESSAGE } from "@/lib/closure";
 import { useServiceStatus } from "@/hooks/useServiceStatus";
 import { useSurge } from "@/hooks/useSurge";
 import {
